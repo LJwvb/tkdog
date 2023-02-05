@@ -1,37 +1,37 @@
 <template>
-
   <div id="nav">
     <!-- 固定导航栏 -->
     <el-affix target="#nav" :offset="0">
-      <div style="background-color: #fff;">
+      <div style="background-color: #fff">
         <el-row :gutter="30">
           <el-col :span="24">
             <NavBar></NavBar>
-
           </el-col>
         </el-row>
         <!-- <el-divider/> -->
-
       </div>
-
     </el-affix>
-
 
     <!-- <Home></Home> -->
     <el-row :gutter="30">
-      <el-col class="grid-content bg-purple-light" :xs="24" :sm="24" :md="16" :lg="24" :xl="16" >
+      <el-col
+        class="grid-content bg-purple-light"
+        :xs="24"
+        :sm="24"
+        :md="16"
+        :lg="24"
+        :xl="16"
+      >
         <!-- 动态页面主体 -->
-        <router-view/>
+        <router-view />
       </el-col>
-      
     </el-row>
 
-    <el-row :gutter="20" >
+    <el-row :gutter="20">
       <el-col :span="12" :offset="6">
         <div class="grid-content bg-purple-light">
           <BottomBar></BottomBar>
         </div>
-
       </el-col>
     </el-row>
 
@@ -40,17 +40,15 @@
     <!-- <router-link to="/">Home</router-link> |
     <router-link to="/about">About</router-link> -->
   </div>
-
 </template>
 <script setup lang="ts">
 import NavBar from './components/NavBar/NavBar.vue';
 import SideBar from './components/SideBar/SideBar.vue';
 import BottomBar from './components/BottomBar/BottomBar.vue';
-import Home from './components/NavBar/Home.vue'
-import Login from './views/login/Login.vue'
-
+import Home from './components/NavBar/Home.vue';
+import Login from './views/login/Login.vue';
 </script>
-<style lang="scss">
+<style>
 body {
   overflow-x: hidden;
 }
@@ -71,7 +69,6 @@ body {
   border-radius: 4px;
   min-height: 36px;
 }
-
 
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
