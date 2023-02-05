@@ -40,7 +40,7 @@
               </el-icon>
               消息
             </el-dropdown-item>
-            <el-dropdown-item divided style="color: #F56C6C;">
+            <el-dropdown-item divided style="color: #F56C6C;" @click="toLogin">
               <el-icon>
                 <SwitchButton />
               </el-icon>
@@ -71,6 +71,12 @@ const toInfo=()=> {
 const toMessage=()=> {
   router.push({
     path: '/user/me_news',
+
+  })
+}
+const toLogin=()=> {
+  router.push({
+    path: '/Login',
 
   })
 }

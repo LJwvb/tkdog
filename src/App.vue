@@ -1,4 +1,5 @@
 <template>
+
   <div id="nav">
     <!-- 固定导航栏 -->
     <el-affix target="#nav" :offset="0">
@@ -46,6 +47,7 @@ import NavBar from './components/NavBar/NavBar.vue';
 import SideBar from './components/SideBar/SideBar.vue';
 import BottomBar from './components/BottomBar/BottomBar.vue';
 import Home from './components/NavBar/Home.vue'
+import Login from './views/login/Login.vue'
 
 </script>
 <style lang="scss">

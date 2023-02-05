@@ -24,6 +24,7 @@ import problem_info from '../views/problem_info.vue'
 import me_test_paper from '../views/me/me_test_paper.vue'
 import user from '../components/user.vue'
 import volume from '../components/volume.vue'
+import Login from '../views/login/Login.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -116,6 +117,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/volume',
     name: 'volume',
     component: volume,
+  },
+  {
+    path: '/Login',
+    name: 'Login',
+    component: Login,
   },
 ]
 

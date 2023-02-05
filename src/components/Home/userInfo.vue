@@ -16,7 +16,6 @@
 					</div>
 					<div class="roww center_center" style="margin-top:7px;border-radius: 3px;border:1px solid #999999;width:60px;">
 						<img  src="/static/chuizi.png" style="width:20px;height:10px;"/>
-						<div>好评</div>
 					</div>
 					
 				</div>

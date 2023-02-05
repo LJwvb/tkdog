@@ -101,12 +101,9 @@
 										</div>
 										<div class="allline"></div>
 									</div>
-
+									
 									<div class="roww center_center" style="padding:0px 20px 20px 20px;">
-										<div>点赞人数：20</div>
-										<div style="margin-left:20px;width: 80px;" class="bens">
-											我点赞过
-										</div>
+										<div>点赞人数：20</div>							
 										<div class="allline"></div>
 									</div>
 
