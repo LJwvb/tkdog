@@ -9,7 +9,7 @@
           <el-dropdown split-button style="margin-right: 15px">
             范围
             <template #dropdown>
-              <el-dropdown-menu slot="dropdown">
+              <el-dropdown-menu>
                 <el-dropdown-item>公开</el-dropdown-item>
                 <el-dropdown-item>私有</el-dropdown-item>
               </el-dropdown-menu>

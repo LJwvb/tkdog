@@ -1,7 +1,5 @@
 // import { Menu } from '@element-plus/icons-vue/dist/types';
-import Vue from 'vue';
-import Router from 'vue-router';
-import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router';
+import { createRouter, createWebHashHistory } from 'vue-router';
 import Home from '../views/Home.vue';
 import NavBar from '../components/NavBar/NavBar.vue';
 import Tabs from '../components/Index/Tabs.vue';
@@ -26,7 +24,7 @@ import user from '../components/user.vue';
 import volume from '../components/volume.vue';
 import Login from '../views/login/Login.vue';
 
-const routes: Array<RouteRecordRaw> = [
+const routes: any = [
   {
     path: '/',
     name: 'home',

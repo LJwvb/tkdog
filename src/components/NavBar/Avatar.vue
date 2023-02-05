@@ -74,7 +74,7 @@ const toLogin = () => {
   });
 };
 </script>
-<style lang="scss">
+<style >
 .el-row {
   margin-bottom: 20px;
 }

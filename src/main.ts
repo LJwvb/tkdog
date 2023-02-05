@@ -6,7 +6,6 @@ import ElementPlus from 'element-plus';
 import 'element-plus/dist/index.css';
 import * as ElementPlusIconsVue from '@element-plus/icons-vue';
 // 全局注册
-import './assets/main.css';
 const app = createApp(App);
 /**全局注册elicon图标 */
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {

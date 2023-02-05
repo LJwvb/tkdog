@@ -21,7 +21,7 @@ import Logo from './Logo.vue';
 import Menu from './Menu.vue';
 import Search from './Search.vue';
 </script>
-<style lang="scss">
+<style>
 .el-row {
   margin-bottom: 20px;
 }

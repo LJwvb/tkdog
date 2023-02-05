@@ -18,13 +18,8 @@
           <div class="rowsb padding23 border_bottom center_center">
             <div>信息</div>
             <div>
-              <el-button
-                class="el-icon-edit"
-                @click="dialogFormVisibleClicl"
-                type="text"
-              >
-                编辑</el-button
-              >
+              <el-button class="el-icon-edit" @click="dialogFormVisibleClicl" type="text">
+                编辑</el-button>
             </div>
           </div>
           <el-row class="padding23">
@@ -103,13 +98,8 @@
           <el-input v-model="form.name"></el-input>
         </el-form-item>
         <el-form-item label="头像">
-          <el-upload
-            class="avatar-uploader"
-            action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
-            :show-file-list="false"
-            :on-success="handleAvatarSuccess"
-            :before-upload="beforeAvatarUpload"
-          >
+          <el-upload class="avatar-uploader" action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
+            :show-file-list="false" :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload">
             <img v-if="imageUrl" :src="imageUrl" class="avatar" />
             <el-icon v-else class="avatar-uploader-icon">
               <Plus />
@@ -137,23 +127,9 @@
         </el-form-item>
 
         <el-form-item label="兴趣">
-          <el-select
-            multiple
-            style="width: 100%"
-            v-model="value"
-            placeholder="请选择"
-          >
-            <el-option-group
-              v-for="group in options"
-              :key="group.label"
-              :label="group.label"
-            >
-              <el-option
-                v-for="item in group.options"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              >
+          <el-select multiple style="width: 100%" v-model="value" placeholder="请选择">
+            <el-option-group v-for="group in options" :key="group.label" :label="group.label">
+              <el-option v-for="item in group.options" :key="item.value" :label="item.label" :value="item.value">
               </el-option>
             </el-option-group>
           </el-select>
@@ -163,13 +139,12 @@
           <el-input v-model="form.name"></el-input>
         </el-form-item>
       </el-form>
-
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="dialogFormVisible = false"
-          >提 交</el-button
-        >
-      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="dialogFormVisible = false">取 消</el-button>
+          <el-button type="primary" @click="dialogFormVisible = false">提 交</el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
@@ -291,6 +266,7 @@ const handleInputConfirm = () => {
 .padding23 {
   padding: 20px 20px 20px 20px;
 }
+
 .avatar-uploader .el-upload {
   border: 1px dashed var(--el-border-color);
   border-radius: 6px;
@@ -311,6 +287,7 @@ const handleInputConfirm = () => {
   height: 178px;
   text-align: center;
 }
+
 .grid-content {
   border-radius: 4px;
   min-height: 36px;

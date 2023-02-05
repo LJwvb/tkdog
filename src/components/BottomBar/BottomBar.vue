@@ -21,7 +21,7 @@
   </el-row>
 </template>
 
-<style lang="scss">
+<style>
 .el-row {
   margin-bottom: 20px;
 }

@@ -99,9 +99,9 @@ export default defineComponent({
     const router = useRouter();
 
     // 登录图形码地址
-    const loginCaptchaUrl = ref(
-      process.env.VUE_APP_BASEURL + '/captcha?type=login',
-    );
+    // const loginCaptchaUrl = ref(
+    //   process.env.VUE_APP_BASEURL + '/captcha?type=login',
+    // );
 
     // 模型
     const ruleForm = reactive({
@@ -151,10 +151,10 @@ export default defineComponent({
       ],
     });
 
-    const changeLoginCaptchaUrl = () => {
-      loginCaptchaUrl.value =
-        process.env.VUE_APP_BASEURL + `/captcha?type=login&t=${Math.random()}`;
-    };
+    // const changeLoginCaptchaUrl = () => {
+    //   loginCaptchaUrl.value =
+    //     process.env.VUE_APP_BASEURL + `/captcha?type=login&t=${Math.random()}`;
+    // };
 
     // 登录
     const handleLogin = async () => {
@@ -185,7 +185,7 @@ export default defineComponent({
     //   ElMessage.error(res.message)
 
     // 刷新验证码
-    changeLoginCaptchaUrl();
+    // changeLoginCaptchaUrl();
     //     }
     //   } catch (error) {
     //     console.log('error is ', error)
@@ -199,10 +199,10 @@ export default defineComponent({
 
     return {
       // 登录验证码的url
-      loginCaptchaUrl,
+      // loginCaptchaUrl,
       ruleForm,
       rules,
-      changeLoginCaptchaUrl,
+      // changeLoginCaptchaUrl,
       handleLogin,
       register,
       ruleFormRef,

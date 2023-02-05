@@ -34,7 +34,7 @@
                   <el-icon>
                     <Document />
                   </el-icon>
-                  <span slot="title">我的题目</span>
+                  <template v-slot:title>我的题目</template>
                 </el-menu-item>
 
                 <el-menu-item index="4">

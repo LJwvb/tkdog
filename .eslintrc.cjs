@@ -12,4 +12,8 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 'latest',
   },
+  rules: {
+    // 关闭驼峰命名规则
+    'vue/multi-word-component-names': 0,
+  },
 };
