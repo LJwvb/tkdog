@@ -1,16 +1,15 @@
 <template>
-  <el-card style="    display: flex;
-    justify-content: space-around;    margin: 0 20px 0 20px;">
-  <div class="roww center_center" >
-    创建成功
-  </div>
-</el-card>
+  <el-card
+    style="display: flex; justify-content: space-around; margin: 0 20px 0 20px"
+  >
+    <div class="roww center_center">创建成功</div>
+  </el-card>
 </template>
-
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-h1, h2 {
+h1,
+h2 {
   font-weight: normal;
 }
 ul {

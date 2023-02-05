@@ -40,22 +40,15 @@
               <el-input
                 prefix-icon="el-icon-key"
                 placeholder="请输入验证码"
-                
               ></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="7">
-            <img
-              style="width:100%;height:40px;margin-left:10px;"
-             
-              alt=""
-              
-            />
+            <img style="width: 100%; height: 40px; margin-left: 10px" alt="" />
           </el-col>
         </el-row>
         <el-form-item prop="checked">
-          <el-checkbox ></el-checkbox
-          >&nbsp;我已阅读并同意<el-link
+          <el-checkbox></el-checkbox>&nbsp;我已阅读并同意<el-link
             type="primary"
             target="__blank"
             href="https://in.m.jd.com/help/app/register_info.html"
@@ -63,12 +56,12 @@
           >和<el-link type="primary">隐私条款</el-link>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" style="width:100%;" @click="handleLogin"
+          <el-button type="primary" style="width: 100%" @click="handleLogin"
             >登录</el-button
           >
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="register" style="width:100%;"
+          <el-button type="primary" @click="register" style="width: 100%"
             >注册</el-button
           >
         </el-form-item>
@@ -84,39 +77,39 @@
 
 <script lang="ts">
 // 参考：https://blog.csdn.net/Lschange/article/details/112373162
-import { defineComponent, ref, reactive, unref } from 'vue'
-import { useRouter } from 'vue-router'
+import { defineComponent, ref, reactive, unref } from 'vue';
+import { useRouter } from 'vue-router';
 // import { login } from '@/api/user'
 // import { saveToken } from '@/utils/token'
-import Register from './register.vue'
-import { ElMessage } from 'element-plus'
+import Register from './register.vue';
+import { ElMessage } from 'element-plus';
 
 export default defineComponent({
   name: 'Login',
   components: {
-    Register
+    Register,
   },
   // 入口方法
-  setup () {
+  setup() {
     // 表单的ref
-    const ruleFormRef = ref(null)
+    const ruleFormRef = ref(null);
     // 子组件的ref
-    const registerRef: any = ref(null)
+    const registerRef: any = ref(null);
     // 路由对象
-    const router = useRouter()
+    const router = useRouter();
 
     // 登录图形码地址
     const loginCaptchaUrl = ref(
-      process.env.VUE_APP_BASEURL + '/captcha?type=login'
-    )
+      process.env.VUE_APP_BASEURL + '/captcha?type=login',
+    );
 
     // 模型
     const ruleForm = reactive({
       phone: '18511111111', // 手机号
       password: '12345678', // 密码
       code: '', // 验证码
-      checked: true // 是否同意用户协议
-    })
+      checked: true, // 是否同意用户协议
+    });
 
     // 校验规则
     const rules = ref({
@@ -129,81 +122,81 @@ export default defineComponent({
             // 注意：无论成功与否，都要调用callback，否则下一个异步操作无法执行
             if (!value) {
               // 这个return 就是阻断代码执行
-              return callback(new Error('手机号不能为空'))
+              return callback(new Error('手机号不能为空'));
             }
 
-            const reg = /^1[3456789][0-9]{9}$/
+            const reg = /^1[3456789][0-9]{9}$/;
             if (!reg.test(value)) {
-              return callback(new Error('手机号不合法'))
+              return callback(new Error('手机号不合法'));
             }
 
             // 可定校验通过的
-            callback()
+            callback();
           },
-          trigger: 'blur'
-        }
+          trigger: 'blur',
+        },
       ],
       password: [
         { required: true, message: '密码不能为空', trigger: 'blur' },
-        { min: 6, max: 16, message: '密码必须在6-16位之间', trigger: 'blur' }
+        { min: 6, max: 16, message: '密码必须在6-16位之间', trigger: 'blur' },
       ],
       code: [{ required: true, message: '验证码不能为空', trigger: 'blur' }],
       checked: [
         {
           validator: (rule: Function, value: string, callback: Function) => {
-            value ? callback() : callback(new Error('必须勾选用户协议'))
+            value ? callback() : callback(new Error('必须勾选用户协议'));
           },
-          trigger: 'change'
-        }
-      ]
-    })
+          trigger: 'change',
+        },
+      ],
+    });
 
     const changeLoginCaptchaUrl = () => {
       loginCaptchaUrl.value =
-        process.env.VUE_APP_BASEURL + `/captcha?type=login&t=${Math.random()}`
-    }
+        process.env.VUE_APP_BASEURL + `/captcha?type=login&t=${Math.random()}`;
+    };
 
     // 登录
     const handleLogin = async () => {
-      const form: any = unref(ruleFormRef)
+      const form: any = unref(ruleFormRef);
 
-      if (!form) return
-    }
+      if (!form) return;
+    };
 
-      // try {
-        // await form.validate()
+    // try {
+    // await form.validate()
 
-        // const res: any = await login(ruleForm)
+    // const res: any = await login(ruleForm)
 
-        // if (res.code === 200) {
-        //   // 提示
-        //   ElMessage.success({
-        //     message: '登录成功~',
-        //     type: 'success'
-        //   })
+    // if (res.code === 200) {
+    //   // 提示
+    //   ElMessage.success({
+    //     message: '登录成功~',
+    //     type: 'success'
+    //   })
 
-          // 保存token
-          // saveToken(res.data.token)
+    // 保存token
+    // saveToken(res.data.token)
 
-          // 跳转到登录页面
-          //  router.push('/layout')
-        // } else {
-        //   弹出提示
-        //   ElMessage.error(res.message)
+    // 跳转到登录页面
+    //  router.push('/layout')
+    // } else {
+    //   弹出提示
+    //   ElMessage.error(res.message)
 
-          // 刷新验证码
-          changeLoginCaptchaUrl()
+    // 刷新验证码
+    changeLoginCaptchaUrl();
     //     }
     //   } catch (error) {
     //     console.log('error is ', error)
     //   }
     // }
-    
+
     // 弹出注册子组件
     const register = () => {
-      registerRef.value.dialogVisible = true
-    }
-  
+      registerRef.value.dialogVisible = true;
+    };
+
     return {
       // 登录验证码的url
       loginCaptchaUrl,
@@ -213,13 +206,13 @@ export default defineComponent({
       handleLogin,
       register,
       ruleFormRef,
-      registerRef
-    }
-  }
-}) 
+      registerRef,
+    };
+  },
+});
 </script>
 
-<style  scoped>
+<style scoped>
 .login-container {
   height: 100%;
   display: flex;
@@ -227,38 +220,37 @@ export default defineComponent({
   justify-content: space-around;
   /* background: linear-gradient(225deg, #1493fa, #01c6fa); */
   background: url(../../assets/bg.jpg) no-repeat;
+}
+.left {
+  width: 478px;
+  height: 550px;
+  background: #f5f5f5;
+  padding: 48px;
+}
+.title-box {
+  display: flex;
+  align-items: center;
+}
+.title-box img {
+  width: 22px;
+  height: 17px;
+  margin-right: 16px;
+}
+.title {
+  font-size: 24px;
+  margin-right: 14px;
+}
+.line {
+  width: 1px;
+  background-color: #c7c7c7;
+  height: 27px;
+  margin-right: 12px;
+}
+.sub-title {
+  font-size: 22px;
+}
 
-}  .left {
-    width: 478px;
-    height: 550px;
-    background: #f5f5f5;
-    padding: 48px;
-  }  .title-box {
-      display: flex;
-      align-items: center;
-     }
-     .title-box  img {
-        width: 22px;
-        height: 17px;
-        margin-right: 16px;
-      }
-      .title {
-        font-size: 24px;
-        margin-right: 14px;
-      }
-      .line {
-        width: 1px;
-        background-color: #c7c7c7;
-        height: 27px;
-        margin-right: 12px;
-      }
-      .sub-title {
-        font-size: 22px;
-      }
-
-    .login-form {
-      margin-top: 29px;
-    }
-  
-
+.login-form {
+  margin-top: 29px;
+}
 </style>

@@ -1,7 +1,7 @@
 <template>
   <el-row>
     <el-col :xs="0" :sm="0" :md="0" :lg="12" :xl="12">
-      <el-dropdown style="padding-top: 10%;">
+      <el-dropdown style="padding-top: 10%">
         <!-- <el-button type="primary" size="large">
           上传<el-icon class="el-icon--right">
             <arrow-down />
@@ -17,11 +17,9 @@
           </el-dropdown-menu>
         </template> -->
         <el-button type="primary" class="search" @click="toaddSuject">上传</el-button>
-
       </el-dropdown>
     </el-col>
     <el-col :xs="24" :sm="24" :md="24" :lg="12" :xl="12">
-
       <el-dropdown>
         <span>
           <el-avatar :size="50" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" />
@@ -40,7 +38,7 @@
               </el-icon>
               消息
             </el-dropdown-item>
-            <el-dropdown-item divided style="color: #F56C6C;" @click="toLogin">
+            <el-dropdown-item divided style="color: #f56c6c" @click="toLogin">
               <el-icon>
                 <SwitchButton />
               </el-icon>
@@ -51,36 +49,30 @@
       </el-dropdown>
     </el-col>
   </el-row>
-
 </template>
 
 <script setup lang="ts">
-import router from '../../router'
-const toaddSuject=()=> {
+import router from '../../router';
+const toaddSuject = () => {
   router.push({
     path: '/add_subject',
-
-  })
-}
-const toInfo=()=> {
+  });
+};
+const toInfo = () => {
   router.push({
     path: '/user/me_info',
-
-  })
-}
-const toMessage=()=> {
+  });
+};
+const toMessage = () => {
   router.push({
     path: '/user/me_news',
-
-  })
-}
-const toLogin=()=> {
+  });
+};
+const toLogin = () => {
   router.push({
     path: '/Login',
-
-  })
-}
-
+  });
+};
 </script>
 <style lang="scss">
 .el-row {

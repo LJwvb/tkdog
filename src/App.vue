@@ -45,7 +45,7 @@
 import NavBar from './components/NavBar/NavBar.vue';
 import SideBar from './components/SideBar/SideBar.vue';
 import BottomBar from './components/BottomBar/BottomBar.vue';
-import Home from './components/NavBar/Home.vue';
+// import Home from './components/NavBar/Home.vue';
 import Login from './views/login/Login.vue';
 </script>
 <style>
@@ -78,16 +78,12 @@ body {
   color: #2c3e50;
 }
 
-#nav {
-  // padding: 30px;
+#nav a {
+  font-weight: bold;
+  color: #2c3e50;
+}
 
-  a {
-    font-weight: bold;
-    color: #2c3e50;
-
-    &.router-link-exact-active {
-      color: #42b983;
-    }
-  }
+.router-link-exact-active {
+  color: #42b983;
 }
 </style>

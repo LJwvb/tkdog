@@ -6,18 +6,18 @@
     <el-descriptions-item>2021-12-28</el-descriptions-item>
   </el-descriptions>
   <el-descriptions column="4">
-    <el-descriptions-item width="70px"> <el-icon>
-        <View />
-      </el-icon><span>4450</span></el-descriptions-item>
-    <el-descriptions-item width="50px"> <el-icon>
-        <Star />
-      </el-icon><span>99</span></el-descriptions-item>
-    <el-descriptions-item width="50px"> <el-icon>
-        <ChatDotRound />
-      </el-icon><span>10</span></el-descriptions-item>
-    <el-descriptions-item> <el-icon>
-        <Odometer />
-      </el-icon><span>6</span></el-descriptions-item>
+    <el-descriptions-item width="70px">
+      <el-icon> <View /> </el-icon><span>4450</span></el-descriptions-item
+    >
+    <el-descriptions-item width="50px">
+      <el-icon> <Star /> </el-icon><span>99</span></el-descriptions-item
+    >
+    <el-descriptions-item width="50px">
+      <el-icon> <ChatDotRound /> </el-icon><span>10</span></el-descriptions-item
+    >
+    <el-descriptions-item>
+      <el-icon> <Odometer /> </el-icon><span>6</span></el-descriptions-item
+    >
   </el-descriptions>
   <el-divider />
   <el-descriptions title="let,var,const有什么区别？">
@@ -27,18 +27,18 @@
     <el-descriptions-item>2021-12-28</el-descriptions-item>
   </el-descriptions>
   <el-descriptions column="4">
-    <el-descriptions-item width="70px"> <el-icon>
-        <View />
-      </el-icon><span>4450</span></el-descriptions-item>
-    <el-descriptions-item width="50px"> <el-icon>
-        <Star />
-      </el-icon><span>99</span></el-descriptions-item>
-    <el-descriptions-item width="50px"> <el-icon>
-        <ChatDotRound />
-      </el-icon><span>10</span></el-descriptions-item>
-    <el-descriptions-item> <el-icon>
-        <Odometer />
-      </el-icon><span>6</span></el-descriptions-item>
+    <el-descriptions-item width="70px">
+      <el-icon> <View /> </el-icon><span>4450</span></el-descriptions-item
+    >
+    <el-descriptions-item width="50px">
+      <el-icon> <Star /> </el-icon><span>99</span></el-descriptions-item
+    >
+    <el-descriptions-item width="50px">
+      <el-icon> <ChatDotRound /> </el-icon><span>10</span></el-descriptions-item
+    >
+    <el-descriptions-item>
+      <el-icon> <Odometer /> </el-icon><span>6</span></el-descriptions-item
+    >
   </el-descriptions>
   <el-divider />
   <el-descriptions title="let,var,const有什么区别？">
@@ -48,18 +48,18 @@
     <el-descriptions-item>2021-12-28</el-descriptions-item>
   </el-descriptions>
   <el-descriptions column="4">
-    <el-descriptions-item width="70px"> <el-icon>
-        <View />
-      </el-icon><span>4450</span></el-descriptions-item>
-    <el-descriptions-item width="50px"> <el-icon>
-        <Star />
-      </el-icon><span>99</span></el-descriptions-item>
-    <el-descriptions-item width="50px"> <el-icon>
-        <ChatDotRound />
-      </el-icon><span>10</span></el-descriptions-item>
-    <el-descriptions-item> <el-icon>
-        <Odometer />
-      </el-icon><span>6</span></el-descriptions-item>
+    <el-descriptions-item width="70px">
+      <el-icon> <View /> </el-icon><span>4450</span></el-descriptions-item
+    >
+    <el-descriptions-item width="50px">
+      <el-icon> <Star /> </el-icon><span>99</span></el-descriptions-item
+    >
+    <el-descriptions-item width="50px">
+      <el-icon> <ChatDotRound /> </el-icon><span>10</span></el-descriptions-item
+    >
+    <el-descriptions-item>
+      <el-icon> <Odometer /> </el-icon><span>6</span></el-descriptions-item
+    >
   </el-descriptions>
   <el-divider />
   <el-descriptions title="let,var,const有什么区别？">
@@ -69,18 +69,18 @@
     <el-descriptions-item>2021-12-28</el-descriptions-item>
   </el-descriptions>
   <el-descriptions column="4">
-    <el-descriptions-item width="70px"> <el-icon>
-        <View />
-      </el-icon><span>4450</span></el-descriptions-item>
-    <el-descriptions-item width="50px"> <el-icon>
-        <Star />
-      </el-icon><span>99</span></el-descriptions-item>
-    <el-descriptions-item width="50px"> <el-icon>
-        <ChatDotRound />
-      </el-icon><span>10</span></el-descriptions-item>
-    <el-descriptions-item> <el-icon>
-        <Odometer />
-      </el-icon><span>6</span></el-descriptions-item>
+    <el-descriptions-item width="70px">
+      <el-icon> <View /> </el-icon><span>4450</span></el-descriptions-item
+    >
+    <el-descriptions-item width="50px">
+      <el-icon> <Star /> </el-icon><span>99</span></el-descriptions-item
+    >
+    <el-descriptions-item width="50px">
+      <el-icon> <ChatDotRound /> </el-icon><span>10</span></el-descriptions-item
+    >
+    <el-descriptions-item>
+      <el-icon> <Odometer /> </el-icon><span>6</span></el-descriptions-item
+    >
   </el-descriptions>
   <el-divider />
   <el-descriptions title="let,var,const有什么区别？">
@@ -90,18 +90,18 @@
     <el-descriptions-item>2021-12-28</el-descriptions-item>
   </el-descriptions>
   <el-descriptions column="4">
-    <el-descriptions-item width="70px"> <el-icon>
-        <View />
-      </el-icon><span>4450</span></el-descriptions-item>
-    <el-descriptions-item width="50px"> <el-icon>
-        <Star />
-      </el-icon><span>99</span></el-descriptions-item>
-    <el-descriptions-item width="50px"> <el-icon>
-        <ChatDotRound />
-      </el-icon><span>10</span></el-descriptions-item>
-    <el-descriptions-item> <el-icon>
-        <Odometer />
-      </el-icon><span>6</span></el-descriptions-item>
+    <el-descriptions-item width="70px">
+      <el-icon> <View /> </el-icon><span>4450</span></el-descriptions-item
+    >
+    <el-descriptions-item width="50px">
+      <el-icon> <Star /> </el-icon><span>99</span></el-descriptions-item
+    >
+    <el-descriptions-item width="50px">
+      <el-icon> <ChatDotRound /> </el-icon><span>10</span></el-descriptions-item
+    >
+    <el-descriptions-item>
+      <el-icon> <Odometer /> </el-icon><span>6</span></el-descriptions-item
+    >
   </el-descriptions>
   <el-divider />
   <div class="page">

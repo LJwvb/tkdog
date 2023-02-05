@@ -20,7 +20,6 @@ import Avatar from './Avatar.vue';
 import Logo from './Logo.vue';
 import Menu from './Menu.vue';
 import Search from './Search.vue';
-
 </script>
 <style lang="scss">
 .el-row {

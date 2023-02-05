@@ -1,29 +1,33 @@
 <template>
-	<div class="hello">
-		<el-card class="box-card" style="margin:20px 20px 20px 0;">
-		<div class="colonn background1">
-			<div class="rowsb padding23 border_bottom center_center">
-				<div>浏览历史（10）</div>
-			</div>
-			<div class="colonn">
-				<wentiitem style="margin-top:20px;" v-for="(item, index) in 10" :key="index"></wentiitem>
-				<div class="roww endend" style="padding:10px 20px;">
-					<div>总数650</div>
-					<el-pagination background layout="prev, pager, next" :total="1000">
-					</el-pagination>
-				</div>
-			</div>
-		</div>
-	</el-card>
-	</div>
+  <div class="hello">
+    <el-card class="box-card" style="margin: 20px 20px 20px 0">
+      <div class="colonn background1">
+        <div class="rowsb padding23 border_bottom center_center">
+          <div>浏览历史（10）</div>
+        </div>
+        <div class="colonn">
+          <wentiitem
+            style="margin-top: 20px"
+            v-for="(item, index) in 10"
+            :key="index"
+          ></wentiitem>
+          <div class="roww endend" style="padding: 10px 20px">
+            <div>总数650</div>
+            <el-pagination background layout="prev, pager, next" :total="1000">
+            </el-pagination>
+          </div>
+        </div>
+      </div>
+    </el-card>
+  </div>
 </template>
 
 <script setup lang="ts">
-import {ref} from 'vue'
-import wentiitem from "@/components/Home/wentiitem.vue"
-	const name=ref('me_compon')
-	const input=ref('')
-	
+import { ref } from 'vue';
+import wentiitem from '@/components/Home/wentiitem.vue';
+const name = ref('me_compon');
+const input = ref('');
+
 // me_collection.vue
 </script>
 
@@ -31,20 +35,20 @@ import wentiitem from "@/components/Home/wentiitem.vue"
 <style scoped>
 h1,
 h2 {
-	font-weight: normal;
+  font-weight: normal;
 }
 
 ul {
-	list-style-type: none;
-	padding: 0;
+  list-style-type: none;
+  padding: 0;
 }
 
 li {
-	display: inline-block;
-	margin: 0 10px;
+  display: inline-block;
+  margin: 0 10px;
 }
 
 a {
-	color: #42b983;
+  color: #42b983;
 }
 </style>

@@ -16,4 +16,3 @@ app.use(ElementPlus); // 引入elementuiPlus
 // app.use(store);
 app.use(router);
 app.mount('#app');
-app.use(mavonEditor); //富文本

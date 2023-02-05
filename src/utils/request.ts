@@ -1,5 +1,5 @@
-import axios from 'axios'
+import axios from 'axios';
 const request = axios.create({
   baseURL: 'http://127.0.0.1:7000/api',
-})
-export default request
+});
+export default request;

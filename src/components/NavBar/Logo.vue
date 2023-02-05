@@ -1,17 +1,13 @@
 <template>
   <div class="mainpic">
-    <img src="../../assets/tkdog.png" width="50">
+    <img src="../../assets/tkdog.png" width="50" />
     <div class="title">
       <span>题库狗</span>
     </div>
   </div>
-
 </template>
 
-<script setup lang="ts">
-
-
-</script>
+<script setup lang="ts"></script>
 <style lang="scss">
 .mainpic {
   display: flex;

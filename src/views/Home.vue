@@ -1,10 +1,10 @@
 <template>
-  <div class="home" >
+  <div class="home">
     <Tabs></Tabs>
 
     <el-row :gutter="40">
-      <el-col class="grid-content " :xs="24" :sm="24" :md="16" :lg="16" :xl="16">
-         <!-- 动态页面主体
+      <el-col class="grid-content" :xs="24" :sm="24" :md="16" :lg="16" :xl="16">
+        <!-- 动态页面主体
         <router-view />  -->
       </el-col>
 
@@ -12,7 +12,6 @@
         <SideBar></SideBar>
       </el-col> -->
     </el-row>
-
 
     <el-backtop :right="100" :bottom="100" />
 
@@ -25,5 +24,4 @@
 import Tags from '@/components/Index/Tags.vue';
 import Tabs from '@/components/Index/Tabs.vue';
 import SideBar from '@/components/SideBar/SideBar.vue';
-
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <el-container class="layout-container-demo" style="height:100%">
+  <el-container class="layout-container-demo" style="height: 100%">
     <!-- <el-aside width="200px">
       <el-scrollbar>
         <el-menu>
@@ -60,18 +60,13 @@
     </el-aside> -->
     <subject_bytype></subject_bytype>
     <shitilan></shitilan>
-
-   
   </el-container>
-  
 </template>
 
 <script lang="ts" setup>
-import shitilan from "../components/shitilan.vue"
-import subject_bytype from "../components/subject/subject_bytype.vue"
-import { ref } from 'vue'
-
-
+import shitilan from '../components/shitilan.vue';
+import subject_bytype from '../components/subject/subject_bytype.vue';
+import { ref } from 'vue';
 </script>
 
 <style scoped>

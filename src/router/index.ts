@@ -1,30 +1,30 @@
 // import { Menu } from '@element-plus/icons-vue/dist/types';
-import Vue from 'vue'
-import Router from 'vue-router'
-import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
-import Home from '../views/Home.vue'
-import NavBar from '../components/NavBar/NavBar.vue'
-import Tabs from '../components/Index/Tabs.vue'
-import Subject from '../components/subject.vue'
-import label from '../components/subject/label.vue'
-import subject_bytype from '../components/subject/subject_bytype.vue'
-import test_paper from '../components/Home/test_paper.vue'
-import me_info from '../views/me/me_info.vue'
-import me_collection from '../views/me/me_collection.vue'
-import subject_me from '../views/me/subject_me.vue'
-import me_history from '../views/me/me_history.vue'
-import me_news from '../views/me/me_news.vue'
-import add_subject from '../components/add_subject.vue'
-import addPaper from '../views/addPaper.vue'
-import addPaperone from '../views/addPaper/one.vue'
-import addPapertwo from '../views/addPaper/two.vue'
-import addPaperthree from '../views/addPaper/three.vue'
-import addPaperfour from '../views/addPaper/four.vue'
-import problem_info from '../views/problem_info.vue'
-import me_test_paper from '../views/me/me_test_paper.vue'
-import user from '../components/user.vue'
-import volume from '../components/volume.vue'
-import Login from '../views/login/Login.vue'
+import Vue from 'vue';
+import Router from 'vue-router';
+import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router';
+import Home from '../views/Home.vue';
+import NavBar from '../components/NavBar/NavBar.vue';
+import Tabs from '../components/Index/Tabs.vue';
+import Subject from '../components/subject.vue';
+import label from '../components/subject/label.vue';
+import subject_bytype from '../components/subject/subject_bytype.vue';
+import test_paper from '../components/Home/test_paper.vue';
+import me_info from '../views/me/me_info.vue';
+import me_collection from '../views/me/me_collection.vue';
+import subject_me from '../views/me/subject_me.vue';
+import me_history from '../views/me/me_history.vue';
+import me_news from '../views/me/me_news.vue';
+import add_subject from '../components/add_subject.vue';
+import addPaper from '../views/addPaper.vue';
+import addPaperone from '../views/addPaper/one.vue';
+import addPapertwo from '../views/addPaper/two.vue';
+import addPaperthree from '../views/addPaper/three.vue';
+import addPaperfour from '../views/addPaper/four.vue';
+import problem_info from '../views/problem_info.vue';
+import me_test_paper from '../views/me/me_test_paper.vue';
+import user from '../components/user.vue';
+import volume from '../components/volume.vue';
+import Login from '../views/login/Login.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -123,11 +123,11 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Login',
     component: Login,
   },
-]
+];
 
 const router = createRouter({
   history: createWebHashHistory(),
   routes,
-})
+});
 
-export default router
+export default router;
