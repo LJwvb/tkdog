@@ -16,13 +16,18 @@
             <el-dropdown-item>创建试卷</el-dropdown-item>
           </el-dropdown-menu>
         </template> -->
-        <el-button type="primary" class="search" @click="toaddSuject">上传</el-button>
+        <el-button type="primary" class="search" @click="toaddSuject"
+          >上传</el-button
+        >
       </el-dropdown>
     </el-col>
     <el-col :xs="24" :sm="24" :md="24" :lg="12" :xl="12">
       <el-dropdown>
         <span>
-          <el-avatar :size="50" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" />
+          <el-avatar
+            :size="50"
+            src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
+          />
         </span>
         <template #dropdown>
           <el-dropdown-menu>
@@ -74,7 +79,7 @@ const toLogin = () => {
   });
 };
 </script>
-<style >
+<style>
 .el-row {
   margin-bottom: 20px;
 }

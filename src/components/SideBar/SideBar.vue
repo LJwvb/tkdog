@@ -11,8 +11,10 @@
           </div>
         </template>
         <div>
-          <span>说说你对模块化方案的理解，比如 CommonJS、AMD、CMD、ES Module
-            分别是什么？</span>
+          <span
+            >说说你对模块化方案的理解，比如 CommonJS、AMD、CMD、ES Module
+            分别是什么？
+          </span>
           <el-button class="button" text>点击了解</el-button>
         </div>
       </el-card>
@@ -31,10 +33,14 @@
           </div>
         </template>
         <div class="normal">
-          <el-avatar src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" />
+          <el-avatar
+            src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
+          />
         </div>
         <div class="info">
-          <span>题库狗一个干净且高级的面试刷题网站源码，支持自由组卷，通过Vue3+Node.js的全栈项目，程序包含网站前台+管理员后台</span>
+          <span>
+            题库狗一个干净且高级的面试刷题网站源码，支持自由组卷，通过Vue3+Node.js的全栈项目，程序包含网站前台+管理员后台
+          </span>
           <el-button class="button" text>点击了解</el-button>
         </div>
       </el-card>
@@ -52,16 +58,31 @@
           </div>
         </div>
         <div class="colonn">
-          <div class="roww border_bottom" v-for="(item, index) in 2" style="padding-bottom: 25px; padding-top: 25px">
-            <img src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" style="
+          <div
+            class="roww border_bottom"
+            v-for="(item, index) in 2"
+            style="padding-bottom: 25px; padding-top: 25px"
+          >
+            <img
+              src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
+              style="
                 width: 30px;
                 height: 30px;
                 border-radius: 50%;
                 margin-right: 15px;
-              " />
+              "
+            />
             <div class="colonn">
-              <div class="roww" style="display: flex; justify-content: space-around">
-                <el-tooltip style="background-color: #ffffff" effect="dark" content="Top Center 提示文字" placement="top">
+              <div
+                class="roww"
+                style="display: flex; justify-content: space-around"
+              >
+                <el-tooltip
+                  style="background-color: #ffffff"
+                  effect="dark"
+                  content="Top Center 提示文字"
+                  placement="top"
+                >
                   <div slot="content">
                     <userInfo></userInfo>
                   </div>
@@ -91,10 +112,10 @@ axios({
   .then((res) => {
     console.log(res);
   })
-  .catch((err) => { });
+  .catch((err) => {});
 </script>
 
-<style >
+<style>
 .colonn {
   display: flex;
   flex-direction: column;
@@ -118,10 +139,10 @@ axios({
 .info {
   text-align: left;
   text-indent: 2em;
+}
 
-  .button {
-    float: right;
-  }
+.button {
+  float: right;
 }
 
 .normal {

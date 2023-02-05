@@ -1,27 +1,24 @@
 <template>
-  <el-menu :default-active="activeIndex" class="el-menu-demo" mode="horizontal" @select="handleSelect">
+  <el-menu
+    :default-active="activeIndex"
+    class="el-menu-demo"
+    mode="horizontal"
+    @select="handleSelect"
+  >
     <el-menu-item index="1" @click="toHome">
-      <el-icon>
-        <HomeFilled />
-      </el-icon>首页
+      <el-icon> <HomeFilled /> </el-icon>首页
       <!-- <router-link to="/">首页</router-link> -->
     </el-menu-item>
     <el-menu-item index="2" @click="toSubject">
-      <el-icon>
-        <Notebook />
-      </el-icon>题目
+      <el-icon> <Notebook /> </el-icon>题目
       <!-- <router-link to="/subject">题目</router-link> -->
     </el-menu-item>
     <el-menu-item index="3" @click="toTest">
-      <el-icon>
-        <List />
-      </el-icon>试卷
+      <el-icon> <List /> </el-icon>试卷
       <!-- <router-link to="/test_paper">试卷</router-link> -->
     </el-menu-item>
     <el-menu-item index="4" @click="toUser">
-      <el-icon>
-        <User />
-      </el-icon>个人
+      <el-icon> <User /> </el-icon>个人
       <!-- <router-link to="/user">个人</router-link> -->
     </el-menu-item>
   </el-menu>
@@ -56,7 +53,7 @@ const toUser = () => {
   });
 };
 </script>
-<style >
+<style>
 .el-row {
   margin-bottom: 20px;
 }

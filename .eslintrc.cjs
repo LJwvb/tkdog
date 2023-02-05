@@ -15,5 +15,6 @@ module.exports = {
   rules: {
     // 关闭驼峰命名规则
     'vue/multi-word-component-names': 0,
+    'prettier/prettier': ['error', { endOfLine: 'auto' }],
   },
 };

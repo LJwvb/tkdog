@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts"></script>
-<style >
+<style>
 .mainpic {
   display: flex;
   padding-left: 10px;

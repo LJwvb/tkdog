@@ -98,6 +98,4 @@ const tableData = reactive([
   },
 ]);
 </script>
-<style>
-
-</style>
+<style></style>

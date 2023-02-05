@@ -1,6 +1,11 @@
 <template>
   <div class="mt-4">
-    <el-input v-model="keyword" placeholder="请输入搜索的内容" size="large" class="input-with-select">
+    <el-input
+      v-model="keyword"
+      placeholder="请输入搜索的内容"
+      size="large"
+      class="input-with-select"
+    >
       <template #append>
         <el-button :icon="Search" size="large" />
       </template>
@@ -13,7 +18,7 @@ import { Search } from '@element-plus/icons-vue';
 import { ref } from 'vue';
 const keyword = ref('');
 </script>
-<style >
+<style>
 .mt-4 {
   padding-top: 2%;
 }
