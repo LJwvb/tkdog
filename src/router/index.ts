@@ -1,7 +1,7 @@
 // import { Menu } from '@element-plus/icons-vue/dist/types';
 import { createRouter, createWebHashHistory } from 'vue-router';
 import Home from '../views/Home.vue';
-import NavBar from '../components/NavBar/NavBar.vue';
+import NavBar from '../components/NavBar/index.vue';
 import Tabs from '../components/Index/Tabs.vue';
 import Subject from '../components/subject.vue';
 import label from '../components/subject/label.vue';
