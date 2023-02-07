@@ -1,7 +1,12 @@
 <template>
   <div class="index">
     <div class="index-left">
-      <el-tabs v-model="activeName" @tab-click="handleClick" class="el-table">
+      <el-tabs
+        v-model="activeName"
+        type="card"
+        @tab-click="handleClick"
+        class="el-table"
+      >
         <el-tab-pane
           v-for="item in data"
           :key="item.name"
@@ -16,7 +21,7 @@
 </template>
 <script setup lang="ts">
 import { ref } from 'vue';
-import Tags from './Tags.vue';
+import Tags from './tags.vue';
 
 const data = [
   {
@@ -90,10 +95,17 @@ const handleClick = (tab: any, event: any) => {
   background-color: #fff;
   padding: 20px;
   box-shadow: var(--el-box-shadow-light);
-  border-radius: var(--el-card-border-radius);
+  border-radius: 5px;
   border: 1px solid var(--el-card-border-color);
 }
 :global(.el-tabs__content) {
   overflow: visible !important;
+}
+:global(.el-tabs--card > .el-tabs__header .el-tabs__nav) {
+  border-radius: 5px !important;
+}
+:global(.el-tabs--card > .el-tabs__header .el-tabs__item.is-active) {
+  border: 1px solid var(--el-color-primary) !important;
+  border-radius: 5px;
 }
 </style>

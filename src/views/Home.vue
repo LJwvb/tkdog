@@ -1,6 +1,6 @@
 <template>
   <div class="home-left">
-    <Tabs></Tabs>
+    <Tabs />
   </div>
   <div class="home-right">
     <SideBar />
@@ -9,7 +9,7 @@
 
 <script lang="ts" setup>
 import Tabs from '@/components/Index/index.vue';
-import SideBar from '@/components/SideBar/SideBar.vue';
+import SideBar from '@/components/Index/slide.vue';
 </script>
 <style scoped>
 .home-left {
