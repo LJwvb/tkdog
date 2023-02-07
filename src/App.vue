@@ -11,21 +11,12 @@
   <div class="home-bottom">
     <BottomBar></BottomBar>
   </div>
-
-  <!-- <el-backtop :right="100" :bottom="100" /> -->
 </template>
 <script setup lang="ts">
 import NavBar from './components/NavBar/Index.vue';
 import BottomBar from './components/BottomBar/BottomBar.vue';
-// import Login from './views/login/Login.vue';
 </script>
 <style>
-body,
-html {
-  overflow: hidden;
-  margin: 0;
-  padding: 0;
-}
 .home-nav {
   position: relative;
   width: 100%;
@@ -33,7 +24,13 @@ html {
   height: 60px;
 }
 .hone-body {
+  padding: 20px;
+  min-height: 80vh;
+  min-width: 1550px;
+  display: flex;
+  justify-content: space-evenly;
 }
 .home-bottom {
+  min-width: 1550px;
 }
 </style>

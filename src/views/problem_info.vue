@@ -219,7 +219,7 @@ const htmlStr = ref();
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style>
+<style scoped>
 body {
   background-color: rgba(240, 242, 245, 1);
 }

@@ -66,7 +66,7 @@
 </template>
 
 <script setup lang="ts"></script>
-<style>
+<style scoped>
 .jiandaee {
   color: rgba(170, 170, 170, 1);
   font-size: 13px;

@@ -115,7 +115,7 @@ axios({
   .catch((err) => {});
 </script>
 
-<style>
+<style scoped>
 .colonn {
   display: flex;
   flex-direction: column;

@@ -30,7 +30,6 @@
 import { ref } from 'vue';
 import newitem from '@/components/me/newitem.vue';
 
-// import wentiitem from "@/components/Home/wentiitem.vue"
 const name = ref('me_compon');
 const input = ref('');
 </script>

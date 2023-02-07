@@ -75,7 +75,7 @@
 </template>
 
 <script setup lang="ts"></script>
-<style>
+<style scoped>
 div {
   line-height: 20px;
 }

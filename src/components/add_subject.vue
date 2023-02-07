@@ -286,7 +286,7 @@ const options = reactive([
 ]);
 </script>
 
-<style>
+<style scoped>
 body {
   background-color: rgba(240, 242, 245, 1);
 }

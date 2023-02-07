@@ -31,7 +31,6 @@
 </template>
 
 <script setup lang="ts">
-import wentiitem from '@/components/Home/wentiitem.vue';
 import paper_tem from '@/components/me/paper_tem.vue';
 import test_paper from '@/components/me/test_paper.vue';
 import router from '../../router';

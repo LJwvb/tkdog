@@ -137,7 +137,10 @@
                 <!-- <div style="width: 20px;" class="border_bottom"></div> -->
               </div>
               <div class="colonn background1">
-                <wentiitem v-for="(item, index) in 3" :key="index"></wentiitem>
+                <QuestionCard
+                  v-for="(item, index) in 3"
+                  :key="index"
+                ></QuestionCard>
 
                 <div
                   class="roww endend"
@@ -160,7 +163,8 @@
   </div>
 </template>
 <script setup lang="ts">
-import wentiitem from '@/components/Home/wentiitem.vue';
+import QuestionCard from '@/components/QuestionCard/index.vue';
+
 import { ref, reactive } from 'vue';
 import shitilan from '@/components/shitilan.vue';
 const name = ref('me_compon');
