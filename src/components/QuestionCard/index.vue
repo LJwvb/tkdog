@@ -47,7 +47,6 @@
 
 <script setup lang="ts">
 import { defineProps, h } from 'vue';
-import request from '@/utils/request';
 import router from '../../router';
 const props = defineProps({
   content: {

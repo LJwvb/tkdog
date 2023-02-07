@@ -48,28 +48,18 @@
   <el-row>
     <el-col :span="24">
       <el-card class="box-card">
-        <div class="clearfix">
-          <div class="allline">
-            <div>排行榜</div>
-          </div>
-        </div>
+        <div>排行榜</div>
         <el-scrollbar height="400px">
-          <div v-for="item in rankData" :key="item.rank">
+          <div v-for="(item, index) in rankData" :key="index">
             <div class="border_bottom">
               <div class="row">
-                <div class="rank">{{ item.rank }}</div>
+                <div class="rank">{{ index + 1 }}</div>
                 <img :src="item.avatar" alt="" class="avatar" />
-                <div class="name">{{ item.name }}</div>
+                <div class="name">{{ item.username }}</div>
               </div>
               <div class="">
-                <div class="authority">
-                  <div class="level">{{ item.level }}</div>
-                  <div class="role">{{ item.role }}</div>
-                </div>
-
-                <div class="score" style="color: #99a9bf">
-                  本月积分：{{ item.score }}
-                </div>
+                <div class="level">获赞数：{{ item.get_likes_num }}</div>
+                <div class="role">上传数：{{ item.upload_ques_num }}</div>
               </div>
             </div>
           </div>
@@ -79,31 +69,23 @@
   </el-row>
 </template>
 <script setup lang="ts">
-import axios from 'axios';
-axios({
-  method: 'get',
-  url: 'http://127.0.0.1:7002/api/getRankingList',
-})
-  .then((res) => {
-    console.log(res);
-  })
-  .catch((err) => {});
+import { ref } from 'vue';
+import { request } from '@/utils/request';
+interface RankData {
+  avatar: string;
+  username: string;
+  get_likes_num: number;
+  upload_ques_num: number;
+}
+const rankData = ref<RankData[]>([]);
+
+request('GEt', '/getRankingList').then((res: any) => {
+  rankData.value = res.data.data;
+});
+
 const showModal = (type: string) => {
   console.log(type);
 };
-// 模拟50条数据
-
-const rankData = Array.from({ length: 50 }, (v, k) => {
-  return {
-    rank: k + 1,
-    avatar:
-      'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-    name: '题库狗',
-    level: 'Lv.1',
-    role: '管理员',
-    score: 100,
-  };
-});
 </script>
 
 <style scoped>
@@ -157,9 +139,7 @@ const rankData = Array.from({ length: 50 }, (v, k) => {
 .name {
   margin-left: 10px;
 }
-.role {
-  margin-left: 10px;
-}
+
 .el-row {
   margin-bottom: 20px;
 }
