@@ -47,7 +47,7 @@
   </el-row>
   <el-row>
     <el-col :span="24">
-      <el-card class="box-card">
+      <el-card>
         <div>排行榜</div>
         <el-scrollbar height="400px">
           <div v-for="(item, index) in rankData" :key="index">
@@ -78,7 +78,7 @@ interface RankData {
   upload_ques_num: number;
 }
 const rankData = ref<RankData[]>([]);
-
+// 接口请求
 request('GEt', '/getRankingList').then((res: any) => {
   rankData.value = res.data.data;
 });

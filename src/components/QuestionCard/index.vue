@@ -121,9 +121,4 @@ const toproblem_info = () => {
   justify-content: flex-start;
   width: 100%;
 }
-
-.jiandaee {
-  color: rgba(170, 170, 170, 1);
-  font-size: 13px;
-}
 </style>
