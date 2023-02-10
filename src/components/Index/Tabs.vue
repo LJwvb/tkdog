@@ -3,108 +3,113 @@
     <el-row :gutter="24">
       <el-col :span="17">
         <div class="grid-content">
-          <el-tabs
-            v-model="activeName"
-            type="card"
-            class="demo-tabs"
-            @tab-click="handleClick"
-          >
-            <el-tab-pane label="javaScript" name="first">
-              <Tags></Tags>
-            </el-tab-pane>
-            <el-tab-pane label="CSS" name="second">
-              <Tags></Tags>
-            </el-tab-pane>
-            <el-tab-pane label="HTML" name="third">
-              <Tags></Tags>
-            </el-tab-pane>
-            <el-tab-pane label="ES6" name="fourth">
-              <Tags></Tags>
-            </el-tab-pane>
-            <el-tab-pane label="React" name="fifth">
-              <Tags></Tags>
-            </el-tab-pane>
-            <el-tab-pane label="Vue" name="sixth">
-              <Tags></Tags>
-            </el-tab-pane>
-            <el-tab-pane label="Node" name="seventh">
-              <Tags></Tags>
-            </el-tab-pane>
-            <el-tab-pane label="webpack" name="eighth">
-              <Tags></Tags>
-            </el-tab-pane>
-            <el-tab-pane label="TypeScript" name="ninth">
-              <Tags></Tags>
-            </el-tab-pane>
-            <el-tab-pane label="编程题" name="tenth">
-              <Tags></Tags>
-            </el-tab-pane>
-            <el-tab-pane label="计算机基础" name="eleventh">
-              <Tags></Tags>
-            </el-tab-pane>
-            <el-tab-pane label="计算机网络" name="twelfth">
-              <Tags></Tags>
+          <el-tabs v-model="activeName" type="card" @tab-click="handleClick" class="el-table">
+            <el-tab-pane v-for="item in data" :key="item.name" :label="item.title" :name="item.name">
+              <Tags :content="item.content" />
             </el-tab-pane>
           </el-tabs>
         </div>
       </el-col>
-      <el-col
-        class="grid-content bg-purple-light"
-        :xs="24"
-        :sm="24"
-        :md="16"
-        :lg="7"
-        :xl="16"
-      >
-        <SideBar></SideBar>
-      </el-col>
     </el-row>
   </div>
 </template>
-
 <script setup lang="ts">
 import { ref } from 'vue';
-import type { TabsPaneContext } from 'element-plus';
 import Tags from './Tags.vue';
-import SideBar from '@/components/SideBar/SideBar.vue';
 
+const data = [
+  {
+    title: 'javaScript',
+    name: 'first',
+    // param: {
+    //   subjectID: 1,
+    // },
+    content: 'javaScript',
+  },
+  {
+    title: 'CSS',
+    name: 'second',
+    content: 'CSS',
+  },
+  {
+    title: 'HTML',
+    name: 'third',
+    content: 'HTML',
+  },
+  {
+    title: 'ES6',
+    name: 'fourth',
+    content: 'ES6',
+  },
+  {
+    title: 'React',
+    name: 'fifth',
+    content: 'React',
+  },
+  {
+    title: 'Vue',
+    name: 'sixth',
+    content: 'Vue',
+  },
+  {
+    title: 'Node',
+    name: 'seventh',
+    content: 'Node',
+  },
+  {
+    title: 'webpack',
+    name: 'eighth',
+    content: 'webpack',
+  },
+  {
+    title: 'TypeScript',
+    name: 'ninth',
+    content: 'TypeScript',
+  },
+  {
+    title: '编程题',
+    name: 'tenth',
+    content: '编程题',
+  },
+  {
+    title: '计算机基础',
+    name: 'eleventh',
+    content: '计算机基础',
+  },
+  {
+    title: '计算机网络',
+    name: 'twelfth',
+    content: '计算机网络',
+  },
+];
 const activeName = ref('first');
-
-const handleClick = (tab: TabsPaneContext, event: Event) => {
+const handleClick = (tab: any, event: any) => {
   console.log(tab, event);
 };
 </script>
-<style>
-.tabs {
-  padding-top: 15px;
+<style scoped>
+.el-table {
+  background-color: #fff;
+  padding: 20px;
+  box-shadow: var(--el-box-shadow-light);
+  border-radius: 5px;
+  border: 1px solid var(--el-card-border-color);
 }
 
-.el-row {
-  margin-bottom: 20px;
+.el-col-17 {
+  max-width: 100%;
 }
 
-.el-tabs__nav-scroll {
-  background-color: white;
+:global(.el-tabs__content) {
+  overflow: visible !important;
 }
 
-.el-row:last-child {
-  margin-bottom: 0;
+:global(.el-tabs--card > .el-tabs__header .el-tabs__nav) {
+  border-radius: 5px !important;
 }
 
-.el-col {
-  border-radius: 4px;
-}
-
-.grid-content {
-  border-radius: 4px;
-  min-height: 36px;
-  float: flex;
-}
-
-.demo-tabs > .el-tabs__content {
-  padding-left: 20px;
-  color: #6b778c;
-  font-size: 32px;
-  font-weight: 600;
+:global(.el-tabs--card > .el-tabs__header .el-tabs__item.is-active) {
+  border: 1px solid var(--el-color-primary) !important;
+  border-radius: 5px;
 }
 </style>

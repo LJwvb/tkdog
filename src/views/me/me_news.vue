@@ -1,6 +1,6 @@
 <template>
   <div class="hello">
-    <el-card class="box-card" style="margin: 20px 20px 20px 0">
+    <el-card class="box-card">
       <div class="colonn background1">
         <div
           class="rowsb padding23 border_bottom center_center"
@@ -30,7 +30,6 @@
 import { ref } from 'vue';
 import newitem from '@/components/me/newitem.vue';
 
-// import wentiitem from "@/components/Home/wentiitem.vue"
 const name = ref('me_compon');
 const input = ref('');
 </script>

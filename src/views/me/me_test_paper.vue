@@ -1,6 +1,6 @@
 <template>
   <div class="hello">
-    <el-card class="box-card" style="margin: 20px 20px 20px 0">
+    <el-card class="box-card">
       <div class="colonn background1">
         <div class="rowsb padding23 border_bottom center_center">
           <div>我的试卷（1）</div>
@@ -31,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import wentiitem from '@/components/Home/wentiitem.vue';
+
 import paper_tem from '@/components/me/paper_tem.vue';
 import test_paper from '@/components/me/test_paper.vue';
 import router from '../../router';

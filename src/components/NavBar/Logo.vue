@@ -1,5 +1,5 @@
 <template>
-  <div class="mainpic">
+  <div class="logo">
     <img src="../../assets/tkdog.png" width="50" />
     <div class="title">
       <span>题库狗</span>
@@ -8,34 +8,18 @@
 </template>
 
 <script setup lang="ts"></script>
-<style >
-.mainpic {
+<style scoped>
+.logo {
   display: flex;
-  padding-left: 10px;
+  align-items: center;
+  justify-content: center;
+  width: 200px;
 }
 
 .title {
-  padding-top: 15px;
-}
-
-.el-row {
-  margin-bottom: 20px;
-}
-
-.el-row:last-child {
-  margin-bottom: 0;
-}
-
-.el-col {
-  border-radius: 4px;
-}
-
-.grid-content {
-  border-radius: 4px;
-  min-height: 36px;
-}
-
-.bg-purple {
-  background-color: #c792ea;
+  font-size: 20px;
+  font-weight: 600;
+  margin-left: 10px;
+  white-space: nowrap;
 }
 </style>

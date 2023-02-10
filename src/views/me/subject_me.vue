@@ -1,6 +1,6 @@
 <template>
   <div class="hello">
-    <el-card class="box-card" style="margin: 20px 20px 20px 0">
+    <el-card class="box-card">
       <div class="colonn background1">
         <div class="rowsb padding23 border_bottom center_center">
           <div>上传记录（10）</div>

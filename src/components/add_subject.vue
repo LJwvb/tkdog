@@ -289,6 +289,8 @@ const options = reactive([
 <style>
 body {
   background-color: rgba(240, 242, 245, 1);
+    margin: 0;
+    padding: 0;
 }
 
 .biaoqian1 {

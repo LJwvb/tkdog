@@ -32,7 +32,7 @@
               width: 60px;
             "
           >
-            <img src="/static/chuizi.png" style="width: 20px; height: 10px" />
+            
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="colonn" style="padding: 20px 20px 20px 0">
+    <div class="colonn">
       <el-card class="box-card">
         <div class="roww background1">
           <img src="../../assets/dog1.jpg" class="logo1" />
@@ -19,7 +19,9 @@
             <div>信息</div>
             <div>
               <el-button class="el-icon-edit" @click="dialogFormVisibleClicl" type="text">
-                编辑</el-button>
+                编辑
+                <Edit />
+              </el-button>
             </div>
           </div>
           <el-row class="padding23">

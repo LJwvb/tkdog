@@ -1,5 +1,5 @@
 <template>
-  <div class="hello" style="background-color: rgba(240, 242, 245, 1)">
+  <div class="hello" style="background-color: rgba(240, 242, 245, 1); width: 100%">
     <el-container>
       <el-main>
         <el-scrollbar>
@@ -8,15 +8,8 @@
               <!-- 1 -->
               <!-- <div class="grid-content colonn rowsb"
 								style="position: fixed;bottom: 0px;left: 0px;background-color: #ffffff;height: 100%;"> -->
-              <el-menu
-                class="el-menu-vertical-demo"
-                @open="handleOpen"
-                @close="handleClose"
-                :collapse="isCollapse"
-                @select="handleSelect"
-                :default-active="activeIndex2"
-                style="width: 160px; height: 100%"
-              >
+              <el-menu class="el-menu-vertical-demo" @open="handleOpen" @close="handleClose" :collapse="isCollapse"
+                @select="handleSelect" :default-active="activeIndex2" style="width: 160px; height: 100%">
                 <el-menu-item index="1">
                   <el-icon>
                     <User />
@@ -169,7 +162,7 @@ body {
 /* 上传头像结束 */
 
 /* 动态添加标签 */
-.el-tag + .el-tag {
+.el-tag+.el-tag {
   margin-left: 10px;
 }
 

@@ -1,29 +1,24 @@
 <template>
   <div class="hello" style="background-color: rgba(240, 242, 245, 1)">
     <el-container>
-      <el-main style="padding: 30px">
+      <el-main style="padding: 10px">
         <el-card class="box-card">
           <div class="background1 colonn">
             <el-row>
               <el-col :span="3">
                 <div class="grid-content">
-                  <el-button style="color: #000000" type="text"
-                    ><el-icon> <Search /> </el-icon>搜索</el-button
-                  >
+                  <el-button style="color: #000000" type="text">
+                    <el-icon>
+                      <Search />
+                    </el-icon>
+                    搜索
+                  </el-button>
                 </div>
               </el-col>
               <el-col :span="10">
                 <div class="grid-content">
-                  <el-input
-                    placeholder="请输入内容"
-                    v-model="input3"
-                    class="inpuss"
-                  >
-                    <el-button
-                      slot="append"
-                      type="primary"
-                      style="background: #409eff; color: white"
-                    ></el-button>
+                  <el-input placeholder="请输入内容" v-model="input3" class="inpuss">
+                    <el-button type="primary" style="background: #409eff; color: white"></el-button>
                   </el-input>
                 </div>
               </el-col>
@@ -31,18 +26,14 @@
             <el-row>
               <el-col :span="3">
                 <div class="grid-content">
-                  <el-button style="color: #000000" type="text"
-                    ><el-icon> <PictureRounded /> </el-icon>筛选</el-button
-                  >
+                  <el-button style="color: #000000" type="text"><el-icon>
+                      <PictureRounded />
+                    </el-icon>筛选</el-button>
                 </div>
               </el-col>
               <el-col :span="16">
                 <div class="grid-content">
-                  <el-input
-                    placeholder="类别,公司,方向"
-                    v-model="input3"
-                    class="inpuss"
-                  >
+                  <el-input placeholder="类别,公司,方向" v-model="input3" class="inpuss">
                   </el-input>
                 </div>
               </el-col>
@@ -50,18 +41,14 @@
             <el-row>
               <el-col :span="3">
                 <div class="grid-content">
-                  <el-button style="color: #000000" type="text"
-                    ><el-icon> <Notebook /> </el-icon>题型</el-button
-                  >
+                  <el-button style="color: #000000" type="text"><el-icon>
+                      <Notebook />
+                    </el-icon>题型</el-button>
                 </div>
               </el-col>
               <el-col :span="7.5">
                 <div class="grid-content">
-                  <el-radio-group
-                    v-model="tabPosition"
-                    style="margin-bottom: 0px"
-                    class="inpuss"
-                  >
+                  <el-radio-group v-model="tabPosition" style="margin-bottom: 0px" class="inpuss">
                     <el-radio-button label="top">官方</el-radio-button>
                     <el-radio-button label="right">用户</el-radio-button>
                   </el-radio-group>
@@ -71,28 +58,19 @@
           </div>
         </el-card>
         <div class="colonn background1" style="margin-top: 25px">
-          <div
-            class="roww background1 bottom"
-            style="padding: 0px 0px 30px 0px"
-          >
+          <div class="roww background1 bottom" style="padding: 0px 0px 30px 0px">
             <el-card class="box-card">
               <div class="border_bottom">
                 <div class="card-header">
                   <div class="grid-content">
-                    <el-tabs
-                      v-model="activeName"
-                      class="demo-tabs"
-                      @tab-click="handleClick"
-                    >
+                    <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick">
                       <el-tab-pane label="最热" name="first"></el-tab-pane>
                       <el-tab-pane label="最新" name="second"> </el-tab-pane>
                     </el-tabs>
                   </div>
                 </div>
               </div>
-              <div
-                type="primary"
-                style="
+              <div type="primary" style="
                   width: 80px;
                   height: 35px;
                   background-color: #409eff;
@@ -101,36 +79,25 @@
                   color: white;
                   float: right;
                   margin-top: -60px;
-                "
-                @click="addPaperInfo"
-              >
+                " @click="addPaperInfo">
                 创建试卷
               </div>
 
               <div class="huanhang" style="display: flex; flex-wrap: wrap">
-                <div
-                  style="width: 22%; margin: 1%; border: 1px solid #f5f5f5"
-                  class="background1 colonn"
-                  v-for="(item, index) in 6"
-                  @click="tovolumeInfo"
-                >
-                  <div
-                    style="
+                <div class="background1 colonn" style="width: 22%; margin: 1%; border: 1px solid #f5f5f5"
+                  v-for="(item, index) in 6" @click="tovolumeInfo">
+                  <div style="
                       font-size: 18px;
                       font-weight: bold;
                       margin-top: 15px;
                       margin-bottom: 20px;
                       line-height: 30px;
                       margin: 20px;
-                    "
-                  >
+                    ">
                     百度2018校园招聘-机器学习/数据挖掘工程师
                   </div>
 
-                  <div
-                    class="roww center_center"
-                    style="justify-content: space-around"
-                  >
+                  <div class="roww center_center" style="justify-content: space-around">
                     <img src="../../assets/tkdog.png" class="logo1" />
                   </div>
 
@@ -152,11 +119,7 @@
 
               <div class="roww endend" style="padding: 10px 20px; float: right">
                 <div style="line-height: 35px">总数650</div>
-                <el-pagination
-                  background
-                  layout="prev, pager, next"
-                  :total="1000"
-                >
+                <el-pagination background layout="prev, pager, next" :total="1000">
                 </el-pagination>
               </div>
             </el-card>
@@ -189,7 +152,7 @@ const addPaperInfo = () => {
     path: '/addPaper',
   });
 };
-const handleClick = () => {};
+const handleClick = () => { };
 // 	  handleSelect(){}
 // 枪王创建试卷
 </script>
@@ -206,11 +169,13 @@ body {
   margin-top: 25px;
   margin-bottom: 10px;
 }
+
 .grid-content {
   border-radius: 4px;
   min-height: 36px;
   border: 1px solid #ffffff;
 }
+
 .biaoqian1 {
   padding: 0px 12px;
   font-size: 12px;
@@ -239,6 +204,6 @@ body {
 
 .el-col-3 {
   max-width: 12.5%;
-  flex: 0 0 7.5%;
+  flex: 0 0 4.5%;
 }
 </style>
