@@ -70,18 +70,16 @@
 </template>
 <script setup lang="ts">
 import { ref } from 'vue';
-import { request } from '@/utils/request';
-interface RankData {
-  avatar: string;
-  username: string;
-  get_likes_num: number;
-  upload_ques_num: number;
-}
-const rankData = ref<RankData[]>([]);
-// 接口请求
-request('GEt', '/getRankingList').then((res: any) => {
-  rankData.value = res.data.data;
-});
+import { getRankList } from '@/services';
+
+const rankData = ref();
+
+const getRank = async () => {
+  const res = await getRankList();
+  rankData.value = res;
+};
+
+getRank();
 
 const showModal = (type: string) => {
   console.log(type);
