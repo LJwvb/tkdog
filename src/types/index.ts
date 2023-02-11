@@ -36,5 +36,7 @@ export interface IQuestion {
   chkUser?: string; // 审核人
   chkRemarks?: string; // 审核备注
   chkDate?: string; // 审核时间
-  creator: string; // 创建人
+  creator: string; // 创建人(作者)
+  likes_num: number; // 点赞数
+  browses_num: number; // 浏览数
 }
