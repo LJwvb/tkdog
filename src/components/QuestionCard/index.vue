@@ -110,8 +110,7 @@ const toproblem_info = () => {
 }
 .title-text {
   width: 90%;
-  text-overflow: ellipsis;
-  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 .tags {
   display: flex;

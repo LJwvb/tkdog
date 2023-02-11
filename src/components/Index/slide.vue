@@ -11,9 +11,12 @@
           </div>
         </template>
         <el-skeleton :loading="loadingDaily" animated :rows="0">
-          <div v-for="item in dailyData" :key="item.id">
+          <div v-for="item in dailyData" :key="item.id" class="question">
             {{ item?.question }}
           </div>
+          <el-button class="button" text @click="showModal('daily')">
+            点击了解
+          </el-button>
         </el-skeleton>
       </el-card>
     </el-col>
@@ -103,6 +106,10 @@ const showModal = (type: string) => {
 }
 .text {
   margin-left: 10px;
+}
+.question {
+  width: 90%;
+  word-wrap: break-word;
 }
 
 .border_bottom {
