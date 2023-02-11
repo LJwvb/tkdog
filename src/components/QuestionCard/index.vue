@@ -2,7 +2,6 @@
   <div class="card-container" @click="toproblem_info">
     <div class="title">
       <span class="title-text"> {{ question.question }} </span>
-      <el-button type="primary" class="btn">选题</el-button>
     </div>
     <div class="tags">
       <el-tag v-for="tag in tags" :key="tag" class="tag-item">
@@ -36,6 +35,7 @@
         <span class="num-text">{{ question.creator }}</span>
       </div>
     </div>
+    <el-button type="primary" class="btn">选题</el-button>
   </div>
 </template>
 
@@ -103,15 +103,13 @@ const toproblem_info = () => {
   box-shadow: 0 10px 20px #e6e6e6;
 }
 .title {
-  display: flex;
   align-items: center;
-  justify-content: space-between;
   font-size: 25px;
   width: 100%;
   font-weight: bold;
 }
 .title-text {
-  width: 80%;
+  width: 90%;
   text-overflow: ellipsis;
   white-space: pre-wrap;
 }
@@ -119,7 +117,6 @@ const toproblem_info = () => {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  width: 100%;
   margin-top: 10px;
 }
 .tag-item {
@@ -129,7 +126,6 @@ const toproblem_info = () => {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  width: 100%;
   font-size: 13px;
   position: absolute;
   bottom: 40px;
@@ -158,5 +154,10 @@ const toproblem_info = () => {
 }
 .num-text {
   margin-left: 5px;
+}
+.btn {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
 }
 </style>
