@@ -12,6 +12,7 @@
         :rows="40"
         style="width: 100%; height: 600px"
       >
+        <el-empty description="暂时没有题目啊！ 等你上传" v-if="isEmpty" />
         <div v-for="item in props.questionList" :key="item?.id">
           <QuestionCard :question="item" />
         </div>
@@ -20,7 +21,7 @@
   </el-tabs>
 </template>
 <script lang="ts" setup>
-import { defineProps } from 'vue';
+import { defineProps, watchEffect } from 'vue';
 
 import QuestionCard from '@/components/QuestionCard/index.vue';
 
@@ -29,6 +30,7 @@ import type { TabsPaneContext } from 'element-plus';
 import type { IQuestion } from '@/types';
 // 默认选中的子标签
 const active = ref<any>(0);
+const isEmpty = ref(false);
 
 const types = [
   {
@@ -54,6 +56,20 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  isChangeTab: {
+    type: Boolean,
+    default: false,
+  },
+});
+watchEffect(() => {
+  if (props.isChangeTab) {
+    active.value = 0;
+  }
+  if (props.questionList.length === 0) {
+    isEmpty.value = true;
+  } else {
+    isEmpty.value = false;
+  }
 });
 
 // 定义子组件向父组件传递数据的方法

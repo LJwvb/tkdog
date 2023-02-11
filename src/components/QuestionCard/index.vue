@@ -66,7 +66,7 @@ const questionType = computed(() => {
     case 4:
       return '简答题';
     default:
-      return '';
+      return '未知';
   }
 });
 const difficulty = computed(() => {
@@ -78,7 +78,7 @@ const difficulty = computed(() => {
     case 2:
       return '困难';
     default:
-      return '';
+      return '未知';
   }
 });
 const addDate = computed(() => {

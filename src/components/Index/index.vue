@@ -17,6 +17,7 @@
             :questionList="questionList"
             @currentSubTab="clickSubTab"
             :loading="loading"
+            :isChangeTab="isChangeTab"
           />
         </el-tab-pane>
       </el-tabs>
@@ -29,6 +30,8 @@ import SubTab from './subTab.vue';
 import { getQuestionList } from '@/services';
 import type { IGetQuestionsParams } from '@/types';
 const loading = ref(true);
+// 是否切换主标签页
+let isChangeTab = false;
 
 const data = [
   {
@@ -114,6 +117,7 @@ const params: IGetQuestionsParams = {
   subjectID: 0,
   catalogID: 0,
 };
+
 // 获取题目列表
 const getQuestionListData = async () => {
   const res = await getQuestionList(params);
@@ -125,11 +129,13 @@ getQuestionListData();
 
 // 切换子标签页
 const clickSubTab = (val: any) => {
+  isChangeTab = false;
   params.catalogID = val;
   getQuestionListData();
 };
 // 切换主标签页
 const handleClick = (tab: any) => {
+  isChangeTab = true;
   params.subjectID = tab.props.name;
   params.catalogID = 0;
   getQuestionListData();
