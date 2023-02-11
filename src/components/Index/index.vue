@@ -13,7 +13,11 @@
           :label="item.title"
           :name="item.subjectID"
         >
-          <Tags :questionList="questionList" @currentSubTab="clickSubTab" />
+          <SubTab
+            :questionList="questionList"
+            @currentSubTab="clickSubTab"
+            :loading="loading"
+          />
         </el-tab-pane>
       </el-tabs>
     </div>
@@ -21,9 +25,10 @@
 </template>
 <script setup lang="ts">
 import { ref } from 'vue';
-import Tags from './tags.vue';
+import SubTab from './subTab.vue';
 import { getQuestionList } from '@/services';
 import type { IGetQuestionsParams } from '@/types';
+const loading = ref(true);
 
 const data = [
   {
@@ -112,7 +117,8 @@ const params: IGetQuestionsParams = {
 // 获取题目列表
 const getQuestionListData = async () => {
   const res = await getQuestionList(params);
-  questionList.value = res;
+  questionList.value = res.result;
+  loading.value = false;
 };
 // 初始化
 getQuestionListData();

@@ -6,22 +6,29 @@
       :label="typeItem.name"
       :name="typeItem.id"
     >
-      <div v-for="item in nums" :key="item">
-        <QuestionCard :content="''" />
-      </div>
+      <el-skeleton
+        :loading="props.loading"
+        animated
+        :rows="40"
+        style="width: 100%; height: 600px"
+      >
+        <div v-for="item in props.questionList" :key="item?.id">
+          <QuestionCard :question="item" />
+        </div>
+      </el-skeleton>
     </el-tab-pane>
   </el-tabs>
-  {{ props.questionList }}
 </template>
 <script lang="ts" setup>
-import { defineProps, reactive } from 'vue';
+import { defineProps } from 'vue';
 
 import QuestionCard from '@/components/QuestionCard/index.vue';
 
 import { ref } from 'vue';
 import type { TabsPaneContext } from 'element-plus';
+import type { IQuestion } from '@/types';
 // 默认选中的子标签
-const active = ref(0);
+const active = ref<any>(0);
 
 const types = [
   {
@@ -37,12 +44,15 @@ const types = [
     id: 2,
   },
 ];
-const nums = [1, 2, 3];
 // 接收父组件传递的数据
 const props = defineProps({
   questionList: {
-    type: Array,
+    type: Array as unknown as () => IQuestion[],
     default: () => [],
+  },
+  loading: {
+    type: Boolean,
+    default: true,
   },
 });
 

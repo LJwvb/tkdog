@@ -1,7 +1,7 @@
 <template>
   <div class="card-container" @click="toproblem_info">
     <div class="title">
-      <span> 什么是事件？E与 Firefox的事件机制有什么区别？如何阻止冒泡？ </span>
+      <span class="title-text"> {{ question.question }} </span>
       <el-button type="primary" class="btn">选题</el-button>
     </div>
     <div class="tags">
@@ -10,51 +10,81 @@
       </el-tag>
     </div>
     <div class="info">
-      <span>简答题</span>
+      <span>{{ questionType }}</span>
       <div class="line" />
-      <span>困难</span>
+      <span>{{ difficulty }}</span>
       <div class="line" />
-      <span>2020-08-08</span>
+      <span>{{ addDate }}</span>
     </div>
     <div class="nums">
       <div class="num-item">
         <el-icon style="width: 15px; height: 15px">
           <View />
         </el-icon>
-        <span>16472</span>
+        <span class="num-text">{{ question.browses_num ?? 0 }}</span>
       </div>
       <div class="num-item">
         <el-icon style="width: 15px; height: 15px">
           <Star />
         </el-icon>
-        <span>16472</span>
+        <span class="num-text">{{ question.likes_num ?? 0 }}</span>
       </div>
       <div class="num-item">
         <el-icon style="width: 15px; height: 15px">
-          <ChatDotRound />
+          <User />
         </el-icon>
-        <span>16472</span>
-      </div>
-      <div class="num-item">
-        <el-icon style="width: 15px; height: 15px">
-          <Odometer />
-        </el-icon>
-        <span>16472</span>
+        <span class="num-text">{{ question.creator }}</span>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { defineProps, h } from 'vue';
+import { defineProps, ref, computed } from 'vue';
 import router from '../../router';
+import type { IQuestion } from '@/types';
+
 const props = defineProps({
-  content: {
-    type: String,
-    default: '',
+  question: {
+    type: Array as unknown as () => IQuestion,
+    default: () => [],
   },
 });
-const tags = ['Tag 1', 'Tag 2', 'Tag 3', 'Tag 4', 'Tag 5'];
+const question = props.question as IQuestion;
+
+const tags = question.tags;
+const questionType = computed(() => {
+  switch (Number(question.questionType)) {
+    case 0:
+      return '单选题';
+    case 1:
+      return '多选题';
+    case 2:
+      return '判断题';
+    case 3:
+      return '填空题';
+    case 4:
+      return '简答题';
+    default:
+      return '';
+  }
+});
+const difficulty = computed(() => {
+  switch (Number(question.difficulty)) {
+    case 0:
+      return '简单';
+    case 1:
+      return '中等';
+    case 2:
+      return '困难';
+    default:
+      return '';
+  }
+});
+const addDate = computed(() => {
+  const date = new Date(question.addDate);
+  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+});
 
 const toproblem_info = () => {
   router.push({
@@ -76,9 +106,14 @@ const toproblem_info = () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
   font-size: 25px;
+  width: 100%;
   font-weight: bold;
+}
+.title-text {
+  width: 80%;
+  text-overflow: ellipsis;
+  white-space: pre-wrap;
 }
 .tags {
   display: flex;
@@ -120,5 +155,8 @@ const toproblem_info = () => {
   align-items: center;
   justify-content: flex-start;
   width: 100%;
+}
+.num-text {
+  margin-left: 5px;
 }
 </style>

@@ -17,3 +17,9 @@ export function getQuestionList(params: IGetQuestionsParams) {
     return res.data.data as IGetQuestionsReturn;
   });
 }
+// 每日一题接口
+export function getDailyQuestion() {
+  return request('GET', '/getDailyQuestions').then((res: any) => {
+    return res.data.data as IGetQuestionsReturn;
+  });
+}

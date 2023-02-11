@@ -10,15 +10,11 @@
             <span class="text">题库狗的每日一题</span>
           </div>
         </template>
-        <div>
-          <span
-            >说说你对模块化方案的理解，比如 CommonJS、AMD、CMD、ES Module
-            分别是什么？
-          </span>
-        </div>
-        <el-button class="button" text @click="showModal('daily')">
-          点击了解
-        </el-button>
+        <el-skeleton :loading="loadingDaily" animated :rows="0">
+          <div v-for="item in dailyData" :key="item.id">
+            {{ item?.question }}
+          </div>
+        </el-skeleton>
       </el-card>
     </el-col>
   </el-row>
@@ -50,19 +46,21 @@
       <el-card>
         <div>排行榜</div>
         <el-scrollbar height="400px">
-          <div v-for="(item, index) in rankData" :key="index">
-            <div class="border_bottom">
-              <div class="row">
-                <div class="rank">{{ index + 1 }}</div>
-                <img :src="item.avatar" alt="" class="avatar" />
-                <div class="name">{{ item.username }}</div>
-              </div>
-              <div class="">
-                <div class="level">获赞数：{{ item.get_likes_num }}</div>
-                <div class="role">上传数：{{ item.upload_ques_num }}</div>
+          <el-skeleton :loading="loadingRank" animated :rows="10">
+            <div v-for="(item, index) in rankData" :key="index">
+              <div class="border_bottom">
+                <div class="row">
+                  <div class="rank">{{ index + 1 }}</div>
+                  <img :src="item.avatar" alt="" class="avatar" />
+                  <div class="name">{{ item.username }}</div>
+                </div>
+                <div class="">
+                  <div class="level">获赞数：{{ item.get_likes_num }}</div>
+                  <div class="role">上传数：{{ item.upload_ques_num }}</div>
+                </div>
               </div>
             </div>
-          </div>
+          </el-skeleton>
         </el-scrollbar>
       </el-card>
     </el-col>
@@ -70,16 +68,28 @@
 </template>
 <script setup lang="ts">
 import { ref } from 'vue';
-import { getRankList } from '@/services';
+import { getRankList, getDailyQuestion } from '@/services';
 
 const rankData = ref();
+const dailyData = ref();
+const loadingRank = ref(true);
+const loadingDaily = ref(true);
 
 const getRank = async () => {
   const res = await getRankList();
   rankData.value = res;
+  loadingRank.value = false;
+};
+
+const getDaily = async () => {
+  const res = await getDailyQuestion();
+  dailyData.value = res;
+  loadingDaily.value = false;
 };
 
 getRank();
+
+getDaily();
 
 const showModal = (type: string) => {
   console.log(type);
