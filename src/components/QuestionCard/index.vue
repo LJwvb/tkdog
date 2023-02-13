@@ -1,5 +1,5 @@
 <template>
-  <div class="card-container" @click="toproblem_info">
+  <div class="card-container" @click="toProblemInfo()">
     <div class="title">
       <span class="title-text"> {{ question.question }} </span>
     </div>
@@ -9,9 +9,9 @@
       </el-tag>
     </div>
     <div class="info">
-      <span>{{ questionType }}</span>
+      <span>{{ type }}</span>
       <div class="line" />
-      <span>{{ difficulty }}</span>
+      <span>{{ degreeDifficulty }}</span>
       <div class="line" />
       <span>{{ addDate }}</span>
     </div>
@@ -41,8 +41,9 @@
 
 <script setup lang="ts">
 import { defineProps, ref, computed } from 'vue';
-import router from '../../router';
+import router from '@/router';
 import type { IQuestion } from '@/types';
+import { questionType, difficulty } from '@/utils';
 
 const props = defineProps({
   question: {
@@ -53,42 +54,26 @@ const props = defineProps({
 const question = props.question as IQuestion;
 
 const tags = question.tags;
-const questionType = computed(() => {
-  switch (Number(question.questionType)) {
-    case 0:
-      return '单选题';
-    case 1:
-      return '多选题';
-    case 2:
-      return '判断题';
-    case 3:
-      return '填空题';
-    case 4:
-      return '简答题';
-    default:
-      return '未知';
-  }
+const id = question.id;
+
+const type = computed(() => {
+  return questionType(Number(question.questionType));
 });
-const difficulty = computed(() => {
-  switch (Number(question.difficulty)) {
-    case 0:
-      return '简单';
-    case 1:
-      return '中等';
-    case 2:
-      return '困难';
-    default:
-      return '未知';
-  }
+const degreeDifficulty = computed(() => {
+  return difficulty(Number(question.difficulty));
 });
+
 const addDate = computed(() => {
   const date = new Date(question.addDate);
   return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 });
 
-const toproblem_info = () => {
+const toProblemInfo = () => {
   router.push({
-    path: '/problem_info',
+    path: `/problemInfo`,
+    query: {
+      id,
+    },
   });
 };
 </script>

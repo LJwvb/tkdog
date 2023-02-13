@@ -17,7 +17,7 @@ import addPaperone from '../views/addPaper/one.vue';
 import addPapertwo from '../views/addPaper/two.vue';
 import addPaperthree from '../views/addPaper/three.vue';
 import addPaperfour from '../views/addPaper/four.vue';
-import problem_info from '../views/problem_info.vue';
+import problemInfo from '@/views/problemInfo.vue';
 import me_test_paper from '../views/me/me_test_paper.vue';
 import user from '../components/user.vue';
 import volume from '../components/volume.vue';
@@ -106,9 +106,9 @@ const routes: any = [
     ],
   },
   {
-    path: '/problem_info',
-    name: 'problem_info',
-    component: problem_info,
+    path: '/problemInfo',
+    name: 'problemInfo',
+    component: problemInfo,
   },
   {
     path: '/volume',

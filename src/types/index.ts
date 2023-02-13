@@ -40,3 +40,17 @@ export interface IQuestion {
   likes_num: number; // 点赞数
   browses_num: number; // 浏览数
 }
+// 获取题目详情接口
+export interface IGetQuestionDetailParams {
+  id: number;
+}
+// 点赞接口
+export interface ILikeQuestionParams {
+  id: number;
+  creator: string;
+}
+// 取消点赞接口
+export interface ICancelLikeQuestionParams {
+  id: number;
+  creator: string;
+}

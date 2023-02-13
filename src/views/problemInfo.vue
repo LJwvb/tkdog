@@ -1,5 +1,5 @@
 <template>
-  <div class="hello">
+  <div class="info-container">
     <!-- 题目详情 -->
     <el-container>
       <el-main style="padding: 30px">
@@ -13,7 +13,7 @@
                     style="padding: 20px"
                   >
                     <div class="roww center_center">
-                      <div style="font-size: 20px">简答题</div>
+                      <div style="font-size: 20px">{{ type }}</div>
 
                       <div class="line1"></div>
 
@@ -25,26 +25,29 @@
                             color: white;
                           "
                         >
-                          最新
+                          {{ catalogID }}
                         </div>
-                        <div class="biaoqian2">最新</div>
-                        <div class="biaoqian1" v-for="(item, index) in 3">
-                          标签二
-                        </div>
+                        {{ questionDetail.tags }}
+                        <!-- <div
+                          class="biaoqian1"
+                          v-for="(item, index) in questionDetail.tags"
+                          :key="index"
+                        >
+                          {{ item }}
+                        </div> -->
                       </div>
                     </div>
                   </div>
 
                   <div class="border_bottom background1" style="padding: 20px">
-                    <div v-html="htmll"></div>
+                    <!-- <div v-html="htmll"></div> -->
                   </div>
                   <div
                     class="border_bottom background1 colonn"
                     style="padding: 20px; align-items: flex-start"
                   >
                     <div>
-                      在关系代数中，对一个关系做投影操作后，新关系的元组个数（
-                      ）原来关系的元组个数。
+                      {{ questionDetail.question }}
                     </div>
                     <div class="colonn">
                       <div style="margin-top: 20px">A：小于</div>
@@ -59,42 +62,30 @@
                     style="padding: 0px 20px 20px 20px; align-items: flex-start"
                   >
                     <div style="font-weight: bold; padding: 20px 0px 20px 0px">
-                      解析
+                      答案解析
                     </div>
-                    <!-- <div style="background-color: #000000;color: #08979c;padding:20px;"> -->
-                    <div>{{ html111 }}</div>
-                    <!-- </div> -->
+                    <div style="margin-top: 20px">
+                      {{ questionDetail.answer }}
+                    </div>
                   </div>
 
-                  <!-- <div class="roww background1 " style="padding:20px;">
-										<el-button type="primary">文字解析</el-button>
-									</div> -->
-
-                  <div
-                    class="roww background1 center_center"
-                    style="
-                      padding: 10px 20px 10px 20px;
-                      color: #999999;
-                      border-top: 1px solid #f5f5f5;
-                    "
-                  >
-                    <div class="roww center_center">
-                      <el-button
-                        style="color: #999999"
-                        class="el-icon-s-goods"
-                        type="text"
-                        >收藏
-                      </el-button>
-                    </div>
-                    <div class="line2"></div>
-                    <div class="roww center_center">
-                      <el-button
-                        style="color: #999999"
-                        class="el-icon-s-goods"
-                        type="text"
-                        >点赞
-                      </el-button>
-                    </div>
+                  <div class="roww center_center">
+                    <el-button
+                      style="color: #999999"
+                      class="el-icon-s-goods"
+                      type="text"
+                      >收藏
+                    </el-button>
+                  </div>
+                  <div class="line2"></div>
+                  <div class="roww center_center">
+                    <el-button
+                      style="color: #999999"
+                      class="el-icon-s-goods"
+                      type="text"
+                      @click="like"
+                      >点赞
+                    </el-button>
                   </div>
                 </div>
               </div>
@@ -166,35 +157,6 @@
                   <paper_tem v-for="(item, index) in 3" :key="3"></paper_tem>
                 </div>
               </el-card>
-
-              <el-card>
-                <div
-                  class="colonn background1"
-                  style="padding: 20px; margin-top: 20px"
-                >
-                  <div class="roww" style="margin-bottom: 10px">
-                    <img
-                      src="../assets/dog.png"
-                      style="width: 80px; height: 80px; margin-right: 15px"
-                    />
-                    <div class="colonn" style="text-align: left">
-                      <div style="text-align: left; font-weight: bold">
-                        编程导航
-                      </div>
-                      <div
-                        class="txtShowLength1"
-                        style="
-                          text-align: left;
-                          color: #99a9bf;
-                          margin-top: 15px;
-                        "
-                      >
-                        专业全面的编程资源站点，不再求人！专业全面的编程资源站点，不再求人！专业全面的编程资源站点，不再求人！专业全面的编程资源站点，不再求人！
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </el-card>
             </div>
           </el-col>
         </el-row>
@@ -208,18 +170,43 @@
 import paper_tem from '@/components/me/paper_tem.vue';
 import userInfo from '@/components/Home/userInfo.vue';
 import shitilan from '@/components/shitilan.vue';
-import { ref } from 'vue';
-// const name=ref('me_compon')
-const htmll = ref("<a style='color:red;'>题目</a>");
-const activeIndex = ref('1');
-const tabPosition = ref('top');
-const html111 = ref('hjkhkhioo');
-const dialogVisible = ref(false);
-const htmlStr = ref();
+import { getQuestionDetail, likeQuestion } from '@/services';
+import queryString from 'query-string';
+import { questionType, difficulty, catalogIDType } from '@/utils';
+import { ref, computed, onMounted } from 'vue';
+import type { IQuestion } from '@/types';
+
+const questionDetail = ref({} as IQuestion);
+
+const getDailyQuestion = async () => {
+  const { id } = queryString.parse(window?.location?.href?.split('?')[1] || '');
+  const res = await getQuestionDetail({ id } as any);
+  questionDetail.value = res;
+};
+const type = computed(() => {
+  return questionType(Number(questionDetail.value.questionType));
+});
+const degreeDifficulty = computed(() => {
+  return difficulty(Number(questionDetail.value.difficulty));
+});
+const catalogID = computed(() => {
+  return catalogIDType(Number(questionDetail.value.catalogID));
+});
+
+const like = async () => {
+  await likeQuestion({
+    id: questionDetail.value.id,
+    creator: questionDetail.value.creator,
+  } as any);
+};
+
+getDailyQuestion();
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.info-container {
+  width: 100%;
+}
 body {
   background-color: rgba(240, 242, 245, 1);
 }
