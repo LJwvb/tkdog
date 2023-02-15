@@ -5,10 +5,7 @@
     </el-button>
     <el-dropdown>
       <span>
-        <el-avatar
-          :size="50"
-          src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
-        />
+        <el-avatar :size="50" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" />
       </span>
       <template #dropdown>
         <el-dropdown-menu>
@@ -65,6 +62,7 @@ const toLogin = () => {
   justify-content: space-between;
   align-items: center;
 }
+
 .upload {
   margin-right: 20px;
 }

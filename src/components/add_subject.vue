@@ -6,14 +6,8 @@
           <el-col :span="16">
             <el-card style="margin-right: 10px">
               <div style="padding: 20px 20px 20px 20px">
-                <div
-                  class="background1 colonn"
-                  style="padding: 30px 0px 30px 0px"
-                >
-                  <div
-                    class="roww border_bottom center_center"
-                    style="padding: 0px 20px 20px 20px"
-                  >
+                <div class="background1 colonn" style="padding: 30px 0px 30px 0px">
+                  <div class="roww border_bottom center_center" style="padding: 0px 20px 20px 20px">
                     <div>上传题目</div>
                     <div class="allline"></div>
                     <div class="roww">
@@ -22,113 +16,66 @@
                     </div>
                   </div>
 
-                  <el-form
-                    :rules="rules"
-                    ref="form"
-                    :model="form"
-                    label-width="100px"
-                    label-position="left"
-                    hide-required-asterisk
-                    style="padding: 0px 30px 30px 30px; margin-top: 20px"
-                    class="demo-ruleForm"
-                    required="true"
-                  >
+                  <el-form ref="form" :model="contentFormState" label-width="100px" label-position="left"
+                    hide-required-asterisk style="padding: 0px 30px 30px 30px; margin-top: 20px" class="demo-ruleForm"
+                    required="true">
+                    <el-form-item label="">
+                      <label><span style="color: red">*</span> 科目</label>
+                      <el-radio-group v-model="contentFormState.subjectID">
+                        <el-radio v-for="item in subject" :key="item.subjectID" :label="item.title"
+                          :name="item.subjectID"></el-radio>
+                      </el-radio-group>
+                    </el-form-item>
                     <el-form-item prop="name">
-                      <label slot="label"
-                        ><span style="color: red">*</span> 题型</label
-                      >
-                      <el-radio-group v-model="form.resource">
-                        <el-radio label="简答"></el-radio>
-                        <el-radio label="单选"></el-radio>
-                        <el-radio label="不定向"></el-radio>
-                        <el-radio label="填空"></el-radio>
-                        <el-radio label="编程"></el-radio>
+                      <label><span style="color: red">*</span> 题型</label>
+                      <el-radio-group v-model="contentFormState.questionType">
+                        <el-radio v-for="item in data" :key="item.questionType" :label="item.title"
+                          :name="item.questionType"></el-radio>
                       </el-radio-group>
                     </el-form-item>
                     <el-form-item label="">
-                      <label slot="label"
-                        ><span style="color: red">*</span> 难度</label
-                      >
-                      <el-radio-group v-model="form.resource">
-                        <el-radio label="简单"></el-radio>
-                        <el-radio label="中等"></el-radio>
-                        <el-radio label="困难"></el-radio>
+                      <label><span style="color: red">*</span> 难度</label>
+                      <el-radio-group v-model="contentFormState.difficulty">
+                        <el-radio v-for="item in diff" :key="item.difficulty" :label="item.title"
+                          :name="item.difficulty"></el-radio>
                       </el-radio-group>
                     </el-form-item>
 
                     <el-form-item required="true" prop="name" label="标签">
-                      <label slot="label"
-                        ><span style="color: red">*</span> 标签</label
-                      >
-                      <el-select
-                        multiple
-                        style="width: 100%"
-                        v-model="value"
-                        placeholder="可选至多五个标签,支持搜索"
-                      >
-                        <el-option-group
-                          v-for="group in options"
-                          :key="group.label"
-                          :label="group.label"
-                        >
-                          <el-option
-                            v-for="item in group.options"
-                            :key="item.value"
-                            :label="item.label"
-                            :value="item.value"
-                          >
+                      <label><span style="color: red">*</span> 标签</label>
+                      <el-select multiple style="width: 100%" v-model="contentFormState.tags"
+                        placeholder="可选至多五个标签,支持搜索">
+                        <el-option-group v-for="group in options" :key="group.label" :label="group.label">
+                          <el-option v-for="item in group.options" :key="item.value" :label="item.label"
+                            :value="item.value">
                           </el-option>
                         </el-option-group>
                       </el-select>
                     </el-form-item>
 
                     <el-form-item>
-                      <label slot="label"
-                        ><span style="color: red">*</span> 题目</label
-                      >
+                      <label><span style="color: red">*</span> 题目</label>
                       <!-- <mavon-editor v-model="value" /> -->
-                      <el-input
-                        v-model="textarea1"
-                        :autosize="{ minRows: 2, maxRows: 4 }"
-                        type="textarea"
-                        placeholder="请输入正确的题目格式"
-                      />
+                      <el-input v-model="contentFormState.question" :autosize="{ minRows: 2, maxRows: 4 }"
+                        type="textarea" placeholder="请输入正确的题目格式" />
                     </el-form-item>
                     <el-form-item label="">
-                      <label slot="label"
-                        ><span style="color: red">*</span> 参考题解</label
-                      >
+                      <label><span style="color: red">*</span> 参考题解</label>
                       <!-- <mavon-editor v-model="value" /> -->
-                      <el-input
-                        v-model="textarea2"
-                        :autosize="{ minRows: 2, maxRows: 4 }"
-                        type="textarea"
-                        placeholder="请输入正确的题解格式"
-                      />
+                      <el-input v-model="contentFormState.answer" :autosize="{ minRows: 2, maxRows: 4 }" type="textarea"
+                        placeholder="请输入正确的题解格式" />
                     </el-form-item>
 
-                    <el-form-item label="视频题解">
-                      <label slot="label"
-                        ><span style="color: white">*</span> 视频题解</label
-                      >
-                      <el-input
-                        v-model="form.name"
-                        placeholder="请输入 B 站视频嵌入链接（https://player.bilibili.com 开头)，可不填"
-                      ></el-input>
-                    </el-form-item>
                     <el-form-item label="标题备注">
-                      <label slot="label"
-                        ><span style="color: white">*</span> 标题备注</label
-                      >
-                      <el-input
-                        v-model="form.name"
-                        placeholder="建议用题目考察要点命名，可不填"
-                      ></el-input>
+                      <label><span style="color: white">*</span> 标题备注</label>
+                      <el-input v-model="contentFormState.remarks" placeholder="建议用题目考察要点命名，可不填"></el-input>
                     </el-form-item>
 
                     <el-form-item>
                       <!-- @click="onSubmit" -->
-                      <el-button type="primary">提 交</el-button>
+                      <el-button type="primary" @click="confirmContent()" :disabled="
+                        contentFormState.isChoice == 0 ? true : false
+                      ">提 交</el-button>
                     </el-form-item>
                   </el-form>
                 </div>
@@ -144,19 +91,14 @@
                     相似题目（请勿重复上传）
                   </div>
 
-                  <paper_tem
-                    v-for="(item, index) in 3"
-                    :key="index + 'a'"
-                  ></paper_tem>
+                  <paper_tem v-for="(item, index) in 3" :key="index + 'a'"></paper_tem>
 
                   <div class="colonn border_bottom">
-                    <div
-                      style="
+                    <div style="
                         font-weight: bold;
                         margin: 15px 0px;
                         padding: 0px 20px 0px 20px;
-                      "
-                    >
+                      ">
                       2023腾讯春招面试题
                     </div>
 
@@ -166,16 +108,13 @@
                       </div>
                     </div>
 
-                    <div
-                      class="roww center_center jiandaee"
-                      style="
+                    <div class="roww center_center jiandaee" style="
                         line-height: 20px;
                         height: 20px;
                         padding: 0px 20px 0px 0px;
                         margin-top: 0px;
                         margin-bottom: 0px;
-                      "
-                    >
+                      ">
                       <div>2020-08-08</div>
                       <div class="line1"></div>
                       <div class="el-icon-scissors">困难</div>
@@ -186,11 +125,7 @@
                     <div class="" style="flex-shrink: 0; /*防止被压缩*/">
                       总数650
                     </div>
-                    <el-pagination
-                      background
-                      layout="prev, pager, next"
-                      :total="5"
-                    >
+                    <el-pagination background layout="prev, pager, next" :total="5">
                     </el-pagination>
                   </div>
                 </div>
@@ -208,42 +143,148 @@
 import shitilan from '@/components/shitilan.vue';
 import paper_tem from '@/components/me/paper_tem.vue';
 import { ref, reactive } from 'vue';
-const textarea1 = ref('');
-const textarea2 = ref('');
-const name = ref('me_compon');
+import { takeQuestion } from '@/services';
 
-let form = reactive({
-  name: '',
-  region: '',
-  date1: '',
-  date2: '',
-  delivery: false,
-  type: [],
-  resource: '',
-  desc: '',
-});
-const rules = reactive({
-  name: [
-    { required: true, message: '请输入活动名称', trigger: 'blur' },
-    { min: 3, max: 5, message: '长度在 3 到 5 个字符', trigger: 'blur' },
-  ],
-  region: [{ required: true, message: '请选择活动区域', trigger: 'change' }],
-  date1: [
-    { type: 'date', required: true, message: '请选择日期', trigger: 'change' },
-  ],
-  date2: [
-    { type: 'date', required: true, message: '请选择时间', trigger: 'change' },
-  ],
-  type: [
-    {
-      type: 'array',
-      required: true,
-      message: '请至少选择一个活动性质',
-      trigger: 'change',
-    },
-  ],
-  resource: [{ required: true, message: '请选择活动资源', trigger: 'change' }],
-  desc: [{ required: true, message: '请填写活动形式', trigger: 'blur' }],
+const subject = [
+  {
+    title: 'javaScript',
+    name: 'first',
+    content: 'javaScript',
+    subjectID: 0,
+  },
+  {
+    title: 'CSS',
+    name: 'second',
+    content: 'CSS',
+    subjectID: 1,
+  },
+  {
+    title: 'HTML',
+    name: 'third',
+    content: 'HTML',
+    subjectID: 2,
+  },
+  {
+    title: 'ES6',
+    name: 'fourth',
+    content: 'ES6',
+    subjectID: 3,
+  },
+  {
+    title: 'React',
+    name: 'fifth',
+    content: 'React',
+    subjectID: 4,
+  },
+  {
+    title: 'Vue',
+    name: 'sixth',
+    content: 'Vue',
+    subjectID: 5,
+  },
+  {
+    title: 'Node',
+    name: 'seventh',
+    content: 'Node',
+    subjectID: 6,
+  },
+  {
+    title: 'webpack',
+    name: 'eighth',
+    content: 'webpack',
+    subjectID: 7,
+  },
+  {
+    title: 'TypeScript',
+    name: 'ninth',
+    content: 'TypeScript',
+    subjectID: 8,
+  },
+  {
+    title: '编程题',
+    name: 'tenth',
+    content: '编程题',
+    subjectID: 9,
+  },
+  {
+    title: '计算机基础',
+    name: 'eleventh',
+    content: '计算机基础',
+    subjectID: 10,
+  },
+  {
+    title: '计算机网络',
+    name: 'twelfth',
+    content: '计算机网络',
+    subjectID: 11,
+  },
+];
+const data = [
+  {
+    title: '单选题',
+    name: 'first',
+    content: '单选题',
+    questionType: 0,
+  },
+  {
+    title: '多选题',
+    name: 'second',
+    content: '多选题',
+    questionType: 1,
+  },
+  {
+    title: '判断题',
+    name: 'third',
+    content: '判断题',
+    questionType: 2,
+  },
+  {
+    title: '填空题',
+    name: 'fourth',
+    content: '填空题',
+    questionType: 3,
+  },
+  {
+    title: '简答题',
+    name: 'fifth',
+    content: '简答题',
+    questionType: 4,
+  },
+];
+const diff = [
+  {
+    title: '简单',
+    name: 'first',
+    content: '简单',
+    difficulty: 0,
+  },
+  {
+    title: '中等',
+    name: 'second',
+    content: '中等',
+    difficulty: 1,
+  },
+  {
+    title: '困难',
+    name: 'third',
+    content: '困难',
+    difficulty: 2,
+  },
+];
+
+let contentFormState = ref({
+  subjectID: 0,
+  catalogID: 0,
+  difficulty: 0,
+  questionType: 0,
+  tags: [],
+  question: '',
+  answer: '',
+  remarks: '',
+  creator: 'admin',
+  direction: '',
+
+  // isChoice: 1, // 确认按钮的属性
 });
 
 const value = ref('');
@@ -284,13 +325,23 @@ const options = reactive([
     ],
   },
 ]);
+
+const confirmContent = () => {
+  console.log(contentFormState.value); // 在控制台打印表单的数据
+  // message.success("内容保存成功",5) // 文字弹窗提示
+  //题目列表
+  contentFormState.value.tags.join(',');
+  takeQuestion(contentFormState.value).then((res) => {
+    console.log(res);
+  });
+};
 </script>
 
 <style>
 body {
   background-color: rgba(240, 242, 245, 1);
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
 }
 
 .biaoqian1 {

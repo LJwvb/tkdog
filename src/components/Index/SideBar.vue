@@ -10,12 +10,15 @@
             <span>题库狗的每日一题</span>
           </div>
         </template>
-        <div>
-          <span>说说你对模块化方案的理解，比如 CommonJS、AMD、CMD、ES Module
-            分别是什么？</span>
+          <!-- <span>说说你对模块化方案的理解，比如 CommonJS、AMD、CMD、ES Module
+            分别是什么？</span> -->
+            <el-skeleton :loading="loadingDaily" animated :rows="0">
+          <div v-for="item in dailyData" :key="item.id" class="question">
+            {{ item?.question }}
+          </div>
           <el-button class="button" text @click="showModal('daily')">
             点击了解</el-button>
-        </div>
+      </el-skeleton>
       </el-card>
     </el-col>
   </el-row>
@@ -48,6 +51,7 @@
       <el-card>
         <div>排行榜</div>
         <el-scrollbar height="400px">
+          <el-skeleton :loading="loadingRank" animated :rows="10">
           <div v-for="(item, index) in rankData" :key="index">
             <div class="border_bottom">
               <div class="row">
@@ -61,6 +65,7 @@
               </div>
             </div>
           </div>
+          </el-skeleton>
         </el-scrollbar>
       </el-card>
     </el-col>
@@ -77,19 +82,38 @@
 //   })
 //   .catch((err) => { });
 import { ref } from 'vue';
-import { request } from '@/utils/request';
-interface RankData {
-  avatar: string;
-  username: string;
-  get_likes_num: number;
-  upload_ques_num: number;
-}
-const rankData = ref<RankData[]>([]);
-// 接口请求
-request('GEt', '/getRankingList').then((res: any) => {
-  console.log(res);
-  rankData.value = res.data.data;
-});
+import { getRankList,getDailyQuestion } from '@/services';
+const rankData = ref();
+const dailyData = ref();
+const loadingRank = ref(true);
+const loadingDaily = ref(true);
+
+const getRank = async () => {
+  const res = await getRankList();
+  rankData.value = res;
+  loadingRank.value = false;
+};
+const getDaily = async () => {
+  const res = await getDailyQuestion();
+  dailyData.value = res;
+  loadingDaily.value = false;
+};
+getRank();
+
+getDaily();
+// import { request } from '@/utils/request';
+// interface RankData {
+//   avatar: string;
+//   username: string;
+//   get_likes_num: number;
+//   upload_ques_num: number;
+// }
+// const rankData = ref<RankData[]>([]);
+// // 接口请求
+// request('GEt', '/getRankingList').then((res: any) => {
+//   console.log(res);
+//   rankData.value = res.data.data;
+// });
 
 const showModal = (type: string) => {
   console.log(type);

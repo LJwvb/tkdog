@@ -1,7 +1,7 @@
 // import { Menu } from '@element-plus/icons-vue/dist/types';
 import { createRouter, createWebHashHistory } from 'vue-router';
 import Home from '../views/Home.vue';
-import NavBar from '../components/NavBar/Index.vue';
+import NavBar from '@/components/NavBar/Index.vue';
 import Tabs from '../components/Index/Tabs.vue';
 import Subject from '../components/subject.vue';
 import label from '../components/subject/label.vue';
@@ -18,7 +18,7 @@ import addPaperone from '../views/addPaper/one.vue';
 import addPapertwo from '../views/addPaper/two.vue';
 import addPaperthree from '../views/addPaper/three.vue';
 import addPaperfour from '../views/addPaper/four.vue';
-import problem_info from '../views/problem_info.vue';
+import problemInfo from '../views/problem_info.vue';
 import me_test_paper from '../views/me/me_test_paper.vue';
 import user from '../components/user.vue';
 import volume from '../components/volume.vue';
@@ -107,9 +107,9 @@ const routes: any = [
     ],
   },
   {
-    path: '/problem_info',
-    name: 'problem_info',
-    component: problem_info,
+    path: '/problemInfo',
+    name: 'problemInfo',
+    component: problemInfo,
   },
   {
     path: '/volume',

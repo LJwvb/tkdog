@@ -1,67 +1,78 @@
 <template>
-  <div v-for="(item, index) in question" :key="index">
-    <div class="card-container" @click="toProblem_info">
-      <div class="title">
-        <span> {{ item.question }} </span>
+  <div class="card-container" @click="toProblem_info">
+    <div class="title">
+      <span class="title-text"> {{ question.question }} </span>
+    </div>
+    <div class="tags">
+      <el-tag v-for="tag in tags" :key="tag" class="tag-item">
+        {{ tag }}
+      </el-tag>
+    </div>
+    <div class="info">
+      <span>{{ type }}</span>
+      <div class="line"></div>
+      <span>{{ degreeDifficulty }}</span>
+      <div class="line"></div>
+      <span>{{ addDate }}</span>
+    </div>
+    <div class="nums">
+      <div class="num-item">
+        <el-icon style="width: 15px; height: 15px">
+          <View />
+        </el-icon>
+        <span class="num-text">{{ question.browses_num ?? 0 }}</span>
       </div>
-      <div class="tags">
-        <el-tag class="tag-item">
-          {{ item.questionType }}
-        </el-tag>
-        <el-tag class="tag-item">
-          {{ item.difficulty }}
-        </el-tag>
-        <el-tag class="tag-item">
-          {{ item.direction }}
-        </el-tag>
+      <div class="num-item">
+        <el-icon style="width: 15px; height: 15px">
+          <Star />
+        </el-icon>
+        <span class="num-text">{{ question.likes_num ?? 0 }}</span>
       </div>
-      <div class="info">
-        <span>简答题</span>
-        <div class="line" />
-        <span>{{ item.difficulty }}</span>
-        <div class="line" />
-        <span>2020-08-08</span>
-      </div>
-      <el-button type="primary" class="btn">选题</el-button>
-      <div class="nums">
-        <div class="num-item">
-          <el-icon style="width: 15px; height: 15px">
-            <View />
-          </el-icon>
-          <span>{{ item.browses_num }}</span>
-        </div>
-        <div class="num-item">
-          <el-icon style="width: 15px; height: 15px">
-            <Star />
-          </el-icon>
-          <span>{{ item.likes_num }}</span>
-        </div>
-        <div class="num-item">
-          <el-icon style="width: 15px; height: 15px">
-            <Odometer />
-          </el-icon>
-          <span></span>
-        </div>
+      <div class="num-item">
+        <el-icon style="width: 15px; height: 15px">
+          <User />
+        </el-icon>
+        <span class="num-text">{{ question.creator }}</span>
       </div>
     </div>
+    <el-button type="primary" class="btn">选题</el-button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { defineProps, ref } from 'vue';
-import router from '../../router';
-// import { params } from '../api/params';
-import { question } from '../api/question';
+import { defineProps, ref, computed } from 'vue';
+import router from '@/router';
+import type { IQuestion } from '@/types';
+import { questionType, difficulty } from '@/utils/index';
 const props = defineProps({
-  content: {
-    type: String,
-    default: '',
+  question: {
+    type: Array as unknown as () => IQuestion,
+    default: () => [],
   },
+});
+const question = props.question as IQuestion;
+
+const tags = question.tags;
+const id = question.id;
+
+const type = computed(() => {
+  return questionType(Number(question.questionType));
+});
+const degreeDifficulty = computed(() => {
+  return difficulty(Number(question.difficulty));
+});
+
+const addDate = computed(() => {
+  const date = new Date(question.addDate);
+  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 });
 
 const toProblem_info = () => {
   router.push({
-    path: '/problem_info',
+    path: '/problemInfo',
+    query: {
+      id,
+    },
   });
 };
 </script>

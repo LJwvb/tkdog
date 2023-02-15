@@ -14,13 +14,13 @@
                   <el-icon>
                     <User />
                   </el-icon>
-                  <span slot="title">个人资料</span>
+                  <span >个人资料</span>
                 </el-menu-item>
                 <el-menu-item index="2">
                   <el-icon>
                     <Star />
                   </el-icon>
-                  <span slot="title">我的收藏</span>
+                  <span >我的收藏</span>
                 </el-menu-item>
 
                 <el-menu-item index="3">
@@ -34,7 +34,7 @@
                   <el-icon>
                     <Clock />
                   </el-icon>
-                  <span slot="title">浏览记录</span>
+                  <span >浏览记录</span>
                 </el-menu-item>
 
                 <!-- <el-menu-item index="5">
@@ -46,14 +46,14 @@
                   <el-icon>
                     <Menu />
                   </el-icon>
-                  <span slot="title">我的试卷</span>
+                  <span >我的试卷</span>
                 </el-menu-item>
 
                 <el-menu-item index="7">
                   <el-icon>
                     <ChatLineSquare />
                   </el-icon>
-                  <span slot="title">消息通知</span>
+                  <span >消息通知</span>
                 </el-menu-item>
               </el-menu>
 
