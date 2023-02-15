@@ -14,6 +14,7 @@
                   <el-icon>
                     <User />
                   </el-icon>
+                  
                   <span >个人资料</span>
                 </el-menu-item>
                 <el-menu-item index="2">
