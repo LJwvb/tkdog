@@ -1,4 +1,3 @@
-import { difficulty } from './../utils/index';
 // 排行榜接口
 export interface IRankingList {
   avatar: string;

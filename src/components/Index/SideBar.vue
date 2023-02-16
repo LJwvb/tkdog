@@ -16,7 +16,7 @@
           <div v-for="item in dailyData" :key="item.id" class="question">
             {{ item?.question }}
           </div>
-          <el-button class="button" text @click="showModal('daily')">
+          <el-button class="button" text  @click="centerDialogVisible = true">
             点击了解</el-button>
       </el-skeleton>
       </el-card>
@@ -40,8 +40,8 @@
         <div class="info">
           <span>题库狗一个干净且高级的面试刷题网站源码，支持自由组卷，通过Vue3+Node.js的全栈项目，程序包含网站前台+管理员后台</span>
 
-          <el-button class="button" text @click="showModal('daily')">
-            点击了解</el-button>
+          <!-- <el-button class="button" text @click="showModal('daily')">
+            点击了解</el-button> -->
         </div>
       </el-card>
     </el-col>
@@ -70,6 +70,23 @@
       </el-card>
     </el-col>
   </el-row>
+  <el-dialog v-model="centerDialogVisible" title="题库狗的每日一题" width="30%" center>
+  
+      <el-skeleton :loading="loadingDaily" animated :rows="0">
+          <div v-for="item in dailyData" :key="item.id" class="question">
+            {{ item?.question }}
+          </div>
+   </el-skeleton>
+
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="centerDialogVisible = false">答案</el-button>
+        <el-button type="primary" @click="centerDialogVisible = false">
+          退出
+        </el-button>
+      </span>
+    </template>
+  </el-dialog>
 </template>
 <script setup lang="ts">
 // import axios from 'axios';
@@ -87,7 +104,7 @@ const rankData = ref();
 const dailyData = ref();
 const loadingRank = ref(true);
 const loadingDaily = ref(true);
-
+const centerDialogVisible = ref(false);
 const getRank = async () => {
   const res = await getRankList();
   rankData.value = res;
@@ -115,9 +132,9 @@ getDaily();
 //   rankData.value = res.data.data;
 // });
 
-const showModal = (type: string) => {
-  console.log(type);
-};
+// const showModal = (type: string) => {
+//   console.log(type);
+// };
 </script>
 
 <style>

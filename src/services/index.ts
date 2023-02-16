@@ -1,4 +1,3 @@
-import { params } from './../components/api/params';
 import { request } from '@/utils/request';
 import type {
   IRankingList,
