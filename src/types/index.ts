@@ -23,7 +23,7 @@ export interface IQuestion {
   question: string; // 题干
   answer: string; // 答案
   addDate: string; // 添加时间
-  tags: string[]; // 标签
+  tags: any; // 标签
   questionType: number; // 题目类型 0: '单选题' 1: '多选题' 2: '判断题' 3: '填空题'4: '简答题'
   remarks?: string; // 备注
   number?: number; // 试题编号
@@ -48,9 +48,44 @@ export interface IGetQuestionDetailParams {
 export interface ILikeQuestionParams {
   id: number;
   creator: string;
+  username: string;
 }
 // 取消点赞接口
 export interface ICancelLikeQuestionParams {
   id: number;
   creator: string;
+  username: string;
+}
+// 用户登录接口
+export interface ILoginParams {
+  phone: string | number;
+  password: string | number;
+}
+export interface ILoginReturn {
+  code: number;
+  message: string;
+  data?: ILoginData;
+  success: boolean;
+}
+export interface ILoginData {
+  username: string;
+  phone: string;
+  sex: string;
+  email: string;
+  ctime: string;
+  avatar: string;
+  last_login_time: string;
+}
+
+// 用户注册接口
+export interface IRegisterParams {
+  phone: string;
+  email: string;
+  password: string;
+  username: string;
+  sex: string;
+}
+// 题目浏览接口
+export interface IBrowseQuestion {
+  id: number;
 }

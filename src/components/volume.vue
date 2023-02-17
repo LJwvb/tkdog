@@ -187,13 +187,11 @@
         </el-row>
       </el-main>
     </el-container>
-    <shitilan></shitilan>
   </div>
 </template>
 <script setup lang="ts">
 import paper_tem from '@/components/me/paper_tem.vue';
 import userInfo from '@/components/Home/userInfo.vue';
-import shitilan from '@/components/shitilan.vue';
 </script>
 
 <style scoped>

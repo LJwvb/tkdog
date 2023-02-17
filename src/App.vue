@@ -1,22 +1,33 @@
 <template>
-  <!-- 固定导航栏 -->
-  <div class="home-nav">
-    <NavBar></NavBar>
+  <div class="tkdog-container">
+    <!-- 固定导航栏 -->
+    <div class="home-nav">
+      <NavBar></NavBar>
+    </div>
+    <!-- 动态页面主体 -->
+    <div class="hone-body">
+      <router-view />
+    </div>
+    <!-- 尾部-->
+    <div class="home-bottom">
+      <BottomBar></BottomBar>
+    </div>
   </div>
-  <!-- 动态页面主体 -->
-  <div class="hone-body">
-    <router-view />
-  </div>
-  <!-- 尾部-->
-  <div class="home-bottom">
-    <BottomBar></BottomBar>
-  </div>
+  <TestBasket />
 </template>
 <script setup lang="ts">
 import NavBar from './components/NavBar/Index.vue';
 import BottomBar from './components/BottomBar/BottomBar.vue';
+import TestBasket from '@/components/TestBasket/index.vue';
 </script>
 <style>
+.tkdog-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 .home-nav {
   position: relative;
   width: 100%;
@@ -25,12 +36,12 @@ import BottomBar from './components/BottomBar/BottomBar.vue';
 }
 .hone-body {
   padding: 20px;
-  min-height: 80vh;
-  min-width: 1550px;
+  width: 90%;
   display: flex;
-  justify-content: space-evenly;
+  justify-content: space-between;
+  overflow: hidden;
 }
 .home-bottom {
-  min-width: 1550px;
+  width: 90%;
 }
 </style>

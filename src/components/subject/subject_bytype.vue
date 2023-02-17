@@ -166,7 +166,7 @@
 import QuestionCard from '@/components/QuestionCard/index.vue';
 
 import { ref, reactive } from 'vue';
-import shitilan from '@/components/shitilan.vue';
+
 const name = ref('me_compon');
 const input2 = ref('Welcome to Your Vue.js App');
 const input3 = ref('');

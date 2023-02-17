@@ -35,13 +35,10 @@
         </div>
       </el-main>
     </el-container>
-    <shitilan></shitilan>
   </div>
 </template>
 
 <script setup lang="ts">
-import shitilan from '@/components/shitilan.vue';
-
 import { ref } from 'vue';
 // import router from '../../router'
 import { useRouter } from 'vue-router';

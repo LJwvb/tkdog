@@ -200,12 +200,10 @@
         </el-row>
       </el-main>
     </el-container>
-    <shitilan></shitilan>
   </div>
 </template>
 
 <script setup lang="ts">
-import shitilan from '@/components/shitilan.vue';
 import paper_tem from '@/components/me/paper_tem.vue';
 import { ref, reactive } from 'vue';
 const textarea1 = ref('');

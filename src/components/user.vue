@@ -74,14 +74,13 @@
         </el-scrollbar>
       </el-main>
 
-      <shitilan></shitilan>
     </el-container>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
-import shitilan from '@/components/shitilan.vue';
+
 // import router from '../../router'
 import { useRouter } from 'vue-router';
 

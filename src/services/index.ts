@@ -7,6 +7,10 @@ import type {
   IQuestion,
   ILikeQuestionParams,
   ICancelLikeQuestionParams,
+  ILoginParams,
+  ILoginReturn,
+  IRegisterParams,
+  IBrowseQuestion,
 } from '@/types';
 
 // 排行榜接口
@@ -42,4 +46,18 @@ export function likeQuestion(params: ILikeQuestionParams) {
 // 题目取消点赞接口
 export function unlikeQuestion(params: ICancelLikeQuestionParams) {
   return request('POST', '/cancelLikeQuestions', { data: params });
+}
+// 用户登录接口
+export function login(params: ILoginParams) {
+  return request('POST', '/login', { data: params }).then((res: any) => {
+    return res.data as ILoginReturn;
+  });
+}
+// 用户注册接口
+export function register(params: IRegisterParams) {
+  return request('POST', '/register', { data: params });
+}
+// 题目浏览接口
+export function browseQuestion(params: IBrowseQuestion) {
+  return request('POST', '/addBrowsesNum', { data: params });
 }

@@ -94,7 +94,6 @@
         </div>
       </el-card>
     </div>
-    <shitilan></shitilan>
 
     <!-- 修改个人信息 -->
     <el-dialog title="修改信息" v-model="dialogFormVisible">
@@ -176,7 +175,6 @@
 </template>
 
 <script setup lang="ts">
-import shitilan from '@/components/shitilan.vue';
 import { ref, reactive, nextTick } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Plus } from '@element-plus/icons-vue';

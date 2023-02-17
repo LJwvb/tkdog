@@ -43,7 +43,8 @@
 import { defineProps, ref, computed } from 'vue';
 import router from '@/router';
 import type { IQuestion } from '@/types';
-import { questionType, difficulty } from '@/utils';
+import { browseQuestion } from '@/services';
+import { questionType, difficulty, transitionTime } from '@/utils';
 
 const props = defineProps({
   question: {
@@ -62,10 +63,8 @@ const type = computed(() => {
 const degreeDifficulty = computed(() => {
   return difficulty(Number(question.difficulty));
 });
-
 const addDate = computed(() => {
-  const date = new Date(question.addDate);
-  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+  return transitionTime(question.addDate);
 });
 
 const toProblemInfo = () => {
@@ -75,6 +74,8 @@ const toProblemInfo = () => {
       id,
     },
   });
+  // 浏览量
+  browseQuestion({ id });
 };
 </script>
 <style scoped>
