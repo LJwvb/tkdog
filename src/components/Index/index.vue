@@ -149,14 +149,20 @@ const handleClick = (tab: any) => {
   border-radius: 5px;
   border: 1px solid var(--el-card-border-color);
 }
-:global(.el-tabs__content) {
+::v-deep.el-tabs__content {
   overflow: visible !important;
 }
-:global(.el-tabs--card > .el-tabs__header .el-tabs__nav) {
+::v-deep.el-tabs--card > .el-tabs__header {
+  border-bottom: none !important;
+}
+::v-deep.el-tabs--card > .el-tabs__header .el-tabs__nav {
   border-radius: 5px !important;
 }
-:global(.el-tabs--card > .el-tabs__header .el-tabs__item.is-active) {
+::v-deep.el-tabs--card > .el-tabs__header .el-tabs__item.is-active {
   border: 1px solid var(--el-color-primary) !important;
   border-radius: 5px;
+}
+::v-deep .el-tabs--card > .el-tabs__header .el-tabs__item {
+  border-bottom: 1px solid var(--el-border-color-light) !important;
 }
 </style>

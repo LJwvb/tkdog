@@ -27,13 +27,15 @@
               </div>
             </el-button>
           </div>
-          <el-button type="primary" class="btn">选题</el-button>
+          <el-button type="primary" class="btn" @click="selectedTopic"
+            >选题</el-button
+          >
         </div>
         <el-tag v-for="tag in tags" :key="tag" class="tag-item">
           {{ tag }}
         </el-tag>
         <div>
-          <h4 class="">题目</h4>
+          <h4>题目</h4>
           <div class="question">
             {{ questionDetail.question }}
           </div>
@@ -45,10 +47,16 @@
           </div>
         </div>
         <div>
-          <h5 class="">答案解析</h5>
-          <div class="answer">
-            {{ questionDetail.answer }}
-          </div>
+          <el-collapse accordion>
+            <el-collapse-item name="1">
+              <template #title>
+                <h5>答案解析(点击展开)</h5>
+              </template>
+              <div class="answer">
+                {{ questionDetail.answer }}
+              </div>
+            </el-collapse-item>
+          </el-collapse>
         </div>
       </div>
     </el-card>
@@ -65,7 +73,7 @@
             <el-icon>
               <Avatar />
             </el-icon>
-            <div>活宝</div>
+            <div style="margin-left: 5px">{{ questionDetail.creator }}</div>
           </div>
           <div class="allline"></div>
         </div>
@@ -91,7 +99,7 @@
 import { ref, computed } from 'vue';
 import { ElMessage } from 'element-plus';
 import queryString from 'query-string';
-
+import { useStore } from 'vuex';
 import { getQuestionDetail, likeQuestion, unlikeQuestion } from '@/services';
 import {
   questionType,
@@ -99,10 +107,11 @@ import {
   catalogIDType,
   transitionTime,
 } from '@/utils';
-
 import type { IQuestion } from '@/types';
-// 获取localStorage中的用户信息
-const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+const store = useStore();
+
+// 获取store中的用户信息
+const userData = store.state.userData;
 // 获取用户喜欢的题目id
 const likeTopicsId = Array.isArray(userData?.likeTopicsId)
   ? userData?.likeTopicsId
@@ -155,14 +164,10 @@ const like = () => {
         likeTopicsId.indexOf(String(questionDetail.value.id)),
         1,
       );
-      // 更新localStorage中的用户信息
-      localStorage.setItem(
-        'userData',
-        JSON.stringify({
-          ...userData,
-          likeTopicsId,
-        }),
-      );
+      store.commit('setUserData', {
+        ...userData,
+        likeTopicsId,
+      });
     });
   } else {
     likeQuestion({
@@ -177,15 +182,31 @@ const like = () => {
       isClickLike.value = true;
       // 添加喜欢的题目id
       likeTopicsId.push(String(questionDetail.value.id));
-      // 更新localStorage中的用户信息
-      localStorage.setItem(
-        'userData',
-        JSON.stringify({
-          ...userData,
-          likeTopicsId,
-        }),
-      );
+      store.commit('setUserData', {
+        ...userData,
+        likeTopicsId,
+      });
     });
+  }
+};
+const selectedTopic = () => {
+  // 获取之前选中的题目
+  const selectedTopic = store.state.selectedTopic;
+  // 获取之前选中的题目id
+  const selectedTopicIds = selectedTopic.map((item: IQuestion) => item.id);
+  if (selectedTopicIds.includes(questionDetail.value.id)) {
+    ElMessage.error('已选中该题，若想取消请在试题篮已选题目中取消');
+    return;
+  } else {
+    const data = {
+      id: questionDetail.value.id,
+      questionType: questionDetail.value.questionType,
+      difficulty: questionDetail.value.difficulty,
+      question: questionDetail.value.question,
+      data: new Date().toLocaleString(),
+    };
+    store.commit('addSelectedTopic', [...selectedTopic, data]);
+    ElMessage.success('选题成功，请在试题篮已选题目中查看');
   }
 };
 
@@ -281,6 +302,7 @@ getDailyQuestion();
   background-color: #384548;
   color: #d1d2d2;
   padding: 0 8px 10px;
+  border-radius: 5px;
 }
 .answer::before {
   content: '';
@@ -311,117 +333,16 @@ getDailyQuestion();
   flex-direction: row;
   align-items: center;
 }
-
-.biaoqian1 {
-  padding: 0px 12px;
-  font-size: 12px;
-  background-color: #f5f5f5;
-  color: #000000;
-  height: 25px;
-  line-height: 25px;
-  border-radius: 2px;
-  margin-right: 15px;
-  margin-bottom: 15px;
-  margin-bottom: 0px;
+::v-deep .el-collapse {
+  border: none;
 }
-
-.line1 {
-  width: 1px;
-  height: 15px;
-  background-color: #e6e6e6;
-  margin: 0px 20px;
+::v-deep .el-collapse-item__header {
+  border: none;
 }
-
-.line2 {
-  width: 1px;
-  height: 15px;
-  background-color: #e6e6e6;
-  margin: 0px 0px;
+::v-deep .el-collapse-item__wrap {
+  border: none;
 }
-
-.jiandaee {
-  color: rgba(170, 170, 170, 1);
-  font-size: 13px;
-  margin-left: 20px;
-}
-
-.nums {
-  color: #999999;
-  font-size: 15px;
-  margin-left: 5px;
-}
-
-.lveeltag {
-  width: 40px;
-  height: 20px;
-  color: #08979c;
-  background: #e6fffb;
-  border: #87e8de 1px solid;
-  border-radius: 2px;
-  margin-left: 15px;
-  font-size: 12px;
-  text-align: center;
-  line-height: 20px;
-}
-
-.guanliyuan {
-  width: 70px;
-  height: 20px;
-  border: #ffa39e 1px solid;
-  border-radius: 2px;
-  margin-left: 15px;
-  background-color: #fff1f0;
-  font-size: 12px;
-  color: #ffa39e;
-  text-align: center;
-  line-height: 20px;
-}
-
-.bens {
-  width: 60px;
-  height: 30px;
-  background-color: #1890ff;
-  border-radius: 3px;
-
-  color: white;
-  text-align: center;
-  line-height: 30px;
-}
-
-.nums {
-  color: #999999;
-  font-size: 15px;
-  margin-left: 5px;
-}
-
-.biaoqian2 {
-  padding: 0px 12px;
-  font-size: 12px;
-  height: 25px;
-  line-height: 25px;
-  border-radius: 2px;
-  margin-right: 15px;
-  color: #389e0d;
-  background: #f6ffed;
-  border: 1px solid #389e0d;
-  margin-bottom: 0px;
-}
-
-/* .line1 {
-	width: 1px;
-	height: 15px;
-	background-color: #e6e6e6;
-	margin: 0px 20px;
-
-} */
-
-.taolunqua {
-  width: 100%;
-  /* margin: 0px 20px 20px 20px; */
-  flex-shrink: 0;
-  /*防止被压缩*/
-  overflow-y: scroll;
-  white-space: nowrap;
-  max-height: 300px;
+::v-deep .el-collapse-item__content {
+  padding: 0;
 }
 </style>

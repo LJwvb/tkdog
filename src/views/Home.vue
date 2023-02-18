@@ -12,10 +12,13 @@ import Tabs from '@/components/Index/index.vue';
 import SideBar from '@/components/Index/slide.vue';
 import { login } from '@/services';
 import { ElMessage } from 'element-plus';
+import { useStore } from 'vuex';
+
+const store = useStore();
 
 // todo：要写在登录页面，这里只是为了测试
-if (localStorage.getItem('userData')) {
-  console.log('已登录');
+if (store.state.userData.phone) {
+  ElMessage.success('已登录');
 } else {
   login({
     phone: 123456,
@@ -24,7 +27,7 @@ if (localStorage.getItem('userData')) {
     console.log(res);
     if (res.code === 200 || res?.success) {
       ElMessage.success('登录成功');
-      localStorage.setItem('userData', JSON.stringify(res.data));
+      store.commit('setUserData', res.data);
     } else {
       ElMessage.error(res?.message || '登录失败');
     }

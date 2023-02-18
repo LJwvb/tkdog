@@ -11,6 +11,7 @@ import type {
   ILoginReturn,
   IRegisterParams,
   IBrowseQuestion,
+  IGetPaperParams,
 } from '@/types';
 
 // 排行榜接口
@@ -60,4 +61,12 @@ export function register(params: IRegisterParams) {
 // 题目浏览接口
 export function browseQuestion(params: IBrowseQuestion) {
   return request('POST', '/addBrowsesNum', { data: params });
+}
+// 组卷接口
+export function getPaperQuestion(params: IGetPaperParams) {
+  return request('POST', '/getPaperQuestions', { data: params }).then(
+    (res: any) => {
+      return res.data;
+    },
+  );
 }

@@ -89,3 +89,8 @@ export interface IRegisterParams {
 export interface IBrowseQuestion {
   id: number;
 }
+// 组卷接口
+export interface IGetPaperParams {
+  author: string;
+  ids: string;
+}
