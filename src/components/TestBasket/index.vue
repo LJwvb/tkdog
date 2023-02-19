@@ -66,6 +66,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { questionType, difficulty } from '@/utils';
 import { getPaperQuestion } from '@/services';
 import type { IGetPaperParams } from '@/types';
+import router from '@/router';
 const store = useStore();
 const drawer = ref(false);
 const badgeValue = ref(0);
@@ -92,27 +93,8 @@ const handleDelete = (row: any) => {
   store.commit('addSelectedTopic', selectedTopic);
 };
 const getPaper = () => {
-  const questionIds = store.state.selectedTopic
-    .map((item: any) => item.id)
-    .join(',');
-  const params: IGetPaperParams = {
-    ids: questionIds,
-    author: store.state.userData.username,
-  };
-  ElMessageBox.confirm('确定组卷吗？ ', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'success',
-  }).then(() => {
-    getPaperQuestion(params).then((res: any) => {
-      if (res.code === 200 || res.success) {
-        ElMessage.success('组卷成功，试卷已保存个人中心我的试卷中');
-        store.commit('addSelectedTopic', []);
-      } else {
-        ElMessage.error(res.message);
-      }
-    });
-  });
+  router.push('/addPaper');
+  drawer.value = false;
 };
 const clearAll = () => {
   ElMessageBox.confirm('确定清空试题篮吗？', '提示', {
