@@ -79,17 +79,58 @@
         </div>
         <div>
           题目获赞数：
-          <span style="color: #f7ba2a">{{ questionDetail.likes_num }}</span>
+          <span style="color: #f7ba2a">{{
+            questionDetail.likes_num ?? 0
+          }}</span>
         </div>
         <div>
           题目浏览数：
-          <span style="color: #409eff"> {{ questionDetail.browses_num }}</span>
+          <span style="color: #409eff">
+            {{ questionDetail.browses_num ?? 0 }}</span
+          >
         </div>
       </div>
     </el-card>
     <el-card>
-      <div>
-        <h4>相似题目</h4>
+      <h4>相似题目</h4>
+      <div class="similar-questions" v-if="similarQuestions.length">
+        <el-card
+          v-for="item in similarQuestions"
+          :key="item.id"
+          class="similar-question"
+        >
+          <div class="similar-question-info">
+            <div
+              class="question-catalog"
+              :style="{ backgroundColor: item?.color }"
+            >
+              {{ item.name }}
+            </div>
+            <div class="degreeDifficulty">
+              {{ difficulty(Number(item.difficulty)) }}
+            </div>
+            <div class="question-type">
+              {{ questionType(Number(item.questionType)) }}
+            </div>
+          </div>
+          <div class="similar-question-text">
+            {{ item.question }}
+          </div>
+          <el-button
+            type="primary"
+            @click="
+              () => {
+                router.push({ path: '/problemInfo', query: { id: item.id } });
+                getDailyQuestion(item?.id);
+                getSimilarQuestions(item?.id);
+              }
+            "
+            >查看</el-button
+          >
+        </el-card>
+      </div>
+      <div v-else>
+        <el-empty description="暂无相似题目" />
       </div>
     </el-card>
   </div>
@@ -100,7 +141,12 @@ import { ref, computed } from 'vue';
 import { ElMessage } from 'element-plus';
 import queryString from 'query-string';
 import { useStore } from 'vuex';
-import { getQuestionDetail, likeQuestion, unlikeQuestion } from '@/services';
+import {
+  getQuestionDetail,
+  likeQuestion,
+  unlikeQuestion,
+  getSimilarQuestion,
+} from '@/services';
 import {
   questionType,
   difficulty,
@@ -108,7 +154,9 @@ import {
   transitionTime,
 } from '@/utils';
 import type { IQuestion } from '@/types';
+import router from '@/router';
 const store = useStore();
+const { id } = queryString.parse(window?.location?.href?.split('?')[1] || '');
 
 // 获取store中的用户信息
 const userData = store.state.userData;
@@ -118,6 +166,8 @@ const likeTopicsId = Array.isArray(userData?.likeTopicsId)
   : userData?.likeTopicsId?.split(',') || [];
 // 获取题目详情
 const questionDetail = ref({} as IQuestion);
+// 相似题目
+const similarQuestions = ref([] as any[]);
 // 是否点击了喜欢
 const isClickLike = ref(false);
 const tags = computed(() => {
@@ -132,19 +182,30 @@ const degreeDifficulty = computed(() => {
 const catalogID = computed(() => {
   return catalogIDType(Number(questionDetail.value.catalogID));
 });
+
 const addDate = computed(() => {
   return transitionTime(questionDetail.value.addDate);
 });
 // 获取题目详情
-const getDailyQuestion = async () => {
-  // 获取url中的id
-  const { id } = queryString.parse(window?.location?.href?.split('?')[1] || '');
+const getDailyQuestion = async (value?: number) => {
   // 判断喜欢的题目中是否包含当前题目id
-  if (likeTopicsId?.includes(id)) {
+  if (likeTopicsId?.includes(value || id)) {
     isClickLike.value = true;
   }
-  const res = await getQuestionDetail({ id } as any);
+  const res = await getQuestionDetail({ id: value || id } as any);
   questionDetail.value = res;
+};
+// 获取相似题目
+const getSimilarQuestions = async (value?: number) => {
+  const res = await getSimilarQuestion({
+    id: value || Number(id),
+  });
+  res.forEach((item: any) => {
+    item.name = catalogIDType(Number(item.catalogID)).name;
+    item.color = catalogIDType(Number(item.catalogID)).color;
+    item.degreeDifficulty = difficulty(Number(item.difficulty));
+  });
+  similarQuestions.value = res;
 };
 // 点赞
 const like = () => {
@@ -211,6 +272,7 @@ const selectedTopic = () => {
 };
 
 getDailyQuestion();
+getSimilarQuestions();
 </script>
 
 <style scoped>
@@ -225,11 +287,7 @@ getDailyQuestion();
 .slide-container h4 {
   margin: 0;
 }
-/* .grid-content {
-  border-radius: 5px;
-  min-height: 36px;
-  border: 1px solid rgba(240, 242, 245, 1);
-} */
+
 .btn-box {
   position: absolute;
   right: 20px;
@@ -332,6 +390,23 @@ getDailyQuestion();
   display: flex;
   flex-direction: row;
   align-items: center;
+}
+.similar-questions {
+  margin-top: 20px;
+}
+.similar-question {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+.similar-question-info {
+  display: flex;
+  flex-direction: row;
+}
+.similar-question-text {
+  font-size: 25px;
+  color: #384548;
+  padding: 10px 0;
 }
 ::v-deep .el-collapse {
   border: none;

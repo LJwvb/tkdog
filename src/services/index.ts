@@ -70,3 +70,12 @@ export function getPaperQuestion(params: IGetPaperParams) {
     },
   );
 }
+// 相似题目接口
+export function getSimilarQuestion(params: { id: number }) {
+  console.log(params);
+  return request('POST', '/getSimilarQuestions', { data: params }).then(
+    (res: any) => {
+      return res.data.data;
+    },
+  );
+}

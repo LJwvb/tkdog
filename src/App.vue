@@ -16,8 +16,8 @@
   <TestBasket />
 </template>
 <script setup lang="ts">
-import NavBar from './components/NavBar/Index.vue';
-import BottomBar from './components/BottomBar/BottomBar.vue';
+import NavBar from '@/views/NavBar/Index.vue';
+import BottomBar from '@/views/BottomBar/BottomBar.vue';
 import TestBasket from '@/components/TestBasket/index.vue';
 </script>
 <style>
@@ -42,6 +42,8 @@ import TestBasket from '@/components/TestBasket/index.vue';
   overflow: hidden;
 }
 .home-bottom {
+  position: absolute;
+  bottom: 20px;
   width: 90%;
 }
 </style>
