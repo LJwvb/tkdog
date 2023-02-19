@@ -188,9 +188,12 @@ const addDate = computed(() => {
 });
 // 获取题目详情
 const getDailyQuestion = async (value?: number) => {
+  console.log(value);
   // 判断喜欢的题目中是否包含当前题目id
   if (likeTopicsId?.includes(value || id)) {
     isClickLike.value = true;
+  } else {
+    isClickLike.value = false;
   }
   const res = await getQuestionDetail({ id: value || id } as any);
   questionDetail.value = res;
