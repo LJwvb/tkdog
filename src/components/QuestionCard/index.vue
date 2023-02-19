@@ -116,7 +116,7 @@ const selectedTopic = () => {
   margin-bottom: 20px;
   position: relative;
   border: 2px solid #e6e6e6;
-  box-shadow: 0 10px 20px #e6e6e6;
+  box-shadow: -10px -10px 20px #e6e6e6 inset;
 }
 .card {
   width: 100%;
