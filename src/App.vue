@@ -35,11 +35,10 @@ import TestBasket from '@/components/TestBasket/index.vue';
   height: 60px;
 }
 .hone-body {
-  padding: 20px;
+  padding-top: 20px;
   width: 90%;
   display: flex;
   justify-content: space-between;
-  overflow: hidden;
 }
 .home-bottom {
   position: absolute;

@@ -18,6 +18,7 @@
             @currentSubTab="clickSubTab"
             :loading="loading"
             :isChangeTab="isChangeTab"
+            :catalogID="Number(catalogID)"
           />
         </el-tab-pane>
       </el-tabs>
@@ -28,7 +29,13 @@
 import { ref } from 'vue';
 import SubTab from './subTab.vue';
 import { getQuestionList } from '@/services';
+import queryString from 'query-string';
+import { isNaN } from '@/utils';
+
 import type { IGetQuestionsParams } from '@/types';
+const { subjectID, catalogID } = queryString.parse(
+  window?.location?.href?.split('?')[1] || '',
+);
 const loading = ref(true);
 // 是否切换主标签页
 let isChangeTab = false;
@@ -108,14 +115,16 @@ const data = [
   },
 ];
 const questionList = ref();
+
 // 选中的主标签页
-const currentTab = ref(0);
+const currentTab = ref(isNaN(Number(subjectID)) ? 0 : Number(subjectID));
+
 // 传参
 const params: IGetQuestionsParams = {
   currentPage: 0,
   pageSize: 3,
-  subjectID: 0,
-  catalogID: 0,
+  subjectID: Number(subjectID) || 0,
+  catalogID: Number(catalogID) || 0,
 };
 
 // 获取题目列表

@@ -24,12 +24,32 @@
 import { defineProps, watchEffect } from 'vue';
 
 import QuestionCard from '@/components/QuestionCard/index.vue';
+import { isNaN } from '@/utils';
 
 import { ref } from 'vue';
 import type { TabsPaneContext } from 'element-plus';
 import type { IQuestion } from '@/types';
+// 接收父组件传递的数据
+const props = defineProps({
+  questionList: {
+    type: Array as unknown as () => IQuestion[],
+    default: () => [],
+  },
+  loading: {
+    type: Boolean,
+    default: true,
+  },
+  isChangeTab: {
+    type: Boolean,
+    default: false,
+  },
+  catalogID: {
+    type: Number,
+    default: 0,
+  },
+});
 // 默认选中的子标签
-const active = ref<any>(0);
+const active = ref<any>(isNaN(props.catalogID) ? 0 : props.catalogID);
 const isEmpty = ref(false);
 
 const types = [
@@ -46,21 +66,7 @@ const types = [
     id: 2,
   },
 ];
-// 接收父组件传递的数据
-const props = defineProps({
-  questionList: {
-    type: Array as unknown as () => IQuestion[],
-    default: () => [],
-  },
-  loading: {
-    type: Boolean,
-    default: true,
-  },
-  isChangeTab: {
-    type: Boolean,
-    default: false,
-  },
-});
+
 watchEffect(() => {
   if (props.isChangeTab) {
     active.value = 0;

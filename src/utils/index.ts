@@ -61,3 +61,6 @@ export const transitionTime = (addDate: string) => {
   const date = new Date(addDate);
   return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 };
+export const isNaN = (value: any) => {
+  return value !== value;
+};

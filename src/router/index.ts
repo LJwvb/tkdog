@@ -18,8 +18,8 @@ import addPaperone from '../views/addPaper/one.vue';
 import addPapertwo from '../views/addPaper/two.vue';
 import addPaperthree from '../views/addPaper/three.vue';
 import addPaperfour from '../views/addPaper/four.vue';
-import ProblemInfo from '@/components/ProblemInfo/ProblemInfo.vue';
-import user from '../components/user.vue';
+import ProblemInfo from '@/views/ProblemInfo/ProblemInfo.vue';
+import user from '../views/Personal/user.vue';
 import volume from '../components/volume.vue';
 import Login from '../views/login/Login.vue';
 

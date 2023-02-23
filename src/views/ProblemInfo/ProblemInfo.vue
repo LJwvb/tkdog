@@ -1,7 +1,11 @@
 <template>
+  <el-button class="return" @click="returnToBefore">
+    <el-icon><ArrowLeftBold /></el-icon>
+    返回
+  </el-button>
   <div class="info-container">
     <!-- 题目详情 -->
-    <el-card>
+    <el-card class="container">
       <div class="grid-content">
         <div class="title-box">
           <div
@@ -140,6 +144,7 @@
 import { ref, computed } from 'vue';
 import { ElMessage } from 'element-plus';
 import queryString from 'query-string';
+import { ArrowLeftBold } from '@element-plus/icons-vue';
 import { useStore } from 'vuex';
 import {
   getQuestionDetail,
@@ -188,7 +193,6 @@ const addDate = computed(() => {
 });
 // 获取题目详情
 const getDailyQuestion = async (value?: number) => {
-  console.log(value);
   // 判断喜欢的题目中是否包含当前题目id
   if (likeTopicsId?.includes(value || id)) {
     isClickLike.value = true;
@@ -273,15 +277,32 @@ const selectedTopic = () => {
     ElMessage.success('选题成功，请在试题篮已选题目中查看');
   }
 };
+const returnToBefore = () => {
+  router.push({
+    path: '/',
+    query: {
+      subjectID: questionDetail.value.subjectID,
+      catalogID: questionDetail.value.catalogID,
+    },
+  });
+};
 
 getDailyQuestion();
 getSimilarQuestions();
 </script>
 
 <style scoped>
+.return {
+  transform: translateX(-25%);
+}
+.grid-content {
+  position: relative;
+}
 .info-container {
   width: 70%;
   position: relative;
+}
+.container {
 }
 .slide-container {
   width: 30%;
@@ -293,8 +314,8 @@ getSimilarQuestions();
 
 .btn-box {
   position: absolute;
-  right: 20px;
-  top: 20px;
+  right: 0px;
+  top: -10px;
   display: flex;
   align-items: center;
   flex-direction: column;
