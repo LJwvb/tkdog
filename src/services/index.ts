@@ -23,7 +23,7 @@ export function getRankList() {
 // 获取审核后的题目接口
 export function getQuestionList(params: IGetQuestionsParams) {
   return request('POST', '/getQuestions', { data: params }).then((res: any) => {
-    return res.data.data as IGetQuestionsReturn;
+    return res.data.data;
   });
 }
 // 每日一题接口

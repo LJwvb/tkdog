@@ -2,7 +2,7 @@
   <div class="card-container">
     <div class="card" @click="toProblemInfo()">
       <div class="title">
-        <span class="title-text"> {{ question.question }} </span>
+        <span class="title-text"> {{ question?.question }} </span>
       </div>
       <div class="tags">
         <el-tag v-for="tag in tags" :key="tag" class="tag-item">
@@ -21,19 +21,19 @@
           <el-icon style="width: 15px; height: 15px">
             <View />
           </el-icon>
-          <span class="num-text">{{ question.browses_num ?? 0 }}</span>
+          <span class="num-text">{{ question?.browses_num ?? 0 }}</span>
         </div>
         <div class="num-item">
           <el-icon style="width: 15px; height: 15px">
             <Star />
           </el-icon>
-          <span class="num-text">{{ question.likes_num ?? 0 }}</span>
+          <span class="num-text">{{ question?.likes_num ?? 0 }}</span>
         </div>
         <div class="num-item">
           <el-icon style="width: 15px; height: 15px">
             <User />
           </el-icon>
-          <span class="num-text">{{ question.creator }}</span>
+          <span class="num-text">{{ question?.creator }}</span>
         </div>
       </div>
     </div>
@@ -62,17 +62,17 @@ const props = defineProps({
 });
 const question = props.question as IQuestion;
 
-const tags = question.tags;
-const id = question.id;
+const tags = question?.tags;
+const id = question?.id;
 
 const type = computed(() => {
-  return questionType(Number(question.questionType));
+  return questionType(Number(question?.questionType));
 });
 const degreeDifficulty = computed(() => {
-  return difficulty(Number(question.difficulty));
+  return difficulty(Number(question?.difficulty));
 });
 const addDate = computed(() => {
-  return transitionTime(question.addDate);
+  return transitionTime(question?.addDate);
 });
 
 const toProblemInfo = () => {
