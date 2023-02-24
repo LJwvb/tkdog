@@ -13,6 +13,7 @@ export default createStore({
       username: '',
     },
     selectedTopic: [],
+    activeMenuIndex: '1',
   },
   mutations: {
     setUserData(state, payload) {
@@ -20,6 +21,9 @@ export default createStore({
     },
     addSelectedTopic(state, payload) {
       state.selectedTopic = payload;
+    },
+    setActiveMenuIndex(state, payload) {
+      state.activeMenuIndex = payload;
     },
   },
   actions: {},
