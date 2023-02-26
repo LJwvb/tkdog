@@ -1,4 +1,5 @@
 import queryString from 'query-string';
+import { nextTick, onMounted, onActivated } from 'vue';
 
 export const queryObj = queryString.parse(
   window?.location?.href?.split('?')[1] || '',
@@ -13,8 +14,6 @@ export const questionType = (questionType: number) => {
     case 2:
       return '判断题';
     case 3:
-      return '填空题';
-    case 4:
       return '简答题';
     default:
       return '未知';
@@ -64,3 +63,35 @@ export const transitionTime = (addDate: string) => {
 export const isNaN = (value: any) => {
   return value !== value;
 };
+// ==== isNumber  函数====
+const toString = Object.prototype.toString;
+export function is(val: any, type: string) {
+  return toString.call(val) === `[object ${type}]`;
+}
+export function isNumber(val: any) {
+  return is(val, 'Number');
+}
+
+// ==== buildShortUUID  函数====
+export function buildShortUUID(prefix = '') {
+  const time = Date.now();
+  const random = Math.floor(Math.random() * 1000000000);
+
+  return prefix + '_' + random + String(time);
+}
+
+// ==== onMountedOrActivated  hook====
+export function onMountedOrActivated(hook: () => void) {
+  let mounted: boolean;
+  onMounted(() => {
+    hook();
+    nextTick(() => {
+      mounted = true;
+    });
+  });
+  onActivated(() => {
+    if (mounted) {
+      hook();
+    }
+  });
+}

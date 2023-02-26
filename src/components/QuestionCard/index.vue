@@ -82,8 +82,12 @@ const toProblemInfo = () => {
       id,
     },
   });
-  // 浏览量
-  browseQuestion({ id });
+  const setBrowseTopicsId = store.state.browseTopicsId;
+  const setBrowseTopicsIds = setBrowseTopicsId.map((item: string) => item);
+  if (!setBrowseTopicsIds.includes(id)) {
+    store.commit('setBrowseTopicsId', [...store.state.browseTopicsId, id]);
+    browseQuestion({ id, username: store.state.userData.username });
+  }
 };
 const selectedTopic = () => {
   // 获取之前选中的题目

@@ -12,7 +12,7 @@ import subject_me from '@/views/Personal/subject_me.vue';
 import me_history from '@/views/Personal/me_history.vue';
 import me_news from '@/views/Personal/me_news.vue';
 import me_test_paper from '@/views/Personal/me_test_paper.vue';
-import addSubject from '@/components/addSubject.vue';
+import addSubject from '@/views/UploadQuestion/index.vue';
 import addPaper from '@/views/addPaper/addPaper.vue';
 import addPaperone from '../views/addPaper/one.vue';
 import addPapertwo from '../views/addPaper/two.vue';

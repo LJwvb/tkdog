@@ -18,6 +18,7 @@ export interface IQuestion {
   subjectID: number; // 科目ID
   catalogID: number; // 章节ID
   question: string; // 题干
+  questionDetail: string; // 题目详情
   answer: string; // 答案
   addDate: string; // 添加时间
   tags: any; // 标签
@@ -85,6 +86,7 @@ export interface IRegisterParams {
 // 题目浏览接口
 export interface IBrowseQuestion {
   id: number;
+  username: string;
 }
 // 组卷接口
 export interface IGetPaperParams {

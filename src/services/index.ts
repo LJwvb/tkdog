@@ -78,3 +78,11 @@ export function getSimilarQuestion(params: { id: number }) {
     },
   );
 }
+// 上传题目接口
+export function uploadQuestion(params: any) {
+  return request('POST', '/uploadQuestions', { data: params }).then(
+    (res: any) => {
+      return res.data;
+    },
+  );
+}

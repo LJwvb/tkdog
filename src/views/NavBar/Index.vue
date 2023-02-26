@@ -69,6 +69,7 @@
         </template>
       </el-dropdown>
     </div>
+    <UploadQuestion v-model:dialogVisible="dialogVisible" />
   </div>
 </template>
 
@@ -77,6 +78,8 @@ import { ref } from 'vue';
 import { Search } from '@element-plus/icons-vue';
 import router from '../../router';
 import { useStore } from 'vuex';
+import UploadQuestion from '../UploadQuestion/index.vue';
+const dialogVisible = ref(false);
 const store = useStore();
 
 const activeIndex = ref(store.state.activeMenuIndex ?? '1');
@@ -105,9 +108,7 @@ const toUser = () => {
   });
 };
 const toaddSuject = () => {
-  router.push({
-    path: '/addSubject',
-  });
+  dialogVisible.value = true;
 };
 const toInfo = () => {
   router.push({

@@ -43,22 +43,15 @@
           <div class="question">
             {{ questionDetail.question }}
           </div>
-          <div class="colonn">
-            <div style="margin-top: 20px">A：小于</div>
-            <div style="margin-top: 20px">B：小于</div>
-            <div style="margin-top: 20px">C：小于</div>
-            <div style="margin-top: 20px">D：小于</div>
-          </div>
+          <div class="question-detail" v-html="questionDetail.questionDetail" />
         </div>
         <div>
           <el-collapse accordion>
             <el-collapse-item name="1">
               <template #title>
-                <h5>答案解析(点击展开)</h5>
+                <h5>答案与解析(点击展开)</h5>
               </template>
-              <div class="answer">
-                {{ questionDetail.answer }}
-              </div>
+              <div class="answer" v-html="questionDetail.answer" />
             </el-collapse-item>
           </el-collapse>
         </div>
@@ -378,6 +371,11 @@ getSimilarQuestions();
   margin-top: 20px;
   font-size: 35px;
   font-weight: 600;
+}
+.question-detail {
+  margin-top: 20px;
+  font-size: 20px;
+  line-height: 30px;
 }
 .answer {
   position: relative;

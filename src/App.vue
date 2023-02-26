@@ -23,10 +23,11 @@ import TestBasket from '@/components/TestBasket/index.vue';
 <style>
 .tkdog-container {
   width: 100%;
-  height: 100%;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
 }
 .home-nav {
   position: relative;

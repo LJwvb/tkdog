@@ -8,12 +8,14 @@ export default createStore({
       email: '',
       last_login_time: '',
       likeTopicsId: [],
+      browseTopicsId: [],
       phone: '',
       sex: '',
       username: '',
     },
     selectedTopic: [],
     activeMenuIndex: '1',
+    browseTopicsId: [],
   },
   mutations: {
     setUserData(state, payload) {
@@ -24,6 +26,9 @@ export default createStore({
     },
     setActiveMenuIndex(state, payload) {
       state.activeMenuIndex = payload;
+    },
+    setBrowseTopicsId(state, payload) {
+      state.browseTopicsId = payload;
     },
   },
   actions: {},
