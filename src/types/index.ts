@@ -7,10 +7,7 @@ export interface IRankingList {
 }
 // 获取审核后的题目接口
 export interface IGetQuestionsParams {
-  currentPage: number;
-  pageSize: number;
-  subjectID: number;
-  catalogID: number;
+  type?: 'all';
 }
 export interface IGetQuestionsReturn {
   total: number;
@@ -21,9 +18,10 @@ export interface IQuestion {
   subjectID: number; // 科目ID
   catalogID: number; // 章节ID
   question: string; // 题干
+  questionDetail: string; // 题目详情
   answer: string; // 答案
   addDate: string; // 添加时间
-  tags: string[]; // 标签
+  tags: any; // 标签
   questionType: number; // 题目类型 0: '单选题' 1: '多选题' 2: '判断题' 3: '填空题'4: '简答题'
   remarks?: string; // 备注
   number?: number; // 试题编号
@@ -48,22 +46,50 @@ export interface IGetQuestionDetailParams {
 export interface ILikeQuestionParams {
   id: number;
   creator: string;
+  username: string;
 }
 // 取消点赞接口
 export interface ICancelLikeQuestionParams {
   id: number;
   creator: string;
+  username: string;
 }
-//上传题目接口
-export interface ITakeQuestionParams {
-  subjectID: number; // 科目ID
-  catalogID: number; // 章节ID
-  question: string; // 题干
-  answer: string; // 答案
-  tags: string[]; // 标签
-  questionType: number; // 题目类型 0: '单选题' 1: '多选题' 2: '判断题' 3: '填空题'4: '简答题'
-  remarks?: string; // 备注
-  direction: string; //题目方向
-  difficulty: number; //0:简单:1中等2:困难
-  creator: string; // 创建人(作者)
+// 用户登录接口
+export interface ILoginParams {
+  phone: string | number;
+  password: string | number;
+}
+export interface ILoginReturn {
+  code: number;
+  message: string;
+  data?: ILoginData;
+  success: boolean;
+}
+export interface ILoginData {
+  username: string;
+  phone: string;
+  sex: string;
+  email: string;
+  ctime: string;
+  avatar: string;
+  last_login_time: string;
+}
+
+// 用户注册接口
+export interface IRegisterParams {
+  phone: string;
+  email: string;
+  password: string;
+  username: string;
+  sex: string;
+}
+// 题目浏览接口
+export interface IBrowseQuestion {
+  id: number;
+  username: string;
+}
+// 组卷接口
+export interface IGetPaperParams {
+  author: string;
+  ids: string;
 }

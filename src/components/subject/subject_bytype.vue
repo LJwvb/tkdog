@@ -144,7 +144,11 @@
               </div>
               <div class="colonn background1">
                 <div v-for="item in questionList" :key="item?.id">
-                  <QuestionCard :question="item" />
+                  <QuestionCard
+                  v-for="(item, index) in 3"
+                  :key="index"
+                ></QuestionCard>
+
                 </div>
               </div>
               <div

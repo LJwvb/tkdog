@@ -1,25 +1,24 @@
 <template>
-  <div id="nav">
+  <div class="tkdog-container">
     <!-- 固定导航栏 -->
     <div class="home-nav">
       <NavBar></NavBar>
     </div>
+    <!-- 动态页面主体 -->
     <div class="home-body">
-      <!-- 动态页面主体 -->
       <router-view />
     </div>
+    <!-- 尾部-->
     <div class="home-bottom">
       <BottomBar></BottomBar>
     </div>
-
-    <!-- <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link> -->
   </div>
+  <TestBasket />
 </template>
 <script setup lang="ts">
-import NavBar from './components/NavBar/index.vue';
-import BottomBar from './components/BottomBar/BottomBar.vue';
-import Login from './views/login/Login.vue';
+import NavBar from '@/views/NavBar/Index.vue';
+import BottomBar from '@/views/BottomBar/BottomBar.vue';
+import TestBasket from '@/components/TestBasket/index.vue';
 </script>
 <style>
 .home-nav {

@@ -1,7 +1,7 @@
 <template>
-  <div class="card-container" @click="toProblem_info">
+  <div class="card-container" @click="toProblemInfo()">
     <div class="title">
-      <span class="title-text"> {{ question.question }} </span>
+      <span class="title-text"> {{ question?.question }} </span>
     </div>
     <div class="tags">
       <el-tag v-for="tag in tags" :key="tag" class="tag-item">
@@ -20,30 +20,37 @@
         <el-icon style="width: 15px; height: 15px">
           <View />
         </el-icon>
-        <span class="num-text">{{ question.browses_num ?? 0 }}</span>
+        <span class="num-text">{{ question?.browses_num ?? 0 }}</span>
       </div>
       <div class="num-item">
         <el-icon style="width: 15px; height: 15px">
           <Star />
         </el-icon>
-        <span class="num-text">{{ question.likes_num ?? 0 }}</span>
+        <span class="num-text">{{ question?.likes_num ?? 0 }}</span>
       </div>
       <div class="num-item">
         <el-icon style="width: 15px; height: 15px">
           <User />
         </el-icon>
-        <span class="num-text">{{ question.creator }}</span>
+        <span class="num-text">{{ question?.creator }}</span>
       </div>
     </div>
-    <el-button type="primary" class="btn">选题</el-button>
+    <el-button type="primary" class="btn" @click="selectedTopic">
+      选题</el-button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { defineProps, ref, computed } from 'vue';
+import { useStore } from 'vuex';
+import { ElMessage } from 'element-plus';
+
 import router from '@/router';
 import type { IQuestion } from '@/types';
-import { questionType, difficulty } from '@/utils/index';
+import { browseQuestion } from '@/services';
+import { questionType, difficulty, transitionTime } from '@/utils/index';
+const store = useStore();
+
 const props = defineProps({
   question: {
     type: Array as unknown as () => IQuestion,
@@ -52,28 +59,55 @@ const props = defineProps({
 });
 const question = props.question as IQuestion;
 
-const tags = question.tags;
-const id = question.id;
+const tags = question?.tags;
+const id = question?.id;
 
 const type = computed(() => {
-  return questionType(Number(question.questionType));
+  return questionType(Number(question?.questionType));
 });
 const degreeDifficulty = computed(() => {
-  return difficulty(Number(question.difficulty));
+  return difficulty(Number(question?.difficulty));
 });
 
 const addDate = computed(() => {
-  const date = new Date(question.addDate);
-  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+  return transitionTime(question?.addDate);
 });
 
-const toProblem_info = () => {
+const toProblemInfo = () => {
   router.push({
-    path: '/problemInfo',
+    path: `/problemInfo`,
     query: {
       id,
     },
   });
+  const setBrowseTopicsId = store.state.browseTopicsId;
+  const setBrowseTopicsIds = setBrowseTopicsId.map((item: string) => item);
+  if (!setBrowseTopicsIds.includes(id)) {
+    store.commit('setBrowseTopicsId', [...store.state.browseTopicsId, id]);
+    browseQuestion({ id, username: store.state.userData.username });
+  }
+};
+const selectedTopic = () => {
+  // 获取之前选中的题目
+  const selectedTopic = store.state.selectedTopic;
+  // 获取之前选中的题目id
+  const selectedTopicIds = selectedTopic.map((item: IQuestion) => item.id);
+  console.log(selectedTopic);
+  // 判断是否已经选中
+  if (selectedTopicIds.includes(id)) {
+    ElMessage.error('已选中该题，若想取消请在试题篮已选题目中取消');
+    return;
+  } else {
+    const data = {
+      id: question.id,
+      questionType: question.questionType,
+      difficulty: question.difficulty,
+      question: question.question,
+      data: new Date().toLocaleString(),
+    };
+    store.commit('addSelectedTopic', [...selectedTopic, data]);
+    ElMessage.success('选题成功，请在试题篮已选题目中查看');
+  }
 };
 </script>
 <style scoped>

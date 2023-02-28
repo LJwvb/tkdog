@@ -10,15 +10,14 @@
             <span>题库狗的每日一题</span>
           </div>
         </template>
-          <!-- <span>说说你对模块化方案的理解，比如 CommonJS、AMD、CMD、ES Module
-            分别是什么？</span> -->
-            <el-skeleton :loading="loadingDaily" animated :rows="0">
+        <el-skeleton :loading="loadingDaily" animated :rows="0">
           <div v-for="item in dailyData" :key="item.id" class="question">
             {{ item?.question }}
           </div>
-          <el-button class="button" text  @click="centerDialogVisible = true">
-            点击了解</el-button>
-      </el-skeleton>
+          <el-button class="button" text @click="centerDialogVisible = true">
+            点击了解
+          </el-button>
+        </el-skeleton>
       </el-card>
     </el-col>
   </el-row>
@@ -39,9 +38,6 @@
         </div>
         <div class="info">
           <span>题库狗一个干净且高级的面试刷题网站源码，支持自由组卷，通过Vue3+Node.js的全栈项目，程序包含网站前台+管理员后台</span>
-
-          <!-- <el-button class="button" text @click="showModal('daily')">
-            点击了解</el-button> -->
         </div>
       </el-card>
     </el-col>
@@ -52,32 +48,30 @@
         <div>排行榜</div>
         <el-scrollbar height="400px">
           <el-skeleton :loading="loadingRank" animated :rows="10">
-          <div v-for="(item, index) in rankData" :key="index">
-            <div class="border_bottom">
-              <div class="row">
-                <div class="rank">{{ index + 1 }}</div>
-                <img :src="item.avatar" alt="" class="avatar" />
-                <div class="name">{{ item.username }}</div>
-              </div>
-              <div class="">
-                <div class="level">获赞数：{{ item.get_likes_num }}</div>
-                <div class="role">上传数：{{ item.upload_ques_num }}</div>
+            <div v-for="(item, index) in rankData" :key="index">
+              <div class="border_bottom">
+                <div class="row">
+                  <div class="rank">{{ index + 1 }}</div>
+                  <img :src="item.avatar" alt="" class="avatar" />
+                  <div class="name">{{ item.username }}</div>
+                </div>
+                <div class="">
+                  <div class="level">获赞数：{{ item.get_likes_num }}</div>
+                  <div class="role">上传数：{{ item.upload_ques_num }}</div>
+                </div>
               </div>
             </div>
-          </div>
           </el-skeleton>
         </el-scrollbar>
       </el-card>
     </el-col>
   </el-row>
   <el-dialog v-model="centerDialogVisible" title="题库狗的每日一题" width="30%" center>
-  
-      <el-skeleton :loading="loadingDaily" animated :rows="0">
-          <div v-for="item in dailyData" :key="item.id" class="question">
-            {{ item?.question }}
-          </div>
-   </el-skeleton>
-
+    <el-skeleton :loading="loadingDaily" animated :rows="0">
+      <div v-for="item in dailyData" :key="item.id" class="question">
+        {{ item?.question }}
+      </div>
+    </el-skeleton>
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="centerDialogVisible = false">答案</el-button>
@@ -89,22 +83,15 @@
   </el-dialog>
 </template>
 <script setup lang="ts">
-// import axios from 'axios';
-// axios({
-//   method: 'get',
-//   url: 'http://127.0.0.1:7002/api/getRankingList',
-// })
-//   .then((res) => {
-//     console.log(res);
-//   })
-//   .catch((err) => { });
 import { ref } from 'vue';
-import { getRankList,getDailyQuestion } from '@/services';
+import { getRankList, getDailyQuestion } from '@/services';
 const rankData = ref();
 const dailyData = ref();
 const loadingRank = ref(true);
 const loadingDaily = ref(true);
+
 const centerDialogVisible = ref(false);
+
 const getRank = async () => {
   const res = await getRankList();
   rankData.value = res;
