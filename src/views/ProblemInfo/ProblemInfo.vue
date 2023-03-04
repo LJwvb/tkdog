@@ -277,7 +277,7 @@ const selectedTopic = () => {
 const returnToBefore = () => {
   if (whereInterType === 'all') {
     router.push({
-      path: '/QuestionPage',
+      path: '/questionPage',
       query: {
         isClickSearch,
       },
