@@ -173,7 +173,9 @@ const similarQuestions = ref([] as any[]);
 // 是否点击了喜欢
 const isClickLike = ref(false);
 const tags = computed(() => {
-  return questionDetail.value.tags?.split(',') || [];
+  return questionDetail.value.tags
+    ?.split(',')
+    .filter((item: string) => item !== '');
 });
 const type = computed(() => {
   return questionType(Number(questionDetail.value.questionType));
@@ -284,6 +286,16 @@ const returnToBefore = () => {
     });
     return;
   }
+  if (whereInterType === 'paper') {
+    router.push({
+      path: '/addPaper',
+      query: {
+        step: 1,
+      },
+    });
+    return;
+  }
+
   router.push({
     path: '/',
     query: {

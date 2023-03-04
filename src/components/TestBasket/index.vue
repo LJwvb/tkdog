@@ -64,8 +64,7 @@ import { ref, reactive, watchEffect } from 'vue';
 import { useStore } from 'vuex';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { questionType, difficulty } from '@/utils';
-import { getPaperQuestion } from '@/services';
-import type { IGetPaperParams } from '@/types';
+
 import router from '@/router';
 const store = useStore();
 const drawer = ref(false);

@@ -2,7 +2,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
 import Home from '@/views/Home/index.vue';
 // import NavBar from '../components/NavBar/index.vue';
-import test_paper from '../components/Home/test_paper.vue';
+import testPaper from '@/views/testPaper/index.vue';
 import me_info from '@/views/Personal/me_info.vue';
 import me_collection from '@/views/Personal/me_collection.vue';
 import subject_me from '@/views/Personal/subject_me.vue';
@@ -12,10 +12,6 @@ import me_test_paper from '@/views/Personal/me_test_paper.vue';
 import addSubject from '@/views/UploadQuestion/index.vue';
 import addPaper from '@/views/addPaper/addPaper.vue';
 import questionPage from '@/views/QuestionPage/index.vue';
-import addPaperone from '../views/addPaper/one.vue';
-import addPapertwo from '../views/addPaper/two.vue';
-import addPaperthree from '../views/addPaper/three.vue';
-import addPaperfour from '../views/addPaper/four.vue';
 import ProblemInfo from '@/views/ProblemInfo/ProblemInfo.vue';
 import user from '../views/Personal/user.vue';
 import volume from '../components/volume.vue';
@@ -33,9 +29,9 @@ const routes: any = [
     component: questionPage,
   },
   {
-    path: '/test_paper',
-    name: 'test_paper',
-    component: test_paper,
+    path: '/testPaper',
+    name: 'testPaper',
+    component: testPaper,
   },
   {
     path: '/user',
@@ -77,24 +73,6 @@ const routes: any = [
     path: '/addPaper',
     name: 'addPaper',
     component: addPaper,
-    children: [
-      {
-        path: 'addPaperone',
-        component: addPaperone,
-      },
-      {
-        path: 'addPapertwo',
-        component: addPapertwo,
-      },
-      {
-        path: 'addPaperthree',
-        component: addPaperthree,
-      },
-      {
-        path: 'addPaperfour',
-        component: addPaperfour,
-      },
-    ],
   },
   {
     path: '/problemInfo',

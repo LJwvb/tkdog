@@ -1,128 +1,109 @@
 <template>
-  <div class="hello">
-    <el-container>
-      <el-main style="padding: 30px">
-        <div class="colonn">
-          <div style="padding: 20px" class="background1">
-            <el-steps
-              :active="selIndex"
-              align-center
-              style="background-color: #ffffff"
-            >
-              <el-step title="试卷信息"></el-step>
-              <el-step title="选择题目"></el-step>
-              <el-step title="浏览试卷"></el-step>
-              <el-step title="完成"></el-step>
-            </el-steps>
-          </div>
-          <router-view></router-view>
-          <div
-            class="roww rowsb background1"
-            style="
-              justify-content: space-between;
-              padding: 10px;
-              margin: 0 20px 0 20px;
-              background-color: white;
-            "
-          >
-            <el-button type="primary" @click="xiayibuClick(2)"
-              >上一步</el-button
-            >
-            <el-button type="primary" @click="xiayibuClick(1)"
-              >下一步</el-button
-            >
-          </div>
-        </div>
-      </el-main>
-    </el-container>
+  <div class="add-paper">
+    <el-steps :active="active" finish-status="success" class="steps">
+      <el-step title="试卷信息" />
+      <!-- <el-step title="选择题目" /> -->
+      <el-step title="游览题目" />
+      <el-step
+        :title="error ? '失败' : '成功'"
+        :status="error ? 'error' : 'process'"
+      />
+    </el-steps>
+    <div class="step-content">
+      <OneStep v-if="active === 0" :clickNext="next" />
+      <!-- <TwoStep v-if="active === 1" :clickNext="next" :clickPre="prev" /> -->
+      <ThreeStep
+        v-if="active === 1"
+        :done="done"
+        :clickPre="prev"
+        :clickNext="next"
+      />
+      <FourStep v-if="active === 2" :clickPre="prev" :error="error" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-// import router from '../../router'
 import { useRouter } from 'vue-router';
+import queryString from 'query-string';
+import { useStore } from 'vuex';
+
+import OneStep from '@/components/PaperStep/oneStep.vue';
+// import TwoStep from '@/components/PaperStep/twoStep.vue';
+import ThreeStep from '@/components/PaperStep/threeStep.vue';
+import FourStep from '@/components/PaperStep/fourStep.vue';
+import { getPaperQuestion } from '@/services';
+import { ElMessage } from 'element-plus';
+
+const { step } = queryString.parse(window?.location?.href?.split('?')[1] || '');
+
 const router = useRouter();
-router.push({
-  path: '/addPaper/addPaperone',
-});
+const store = useStore();
 
-const name = ref('');
-const selIndex = ref(0);
-const paths = ref([
-  '/addPaper/addPaperone',
-  '/addPaper/addPapertwo',
-  '/addPaper/addPaperthree',
-  '/addPaper/addPaperfour',
-]);
-
-const onChange = (index: string) => {
-  // 父组件获取切换后的选中步骤
-  console.log('parentIndex:', index);
+// router.push({
+//   path: '/addPaper/addPaperone',
+// });
+const active = ref(step ? Number(step) : 0);
+const questionList = store.state.selectedTopic;
+const paperInfo = store.state.paperInfo;
+const error = ref();
+const next = () => {
+  if (active.value++ > 1) active.value = 0;
 };
-const xiayibuClick = (type: number) => {
-  if (type == 1) {
-    // 加法
-    if (selIndex.value <= 3) {
-      selIndex.value = selIndex.value + 1;
-      toPage();
-    }
-  } else if (type == 2) {
-    if (selIndex.value > 0) {
-      selIndex.value = selIndex.value - 1;
-      toPage();
-    }
-  }
+const prev = () => {
+  if (active.value-- < 0) active.value = 1;
 };
-const toPage = () => {
-  console.log(selIndex);
-  router.push({
-    path: paths.value[selIndex.value],
+const done = () => {
+  getPaperQuestion({
+    ids: questionList.map((item: any) => item.id).join(','),
+    paperTitle: paperInfo.name,
+    paperTags: paperInfo.dynamicTags.join(','),
+    purview: paperInfo.auth,
+    author: store.state.userData.username,
+  }).then((res) => {
+    if (res.code === 200) {
+      // 倒计时5s
+      let count = 5;
+      const timer = setInterval(() => {
+        if (count === 1) {
+          clearInterval(timer);
+          router.push('/testPaper');
+        }
+        ElMessage({
+          message: `试卷创建成功,${count}秒后跳转到试卷列表`,
+          type: 'success',
+          duration: 1000,
+        });
+        count--;
+      }, 1000);
+    }
   });
 };
-// 	data () {
-// 		return {
-// 			name: "",
-// 			selIndex: 0,
-// 			paths: ['/addPaper/addPaperone', '/addPaper/addPapertwo', '/addPaper/addPaperthree', '/addPaper/addPaperfour']
-// 		}
-// 	},
-// 	created () {
-// 		this.$router.push({
-// 			path: '/addPaper/addPaperone'
-// 		})
-// 	},
-// 	methods: {
-// 		onChange (index) { // 父组件获取切换后的选中步骤
-// 			console.log('parentIndex:', index)
-// 		},
-// 		xiayibuClick (type) {
-// 			if (type == 1) {
-// 				// 加法
-// 				if (this.selIndex <= 3) {
-// 					this.selIndex = this.selIndex + 1
-// 					this.toPage()
-// 				}
-// 			} else if (type == 2) {
-// 				if (this.selIndex > 0) {
-// 					this.selIndex = this.selIndex - 1
-// 					this.toPage()
-// 				}
-// 			}
-// 		},
-// 		toPage () {
-// 			console.log(this.selIndex)
-// 			this.$router.push({
-// 				path: this.paths[this.selIndex]
-// 			})
-// 		},
-// 	}
-// }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style>
-body {
-  background-color: rgba(240, 242, 245, 1);
+<style scoped>
+.add-paper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+.steps {
+  width: 100%;
+}
+.step-content {
+  position: absolute;
+  top: 100px;
+  width: 100%;
+}
+.next-step {
+  position: absolute;
+}
+::v-deep .el-step__head.is-success .el-step__icon-inner.is-status {
+  color: var(--el-color-success);
+}
+::v-deep .el-step__head.is-error .el-step__icon-inner.is-status {
+  color: var(--el-color-danger);
 }
 </style>

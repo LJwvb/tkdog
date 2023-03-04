@@ -63,7 +63,7 @@ export function browseQuestion(params: IBrowseQuestion) {
   return request('POST', '/addBrowsesNum', { data: params });
 }
 // 组卷接口
-export function getPaperQuestion(params: IGetPaperParams) {
+export function getPaperQuestion(params: any) {
   return request('POST', '/getPaperQuestions', { data: params }).then(
     (res: any) => {
       return res.data;

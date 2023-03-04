@@ -30,7 +30,7 @@
       </el-menu-item>
     </el-menu>
     <div class="left">
-      <el-button type="primary" class="upload" @click="toaddSuject">
+      <el-button type="primary" class="upload" @click="toAddSubject">
         上传
       </el-button>
       <el-dropdown>
@@ -70,7 +70,6 @@
 
 <script setup lang="ts">
 import { ref, watchEffect } from 'vue';
-import { Search } from '@element-plus/icons-vue';
 import router from '../../router';
 import { useStore } from 'vuex';
 import UploadQuestion from '../UploadQuestion/index.vue';
@@ -88,7 +87,7 @@ watchEffect(() => {
     case '/questionPage':
       activeIndex.value = '2';
       break;
-    case '/test_paper':
+    case '/testPaper':
       activeIndex.value = '3';
       break;
     case '/user':
@@ -116,7 +115,7 @@ const toSubject = () => {
 };
 const toTest = () => {
   router.push({
-    path: '/test_paper',
+    path: '/testPaper',
   });
 };
 const toUser = () => {
@@ -124,7 +123,7 @@ const toUser = () => {
     path: '/user',
   });
 };
-const toaddSuject = () => {
+const toAddSubject = () => {
   dialogVisible.value = true;
 };
 const toInfo = () => {

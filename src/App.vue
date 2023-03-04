@@ -42,6 +42,7 @@ import TestBasket from '@/components/TestBasket/index.vue';
   justify-content: space-between;
   margin-top: 60px;
   min-height: 60vh;
+  position: relative;
 }
 .home-bottom {
   width: 90%;

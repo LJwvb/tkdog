@@ -14,6 +14,7 @@ export default createStore({
       username: '',
     },
     selectedTopic: [],
+    paperInfo: {},
     activeMenuIndex: '1',
     browseTopicsId: [],
     searchHistory: {},
@@ -33,6 +34,9 @@ export default createStore({
     },
     setSearchHistory(state, payload) {
       state.searchHistory = payload;
+    },
+    setPaperInfo(state, payload) {
+      state.paperInfo = payload;
     },
   },
   actions: {},

@@ -28,11 +28,7 @@
           </el-radio-group>
         </el-form-item>
         <el-button type="primary" @click="onSubmit">搜索</el-button>
-        <el-button
-          @click="clearSearch"
-          :disabled="store.state.searchHistory === ''"
-          >清空</el-button
-        >
+        <el-button @click="clearSearch">清空</el-button>
       </el-form>
     </el-card>
     <el-card style="margin-top: 20px">
