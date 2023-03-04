@@ -3,7 +3,7 @@
     <el-row>
       <el-col :span="18">
         <div class="grid-content bg-purple">
-          <subject_bytype></subject_bytype>
+          <!-- <subject_bytype></subject_bytype> -->
         </div>
       </el-col>
       <el-col :span="6" style="margin-top: 30px">
@@ -41,9 +41,6 @@
   </div>
 </template>
 <script setup lang="ts">
-import subject_bytype from '@/components/subject/subject_bytype.vue';
-import selTimu from '@/components/selTimu.vue';
-
 import { ref, reactive } from 'vue';
 const tableData1 = reactive([
   {

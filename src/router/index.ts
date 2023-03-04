@@ -2,9 +2,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
 import Home from '@/views/Home/index.vue';
 // import NavBar from '../components/NavBar/index.vue';
-import Subject from '../components/subject.vue';
-import label from '../components/subject/label.vue';
-import subject_bytype from '../components/subject/subject_bytype.vue';
 import test_paper from '../components/Home/test_paper.vue';
 import me_info from '@/views/Personal/me_info.vue';
 import me_collection from '@/views/Personal/me_collection.vue';

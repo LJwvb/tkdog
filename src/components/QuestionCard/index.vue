@@ -70,7 +70,10 @@ const props = defineProps({
 });
 const question = props.question as IQuestion;
 
-const tags = question?.tags.filter((item: string) => item !== '');
+const tags = Array.isArray(question?.tags)
+  ? question?.tags?.filter((item: string) => item !== '')
+  : question?.tags?.split(',').filter((item: string) => item !== '');
+
 const id = question?.id;
 const type = computed(() => {
   return questionType(Number(question?.questionType));

@@ -59,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import subject_item from '@/components/me/subject_item.vue';
+// import subject_item from '@/components/me/subject_item.vue';
 import { ref } from 'vue';
 const name = ref('me_compon');
 const input = ref('');
