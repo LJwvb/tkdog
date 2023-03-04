@@ -90,7 +90,7 @@
     </el-card>
     <el-card>
       <h4>相似题目</h4>
-      <div class="similar-questions" v-if="similarQuestions.length">
+      <div class="similar-questions" v-if="similarQuestions?.length">
         <el-card
           v-for="item in similarQuestions"
           :key="item.id"
@@ -154,7 +154,11 @@ import {
 import type { IQuestion } from '@/types';
 import router from '@/router';
 const store = useStore();
-const { id } = queryString.parse(window?.location?.href?.split('?')[1] || '');
+const {
+  id,
+  type: whereInterType,
+  isClickSearch,
+} = queryString.parse(window?.location?.href?.split('?')[1] || '');
 
 // 获取store中的用户信息
 const userData = store.state.userData;
@@ -200,7 +204,7 @@ const getSimilarQuestions = async (value?: number) => {
   const res = await getSimilarQuestion({
     id: value || Number(id),
   });
-  res.forEach((item: any) => {
+  res?.forEach((item: any) => {
     item.name = catalogIDType(Number(item.catalogID)).name;
     item.color = catalogIDType(Number(item.catalogID)).color;
     item.degreeDifficulty = difficulty(Number(item.difficulty));
@@ -271,6 +275,15 @@ const selectedTopic = () => {
   }
 };
 const returnToBefore = () => {
+  if (whereInterType === 'all') {
+    router.push({
+      path: '/QuestionPage',
+      query: {
+        isClickSearch,
+      },
+    });
+    return;
+  }
   router.push({
     path: '/',
     query: {

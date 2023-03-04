@@ -7,7 +7,10 @@ export interface IRankingList {
 }
 // 获取审核后的题目接口
 export interface IGetQuestionsParams {
-  type?: 'all';
+  type?: string; // all:全部
+  currentPage?: number; // 当前页
+  pageSize?: number; // 每页条数
+  catalogID?: string; // 章节ID
 }
 export interface IGetQuestionsReturn {
   total: number;

@@ -59,6 +59,14 @@ const props = defineProps({
     type: Array as unknown as () => IQuestion,
     default: () => [],
   },
+  type: {
+    type: String,
+    default: '',
+  },
+  isClickSearch: {
+    type: Boolean,
+    default: false,
+  },
 });
 const question = props.question as IQuestion;
 
@@ -80,6 +88,8 @@ const toProblemInfo = () => {
     path: `/problemInfo`,
     query: {
       id,
+      type: props?.type,
+      isClickSearch: String(props?.isClickSearch),
     },
   });
   const setBrowseTopicsId = store.state.browseTopicsId;

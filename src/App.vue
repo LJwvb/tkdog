@@ -30,7 +30,7 @@ import TestBasket from '@/components/TestBasket/index.vue';
   position: relative;
 }
 .home-nav {
-  position: relative;
+  position: fixed;
   width: 100%;
   z-index: 100;
   height: 60px;
@@ -40,10 +40,29 @@ import TestBasket from '@/components/TestBasket/index.vue';
   width: 90%;
   display: flex;
   justify-content: space-between;
+  margin-top: 60px;
+  min-height: 60vh;
 }
 .home-bottom {
-  position: absolute;
-  bottom: 20px;
   width: 90%;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+::-webkit-scrollbar {
+  display: none;
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #fff;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-button {
+  width: 0;
+  height: 0;
 }
 </style>

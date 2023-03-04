@@ -86,3 +86,12 @@ export function uploadQuestion(params: any) {
     },
   );
 }
+
+// 搜索题目接口
+export function searchQuestion(params: any) {
+  return request('POST', '/searchQuestions', { data: params }).then(
+    (res: any) => {
+      return res.data;
+    },
+  );
+}

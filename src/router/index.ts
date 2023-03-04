@@ -14,6 +14,7 @@ import me_news from '@/views/Personal/me_news.vue';
 import me_test_paper from '@/views/Personal/me_test_paper.vue';
 import addSubject from '@/views/UploadQuestion/index.vue';
 import addPaper from '@/views/addPaper/addPaper.vue';
+import questionPage from '@/views/QuestionPage/index.vue';
 import addPaperone from '../views/addPaper/one.vue';
 import addPapertwo from '../views/addPaper/two.vue';
 import addPaperthree from '../views/addPaper/three.vue';
@@ -30,16 +31,9 @@ const routes: any = [
     component: Home,
   },
   {
-    path: '/subject',
-    name: 'subject',
-    component: Subject,
-    children: [
-      {
-        path: 'subject_bytype',
-        name: 'subject_bytype',
-        component: subject_bytype,
-      },
-    ],
+    path: '/questionPage',
+    name: 'questionPage',
+    component: questionPage,
   },
   {
     path: '/test_paper',
