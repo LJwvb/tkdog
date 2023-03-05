@@ -50,12 +50,16 @@ const props = defineProps({
 // 默认选中的子标签
 const active = ref<any>(0);
 watchEffect(() => {
-  if (props?.itemSubjectID === props?.subjectID) {
-    active.value = isNaN(props?.catalogID)
-      ? 0
-      : props.questionList.findIndex(
-          (item: any) => item?.catalog?.catalogID === props?.catalogID,
-        );
+  if (props.type === 'all') {
+    active.value = props?.catalogID;
+  } else {
+    if (props?.itemSubjectID === props?.subjectID) {
+      active.value = isNaN(props?.catalogID)
+        ? 0
+        : props.questionList.findIndex(
+            (item: any) => item?.catalog?.catalogID === props?.catalogID,
+          );
+    }
   }
 });
 const goQuestion = () => {

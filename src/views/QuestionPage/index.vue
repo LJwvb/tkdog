@@ -36,7 +36,7 @@
         :questionList="allQuestion"
         type="all"
         @tabClick="tabClick"
-        :catalogID="Number(getAllQuestionParams.catalogID)"
+        :catalogID="Number(catalogID)"
         v-if="!clickSearch"
       />
       <div v-if="clickSearch">
@@ -77,7 +77,7 @@ interface IForm {
   questionType: string;
   difficulty: string;
 }
-const { id, type, isClickSearch } = queryString.parse(
+const { isClickSearch, catalogID } = queryString.parse(
   window?.location?.href?.split('?')[1] || '',
 );
 console.log('isClickSearch', isClickSearch);
@@ -85,6 +85,7 @@ const from = ref();
 const allQuestion = ref();
 const searchData = ref();
 const clickSearch = ref(false);
+
 const store = useStore();
 
 const form = reactive<IForm>({
@@ -96,7 +97,7 @@ const getAllQuestionParams = reactive<IGetAllQuestionParams>({
   type: 'all',
   currentPage: 1,
   pageSize: 10,
-  catalogID: '',
+  catalogID: String(catalogID),
   refresh: false,
 });
 
@@ -120,10 +121,11 @@ const getAllQuestion = (refresh?: boolean) => {
     clickSearch.value = false;
   });
 };
+
 const tabClick = (type: string) => {
   getAllQuestionParams.catalogID = type;
-  getAllQuestion(false);
 };
+
 const clearSearch = () => {
   form.keyword = '';
   form.questionType = '';
@@ -131,7 +133,6 @@ const clearSearch = () => {
   clickSearch.value = false;
   store.commit('setSearchHistory', '');
 };
-
 watchEffect(() => {
   if (isClickSearch === 'true' && store.state.searchHistory) {
     console.log('isClickSearch', isClickSearch);

@@ -79,6 +79,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  catalogID: {
+    type: Number,
+    default: 0,
+  },
 });
 const question = props.question as IQuestion;
 
@@ -104,6 +108,7 @@ const toProblemInfo = () => {
       id,
       type: props?.type,
       isClickSearch: String(props?.isClickSearch),
+      catalogID: props?.catalogID,
     },
   });
   const setBrowseTopicsId = store.state.browseTopicsId;

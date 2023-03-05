@@ -282,6 +282,7 @@ const returnToBefore = () => {
       path: '/questionPage',
       query: {
         isClickSearch,
+        catalogID: questionDetail.value.catalogID,
       },
     });
     return;
