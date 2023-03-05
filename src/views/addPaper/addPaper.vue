@@ -18,13 +18,18 @@
         :clickPre="prev"
         :clickNext="next"
       />
-      <FourStep v-if="active === 2" :clickPre="prev" :error="error" />
+      <FourStep
+        v-if="active === 2"
+        :clickPre="prev"
+        :error="error"
+        :goTestPaper="goTestPaper"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import queryString from 'query-string';
 import { useStore } from 'vuex';
@@ -40,32 +45,48 @@ const { step } = queryString.parse(window?.location?.href?.split('?')[1] || '');
 
 const router = useRouter();
 const store = useStore();
+let timer: any = null;
 
-// router.push({
-//   path: '/addPaper/addPaperone',
-// });
 const active = ref(step ? Number(step) : 0);
-const questionList = store.state.selectedTopic;
-const paperInfo = store.state.paperInfo;
 const error = ref();
+const paperInfo = ref(store.state.paperInfo);
+const questionList = ref(store.state.selectedTopic);
+watch(
+  () => store.state.paperInfo,
+  (val) => {
+    paperInfo.value = val;
+  },
+  { deep: true },
+);
 const next = () => {
   if (active.value++ > 1) active.value = 0;
 };
 const prev = () => {
   if (active.value-- < 0) active.value = 1;
 };
+const goTestPaper = () => {
+  clearTimeout(timer);
+  router.push('/testPaper');
+};
 const done = () => {
   getPaperQuestion({
-    ids: questionList.map((item: any) => item.id).join(','),
-    paperTitle: paperInfo.name,
-    paperTags: paperInfo.dynamicTags.join(','),
-    purview: paperInfo.auth,
+    ids: questionList.value?.map((item: any) => item.id)?.join(','),
+    paperTitle: paperInfo.value?.name,
+    paperTags: paperInfo.value?.dynamicTags?.join(','),
+    purview: paperInfo.value?.auth,
     author: store.state.userData.username,
   }).then((res) => {
     if (res.code === 200) {
+      store.commit('setPaperInfo', {});
+      store.commit('addSelectedTopic', []);
+      ElMessage({
+        message: res.message,
+        type: 'success',
+        duration: 1000,
+      });
       // 倒计时5s
       let count = 5;
-      const timer = setInterval(() => {
+      timer = setInterval(() => {
         if (count === 1) {
           clearInterval(timer);
           router.push('/testPaper');
@@ -77,6 +98,13 @@ const done = () => {
         });
         count--;
       }, 1000);
+    } else {
+      ElMessage({
+        message: res.message,
+        type: 'error',
+        duration: 3000,
+      });
+      error.value = res;
     }
   });
 };

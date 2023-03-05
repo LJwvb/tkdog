@@ -59,7 +59,8 @@
 <script setup lang="ts">
 import { ref, reactive, nextTick, computed, defineProps } from 'vue';
 import { useStore } from 'vuex';
-import { ElMessage, type FormInstance } from 'element-plus';
+import { ElMessage } from 'element-plus';
+import type { FormInstance } from 'element-plus';
 
 const store = useStore();
 

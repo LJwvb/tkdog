@@ -1,14 +1,26 @@
 <template>
   <el-result :icon="icon" :title="title" :sub-title="subTitle"> </el-result>
-  <el-button class="prev-step" @click="prevStep" type="primary"
+  <el-button
+    class="prev-step"
+    @click="prevStep"
+    type="primary"
+    v-if="props.error"
     >上一步</el-button
+  >
+  <el-button class="prev-step" @click="props.goTestPaper" type="primary" v-else
+    >返回试卷列表</el-button
   >
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
+
 const props = defineProps({
   clickPre: {
+    type: Function,
+    required: true,
+  },
+  goTestPaper: {
     type: Function,
     required: true,
   },
