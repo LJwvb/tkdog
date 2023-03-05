@@ -12,7 +12,7 @@ import me_test_paper from '@/views/Personal/me_test_paper.vue';
 import addSubject from '@/views/UploadQuestion/index.vue';
 import addPaper from '@/views/addPaper/addPaper.vue';
 import questionPage from '@/views/QuestionPage/index.vue';
-import ProblemInfo from '@/views/ProblemInfo/ProblemInfo.vue';
+import ProblemInfo from '@/views/ProblemInfo/index.vue';
 import user from '../views/Personal/user.vue';
 import volume from '../components/volume.vue';
 import Login from '../views/login/Login.vue';
