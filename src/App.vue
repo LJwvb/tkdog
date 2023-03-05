@@ -1,4 +1,7 @@
 <template>
+ <!-- <div class="tkdog-login" v-if="true">
+  <Login></Login>
+ </div> -->
   <div class="tkdog-container">
     <!-- 固定导航栏 -->
     <div class="home-nav">
@@ -12,10 +15,12 @@
     <div class="home-bottom">
       <BottomBar></BottomBar>
     </div>
+    <TestBasket />
   </div>
-  <TestBasket />
+ 
 </template>
 <script setup lang="ts">
+import Login from '@/views/login/Login.vue';
 import NavBar from '@/views/NavBar/Index.vue';
 import BottomBar from '@/views/BottomBar/BottomBar.vue';
 import TestBasket from '@/components/TestBasket/index.vue';

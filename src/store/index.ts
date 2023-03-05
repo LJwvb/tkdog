@@ -16,6 +16,7 @@ export default createStore({
     selectedTopic: [],
     activeMenuIndex: '1',
     browseTopicsId: [],
+    searchHistory: {},
   },
   mutations: {
     setUserData(state, payload) {
@@ -29,6 +30,9 @@ export default createStore({
     },
     setBrowseTopicsId(state, payload) {
       state.browseTopicsId = payload;
+    },
+    setSearchHistory(state, payload) {
+      state.searchHistory = payload;
     },
   },
   actions: {},

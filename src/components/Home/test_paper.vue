@@ -133,13 +133,27 @@
 <script setup lang="ts">
 import router from '../../router';
 import { ref, reactive } from 'vue';
-const name = ref('me_compon');
-const input2 = ref('Welcome to Your Vue.js App');
+
 const input3 = ref('');
 const activeName = ref('first');
 const tabPosition = ref('');
-const checkList = ref('[]');
-const activeIndex = ref('1');
+const PaperList = ref();
+// //传参
+// const params: IGetPaperParamsList = {
+//   author: 'admin',
+//   currentPage: 0,
+//   pageSize: 1,
+// };
+// // 获取试卷题目
+// const getPaperData = async () => {
+//   if (PaperList.value) return;
+//   const res = await getPaperList(params);
+//   PaperList.value = res.questions;
+//   console.log(res);
+// };
+// // 初始化
+// getPaperData();
+
 const tovolumeInfo = () => {
   router.push({
     path: '/volume',

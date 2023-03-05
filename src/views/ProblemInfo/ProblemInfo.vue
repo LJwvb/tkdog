@@ -154,7 +154,10 @@ import {
 import type { IQuestion } from '@/types';
 import router from '@/router';
 const store = useStore();
-const { id } = queryString.parse(window?.location?.href?.split('?')[1] || '');
+const { id,
+  type: whereInterType,
+  isClickSearch,
+} = queryString.parse(window?.location?.href?.split('?')[1] || '');
 
 // 获取store中的用户信息
 const userData = store.state.userData;
@@ -271,7 +274,16 @@ const selectedTopic = () => {
   }
 };
 const returnToBefore = () => {
+  if (whereInterType === 'all') {
   router.push({
+    path: '/questionPage',
+    query: {
+      isClickSearch
+    },
+  });
+  return;
+}
+router.push({
     path: '/',
     query: {
       subjectID: questionDetail.value.subjectID,

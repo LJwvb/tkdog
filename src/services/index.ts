@@ -12,6 +12,7 @@ import type {
   IRegisterParams,
   IBrowseQuestion,
   IGetPaperParams,
+  ICaptcha,
 } from '@/types';
 
 // 排行榜接口
@@ -48,10 +49,16 @@ export function likeQuestion(params: ILikeQuestionParams) {
 export function unlikeQuestion(params: ICancelLikeQuestionParams) {
   return request('POST', '/cancelLikeQuestions', { data: params });
 }
-// 用户登录接口
+// 用户登录接口(用户信息接口)
 export function login(params: ILoginParams) {
   return request('POST', '/login', { data: params }).then((res: any) => {
     return res.data as ILoginReturn;
+  });
+}
+//验证码接口
+export function getCaptcha(params: ICaptcha) {
+  return request('POST', '/captcha', { data: params }).then((res: any) => {
+    return res.data;
   });
 }
 // 用户注册接口
@@ -62,6 +69,7 @@ export function register(params: IRegisterParams) {
 export function browseQuestion(params: IBrowseQuestion) {
   return request('POST', '/addBrowsesNum', { data: params });
 }
+
 // 组卷接口
 export function getPaperQuestion(params: IGetPaperParams) {
   return request('POST', '/getPaperQuestions', { data: params }).then(
@@ -78,9 +86,19 @@ export function getSimilarQuestion(params: { id: number }) {
     },
   );
 }
+
 // 上传题目接口
 export function uploadQuestion(params: any) {
   return request('POST', '/uploadQuestions', { data: params }).then(
+    (res: any) => {
+      return res.data;
+    },
+  );
+}
+
+// 搜索题目接口
+export function searchQuestion(params: any) {
+  return request('POST', '/searchQuestions', { data: params }).then(
     (res: any) => {
       return res.data;
     },

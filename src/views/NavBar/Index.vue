@@ -29,11 +29,11 @@
         <span>用户</span>
       </el-menu-item>
     </el-menu>
-    <el-input placeholder="请输入搜索的内容" size="large" class="search">
+    <!-- <el-input placeholder="请输入搜索的内容" size="large" class="search">
       <template #append>
         <el-button :icon="Search" size="large" />
       </template>
-    </el-input>
+    </el-input> -->
     <div class="left">
       <el-button type="primary" class="upload" @click="toaddSuject">
         上传
@@ -74,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watchEffect } from 'vue';
 import { Search } from '@element-plus/icons-vue';
 import router from '../../router';
 import { useStore } from 'vuex';
@@ -83,6 +83,27 @@ const dialogVisible = ref(false);
 const store = useStore();
 
 const activeIndex = ref(store.state.activeMenuIndex ?? '1');
+// 监听路由变化
+watchEffect(() => {
+  const path = router.currentRoute.value.path;
+  switch (path) {
+    case '/':
+      activeIndex.value = '1';
+      break;
+    case '/questionPage':
+      activeIndex.value = '2';
+      break;
+    case '/test_paper':
+      activeIndex.value = '3';
+      break;
+    case '/user':
+      activeIndex.value = '4';
+      break;
+    default:
+      activeIndex.value = '1';
+      break;
+  }
+});
 const handleSelect = (key: string) => {
   store.commit('setActiveMenuIndex', key);
 };
@@ -94,7 +115,7 @@ const toHome = () => {
 };
 const toSubject = () => {
   router.push({
-    path: '/subject',
+    path: '/questionPage',
   });
 };
 const toTest = () => {

@@ -83,6 +83,11 @@ export interface IRegisterParams {
   username: string;
   sex: string;
 }
+//验证码接口
+export interface ICaptcha {
+  width: number;
+  height: number;
+}
 // 题目浏览接口
 export interface IBrowseQuestion {
   id: number;
@@ -92,4 +97,10 @@ export interface IBrowseQuestion {
 export interface IGetPaperParams {
   author: string;
   ids: string;
+}
+//试卷接口
+export interface IGetPaperParamsList {
+  author: string;
+  currentPage: number;
+  pageSize: number;
 }

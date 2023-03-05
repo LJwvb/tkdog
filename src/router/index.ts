@@ -17,6 +17,7 @@ import addPaperone from '@/views/addPaper/one.vue';
 import addPapertwo from '@/views/addPaper/two.vue';
 import addPaperthree from '@/views/addPaper/three.vue';
 import addPaperfour from '@/views/addPaper/four.vue';
+import questionPage from '@/views/QuestionPage/index.vue';
 import ProblemInfo from '@/views/ProblemInfo/ProblemInfo.vue';
 import user from '@/views/Personal/user.vue';
 import volume from '@/components/volume.vue';
@@ -27,18 +28,17 @@ const routes: any = [
     path: '/',
     name: 'home',
     component: Home,
+    meta: {
+      needLogin: true, //需要加校检判断的路由
+    },
   },
   {
-    path: '/subject',
-    name: 'subject',
-    component: Subject,
-    children: [
-      {
-        path: 'subject_bytype',
-        name: 'subject_bytype',
-        component: subject_bytype,
-      },
-    ],
+    path: '/questionPage',
+    name: 'questionPage',
+    component: questionPage,
+    meta: {
+      needLogin: true, //需要加校检判断的路由
+    },
   },
   {
     path: '/test_paper',
@@ -125,5 +125,4 @@ const router = createRouter({
   history: createWebHashHistory(),
   routes,
 });
-
 export default router;
