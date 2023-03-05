@@ -13,19 +13,27 @@
       @select="handleSelect"
     >
       <el-menu-item index="1" @click="toHome">
-        <el-icon> <HomeFilled /> </el-icon>
+        <el-icon>
+          <HomeFilled />
+        </el-icon>
         <span>首页</span>
       </el-menu-item>
       <el-menu-item index="2" @click="toSubject">
-        <el-icon> <Notebook /> </el-icon>
+        <el-icon>
+          <Notebook />
+        </el-icon>
         <span>题目</span>
       </el-menu-item>
       <el-menu-item index="3" @click="toTest">
-        <el-icon> <List /> </el-icon>
+        <el-icon>
+          <List />
+        </el-icon>
         <span>试卷</span>
       </el-menu-item>
       <el-menu-item index="4" @click="toUser">
-        <el-icon> <User /> </el-icon>
+        <el-icon>
+          <User />
+        </el-icon>
         <span>用户</span>
       </el-menu-item>
     </el-menu>
@@ -75,10 +83,10 @@
 
 <script setup lang="ts">
 import { ref, watchEffect } from 'vue';
-import { Search } from '@element-plus/icons-vue';
 import router from '../../router';
 import { useStore } from 'vuex';
 import UploadQuestion from '../UploadQuestion/index.vue';
+import { max } from 'lodash';
 const dialogVisible = ref(false);
 const store = useStore();
 
@@ -142,9 +150,8 @@ const toMessage = () => {
   });
 };
 const toLogin = () => {
-  router.push({
-    path: '/Login',
-  });
+  store.commit('setUserData', {});
+  router.go(-max);
 };
 </script>
 <style scoped>
@@ -157,32 +164,38 @@ const toLogin = () => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
   padding: 0 20px;
 }
+
 .logo {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 200px;
 }
+
 .title {
   font-size: 20px;
   font-weight: 600;
   margin-left: 10px;
   white-space: nowrap;
 }
+
 .nav {
   border: none !important;
   width: 100%;
   margin-left: 60px;
 }
+
 .search {
   width: 600px;
   margin-right: 20px;
 }
+
 .left {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+
 .upload {
   margin-right: 20px;
 }

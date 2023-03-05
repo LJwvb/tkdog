@@ -37,8 +37,20 @@
         </div>
       </div>
     </div>
-    <el-button type="primary" class="btn" @click="selectedTopic">
+    <el-button
+      type="primary"
+      class="btn"
+      @click="selectedTopic"
+      v-if="props.type !== 'paper'"
+    >
       选题</el-button
+    >
+    <el-button
+      type="danger"
+      class="btn"
+      @click="deleteTopic"
+      v-if="props.type === 'paper'"
+      >删除</el-button
     >
   </div>
 </template>
@@ -67,6 +79,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  catalogID: {
+    type: Number,
+    default: 0,
+  },
 });
 const question = props.question as IQuestion;
 
@@ -92,6 +108,7 @@ const toProblemInfo = () => {
       id,
       type: props?.type,
       isClickSearch: String(props?.isClickSearch),
+      catalogID: props?.catalogID,
     },
   });
   const setBrowseTopicsId = store.state.browseTopicsId;
@@ -113,15 +130,20 @@ const selectedTopic = () => {
     return;
   } else {
     const data = {
-      id: question.id,
-      questionType: question.questionType,
-      difficulty: question.difficulty,
-      question: question.question,
+      ...question,
       data: new Date().toLocaleString(),
     };
     store.commit('addSelectedTopic', [...selectedTopic, data]);
     ElMessage.success('选题成功，请在试题篮已选题目中查看');
   }
+};
+const deleteTopic = () => {
+  const selectedTopic = store.state.selectedTopic;
+  const selectedTopicIds = selectedTopic.map((item: IQuestion) => item.id);
+  const index = selectedTopicIds.indexOf(id);
+  selectedTopic.splice(index, 1);
+  store.commit('setSelectedTopic', selectedTopic);
+  ElMessage.success('删除成功');
 };
 </script>
 <style scoped>

@@ -6,12 +6,7 @@
       </el-badge>
     </div>
 
-    <el-drawer
-      v-model="drawer"
-      title="试题篮"
-      size="50%"
-      v-model:visible="drawer"
-    >
+    <el-drawer v-model="drawer" title="试题篮" size="50%" v-model:visible="drawer">
       <el-table :data="basketTableData" style="width: 100%">
         <el-table-column label="试题">
           <template #default="scope">
@@ -31,19 +26,16 @@
         <el-table-column label="添加时间" width="180">
           <template #default="scope">
             <div style="display: flex; align-items: center">
-              <el-icon><timer /></el-icon>
+              <el-icon>
+                <timer />
+              </el-icon>
               <span style="margin-left: 10px">{{ scope.row.data }}</span>
             </div>
           </template>
         </el-table-column>
         <el-table-column label="操作">
           <template #default="scope">
-            <el-button
-              size="small"
-              type="danger"
-              @click="handleDelete(scope.row)"
-              >删除</el-button
-            >
+            <el-button size="small" type="danger" @click="handleDelete(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -118,6 +110,7 @@ const clearAll = () => {
 ::v-deep .el-badge__content.is-fixed {
   transform: translateY(-50%) translateX(-50%);
 }
+
 .basket-btn {
   width: 25px;
   background-color: #409eff;
@@ -126,6 +119,7 @@ const clearAll = () => {
   text-align: center;
   padding: 15px 5px 15px 2px;
 }
+
 .btn {
   margin-top: 50px;
 }

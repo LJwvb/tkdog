@@ -1,8 +1,8 @@
 <template>
- <!-- <div class="tkdog-login" v-if="true">
-  <Login></Login>
- </div> -->
-  <div class="tkdog-container">
+  <div class="tkdog-login" v-if="store.state?.userData?.phone === ''">
+    <Login> </Login>
+  </div>
+  <div class="tkdog-container" v-else>
     <!-- 固定导航栏 -->
     <div class="home-nav">
       <NavBar></NavBar>
@@ -17,13 +17,15 @@
     </div>
     <TestBasket />
   </div>
- 
 </template>
 <script setup lang="ts">
+import { useStore } from 'vuex';
 import Login from '@/views/login/Login.vue';
 import NavBar from '@/views/NavBar/Index.vue';
 import BottomBar from '@/views/BottomBar/BottomBar.vue';
 import TestBasket from '@/components/TestBasket/index.vue';
+
+const store = useStore();
 </script>
 <style>
 .home-nav {

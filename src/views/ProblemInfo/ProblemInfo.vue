@@ -283,6 +283,16 @@ const returnToBefore = () => {
   });
   return;
 }
+if (whereInterType === 'paper') {
+    router.push({
+      path: '/addPaper',
+      query: {
+        step: 1,
+      },
+    });
+    return;
+  }
+
 router.push({
     path: '/',
     query: {

@@ -1,9 +1,6 @@
 // import { Menu } from '@element-plus/icons-vue/dist/types';
 import { createRouter, createWebHashHistory } from 'vue-router';
 import Home from '@/views/Home/index.vue';
-// import NavBar from '../components/NavBar/index.vue';
-import Subject from '@/components/subject.vue';
-import subject_bytype from '@/components/subject/subject_bytype.vue';
 import test_paper from '@/components/Home/test_paper.vue';
 import me_info from '@/views/Personal/me_info.vue';
 import me_collection from '@/views/Personal/me_collection.vue';
@@ -12,11 +9,7 @@ import me_history from '@/views/Personal/me_history.vue';
 import me_news from '@/views/Personal/me_news.vue';
 import me_test_paper from '@/views/Personal/me_test_paper.vue';
 import addSubject from '@/views/UploadQuestion/index.vue';
-import addPaper from '@/views/addPaper/addPaper.vue';
-import addPaperone from '@/views/addPaper/one.vue';
-import addPapertwo from '@/views/addPaper/two.vue';
-import addPaperthree from '@/views/addPaper/three.vue';
-import addPaperfour from '@/views/addPaper/four.vue';
+import addPaper from '@/views/addPaper/Index.vue';
 import questionPage from '@/views/QuestionPage/index.vue';
 import ProblemInfo from '@/views/ProblemInfo/ProblemInfo.vue';
 import user from '@/views/Personal/user.vue';
@@ -85,24 +78,6 @@ const routes: any = [
     path: '/addPaper',
     name: 'addPaper',
     component: addPaper,
-    children: [
-      {
-        path: 'addPaperone',
-        component: addPaperone,
-      },
-      {
-        path: 'addPapertwo',
-        component: addPapertwo,
-      },
-      {
-        path: 'addPaperthree',
-        component: addPaperthree,
-      },
-      {
-        path: 'addPaperfour',
-        component: addPaperfour,
-      },
-    ],
   },
   {
     path: '/problemInfo',
