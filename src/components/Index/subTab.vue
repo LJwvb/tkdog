@@ -51,7 +51,7 @@ const props = defineProps({
 const active = ref<any>(0);
 watchEffect(() => {
   if (props.type === 'all') {
-    active.value = props?.catalogID;
+    active.value = props?.catalogID || 0;
   } else {
     if (props?.itemSubjectID === props?.subjectID) {
       active.value = isNaN(props?.catalogID)

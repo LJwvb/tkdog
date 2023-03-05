@@ -16,7 +16,7 @@
   <TestBasket />
 </template>
 <script setup lang="ts">
-import NavBar from '@/views/NavBar/index.vue';
+import NavBar from '@/views/NavBar/hdfgh.vue';
 import BottomBar from '@/views/BottomBar/index.vue';
 import TestBasket from '@/components/TestBasket/index.vue';
 </script>
