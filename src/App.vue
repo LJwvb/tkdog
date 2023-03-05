@@ -17,7 +17,7 @@
 </template>
 <script setup lang="ts">
 import NavBar from '@/views/NavBar/Index.vue';
-import BottomBar from '@/views/BottomBar/BottomBar.vue';
+import BottomBar from '@/views/BottomBar/index.vue';
 import TestBasket from '@/components/TestBasket/index.vue';
 </script>
 <style>
