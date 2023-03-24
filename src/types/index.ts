@@ -100,7 +100,8 @@ export interface IGetPaperParams {
 }
 //试卷接口
 export interface IGetPaperParamsList {
-  author: string;
+  type?: 'all';
   currentPage: number;
   pageSize: number;
+  paper_tags: any;
 }

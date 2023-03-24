@@ -30,6 +30,8 @@ const getQuestionListData = async () => {
   const res = await getQuestionList({});
   questionList.value = res.result;
   loading.value = false;
+  console.log("题目列表"+questionList.value);
+  
 };
 // 初始化
 getQuestionListData();

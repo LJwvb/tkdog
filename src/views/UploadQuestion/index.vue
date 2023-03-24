@@ -162,7 +162,7 @@ const questionType = reactive([
     subjectID: 6,
   },
   {
-    content: 'webpack',
+    content: 'Webpack',
     subjectID: 7,
   },
   {
@@ -181,6 +181,14 @@ const questionType = reactive([
     content: '计算机网络',
     subjectID: 11,
   },
+  {
+    content: '浏览器',
+    subjectID: 12,
+  },
+  {
+    content: '其他',
+    subjectID: 13,
+  }
 ]);
 
 const rules = reactive<FormRules>({

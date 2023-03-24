@@ -85,6 +85,7 @@ const props = defineProps({
   },
 });
 const question = props.question as IQuestion;
+console.log(question);
 
 const tags = Array.isArray(question?.tags)
   ? question?.tags?.filter((item: string) => item !== '')

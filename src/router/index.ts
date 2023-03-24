@@ -1,7 +1,7 @@
 // import { Menu } from '@element-plus/icons-vue/dist/types';
 import { createRouter, createWebHashHistory } from 'vue-router';
 import Home from '@/views/Home/index.vue';
-import test_paper from '@/components/Home/test_paper.vue';
+import testPaper from '@/views/TestPaper/index.vue';
 import me_info from '@/views/Personal/me_info.vue';
 import me_collection from '@/views/Personal/me_collection.vue';
 import subject_me from '@/views/Personal/subject_me.vue';
@@ -34,9 +34,9 @@ const routes: any = [
     },
   },
   {
-    path: '/test_paper',
-    name: 'test_paper',
-    component: test_paper,
+    path: '/testPaper',
+    name: 'testPaper',
+    component: testPaper,
   },
   {
     path: '/user',

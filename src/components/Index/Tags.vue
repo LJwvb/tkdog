@@ -49,6 +49,7 @@ const props = defineProps({
     default: '',
   },
 });
+
 // 默认选中的子标签
 const active = ref<any>(0);
   watchEffect(() => {

@@ -101,7 +101,7 @@ watchEffect(() => {
     case '/questionPage':
       activeIndex.value = '2';
       break;
-    case '/test_paper':
+    case '/testPaper':
       activeIndex.value = '3';
       break;
     case '/user':
@@ -128,7 +128,7 @@ const toSubject = () => {
 };
 const toTest = () => {
   router.push({
-    path: '/test_paper',
+    path: '/testPaper',
   });
 };
 const toUser = () => {

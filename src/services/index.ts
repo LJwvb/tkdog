@@ -13,6 +13,7 @@ import type {
   IBrowseQuestion,
   IGetPaperParams,
   ICaptcha,
+  IGetPaperParamsList,
 } from '@/types';
 
 // 排行榜接口
@@ -78,6 +79,14 @@ export function getPaperQuestion(params: IGetPaperParams) {
     },
   );
 }
+// 试卷列表接口
+export function getPaperList(params: IGetPaperParamsList) {
+  return request('POST', '/getPaperQuestionsList', { data: params }).then(
+    (res: any) => {
+      return res.data;
+    },
+  );
+}
 // 相似题目接口
 export function getSimilarQuestion(params: { id: number }) {
   return request('POST', '/getSimilarQuestions', { data: params }).then(
@@ -99,6 +108,14 @@ export function uploadQuestion(params: any) {
 // 搜索题目接口
 export function searchQuestion(params: any) {
   return request('POST', '/searchQuestions', { data: params }).then(
+    (res: any) => {
+      return res.data;
+    },
+  );
+}
+//用户信息接口
+export function updateUserInfo(params: any) {
+  return request('POST', '/updateUserInfo', { data: params }).then(
     (res: any) => {
       return res.data;
     },
