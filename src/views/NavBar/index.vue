@@ -94,7 +94,7 @@ watchEffect(() => {
       activeIndex.value = '4';
       break;
     default:
-      activeIndex.value = '1';
+      activeIndex.value = store.state.activeMenuIndex ?? '1';
       break;
   }
 });

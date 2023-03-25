@@ -70,6 +70,22 @@ export function getPaperQuestion(params: any) {
     },
   );
 }
+// 获取试卷接口
+export function getPaper(params: any) {
+  return request('POST', '/getPaperQuestionsList', { data: params }).then(
+    (res: any) => {
+      return res.data;
+    },
+  );
+}
+// 获取试卷详情接口
+export function getPaperDetail(params: any) {
+  return request('POST', '/getPaperQuestionsDetail', { data: params }).then(
+    (res: any) => {
+      return res.data;
+    },
+  );
+}
 // 相似题目接口
 export function getSimilarQuestion(params: { id: number }) {
   return request('POST', '/getSimilarQuestions', { data: params }).then(
@@ -94,4 +110,10 @@ export function searchQuestion(params: any) {
       return res.data;
     },
   );
+}
+// 科目列表接口
+export function getSubjectList() {
+  return request('GET', '/getSubjectList').then((res: any) => {
+    return res.data;
+  });
 }

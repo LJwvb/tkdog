@@ -34,6 +34,11 @@ const routes: any = [
     component: testPaper,
   },
   {
+    path: '/testPaper/paperDetail',
+    name: 'paperDetail',
+    component: () => import('@/views/TestPaper/paperDetail.vue'),
+  },
+  {
     path: '/user',
     name: 'user',
     component: user,

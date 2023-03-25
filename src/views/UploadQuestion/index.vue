@@ -117,7 +117,7 @@ import {
 import Tinymce from '@/components/Tinymce/Tinymce.vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import { useStore } from 'vuex';
-import { uploadQuestion } from '@/services';
+import { uploadQuestion, getSubjectList } from '@/services';
 import type { FormInstance, FormRules } from 'element-plus';
 const formSize = ref('default');
 const ruleFormRef = ref<FormInstance>();
@@ -132,56 +132,7 @@ const ruleForm = reactive({
   answer: '',
 });
 
-const questionType = reactive([
-  {
-    content: 'javaScript',
-    subjectID: 0,
-  },
-  {
-    content: 'CSS',
-    subjectID: 1,
-  },
-  {
-    content: 'HTML',
-    subjectID: 2,
-  },
-  {
-    content: 'ES6',
-    subjectID: 3,
-  },
-  {
-    content: 'React',
-    subjectID: 4,
-  },
-  {
-    content: 'Vue',
-    subjectID: 5,
-  },
-  {
-    content: 'Node',
-    subjectID: 6,
-  },
-  {
-    content: 'webpack',
-    subjectID: 7,
-  },
-  {
-    content: 'TypeScript',
-    subjectID: 8,
-  },
-  {
-    content: '编程题',
-    subjectID: 9,
-  },
-  {
-    content: '计算机基础',
-    subjectID: 10,
-  },
-  {
-    content: '计算机网络',
-    subjectID: 11,
-  },
-]);
+const questionType = ref([]);
 
 const rules = reactive<FormRules>({
   question: [{ required: true, message: '请输入题目', trigger: 'blur' }],
@@ -289,6 +240,10 @@ const handleClose = (done: () => void) => {
       // catch error
     });
 };
+onMounted(async () => {
+  const res = await getSubjectList();
+  questionType.value = res.data;
+});
 </script>
 
 <style scoped>
