@@ -44,13 +44,21 @@
         + 新标签
       </el-button>
     </el-form-item>
-    <el-form-item label="权限" prop="auth">
-      <el-radio-group v-model="ruleForm.auth">
-        <el-radio label="0">私有</el-radio>
+    <el-form-item label="权限" prop="auth" style="margin-bottom: 0">
+      <el-radio-group v-model="ruleForm.auth" @change="selectAuth">
+        <el-radio label="3">私有</el-radio>
         <el-radio label="1">公开</el-radio>
       </el-radio-group>
     </el-form-item>
   </el-form>
+  <el-alert
+    title="warning"
+    type="warning"
+    description="选择公开后，你的试卷将会被审核，审核通过后将展示"
+    show-icon
+    v-if="showWarning"
+    class="alert"
+  />
   <el-button class="next-step" @click="nextStep" type="primary"
     >下一步</el-button
   >
@@ -79,6 +87,7 @@ const dynamicTags: any = ref(store.state.paperInfo.dynamicTags || []);
 const inputVisible = ref(false);
 const inputValue = ref('');
 const saveTagInputRef = ref();
+const showWarning = ref(false);
 const ruleFormRef = ref<FormInstance>();
 const props = defineProps<{
   clickNext: () => void;
@@ -105,6 +114,13 @@ const handleInputConfirm = () => {
   inputVisible.value = false;
   inputValue.value = '';
 };
+const selectAuth = (value: string) => {
+  if (value === '1') {
+    showWarning.value = true;
+  } else {
+    showWarning.value = false;
+  }
+};
 
 const nextStep = () => {
   if (!ruleFormRef.value) return;
@@ -129,5 +145,15 @@ const nextStep = () => {
 }
 .tag {
   margin-right: 10px;
+}
+
+.alert {
+  width: 500px;
+}
+::v-deep .el-alert__title {
+  color: var(--el-color-warning) !important;
+}
+.next-step {
+  margin-top: 8px;
 }
 </style>

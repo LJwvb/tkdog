@@ -22,10 +22,10 @@ const paperList = ref<any>([]);
 const active = ref<any>(0);
 const transFromName = (name: string) => {
   if (name === 'personPaper') {
-    return '个人试卷';
+    return '个人的公开的试卷';
   }
   if (name === 'purviewPaper') {
-    return '公开试卷';
+    return '官方试卷';
   }
 };
 
