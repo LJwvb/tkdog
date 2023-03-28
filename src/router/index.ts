@@ -14,7 +14,13 @@ import questionPage from '@/views/QuestionPage/index.vue';
 import ProblemInfo from '@/views/ProblemInfo/ProblemInfo.vue';
 import user from '@/views/Personal/user.vue';
 import volume from '@/components/volume.vue';
-import Login from '@/views/login/Login.vue';
+import Login from '@/views/Login/Login.vue';
+import admin from '@/views/admin/admin.vue';
+import adminHome from '@/views/AdminPage/adminHome.vue';
+
+import adminTestPaper from '@/views/AdminPage/adminTestPaper.vue';
+import adminQuestion from '@/views/AdminPage/adminQuestion.vue';
+import adminUser from '@/views/AdminPage/adminUser.vue';
 
 const routes: any = [
   {
@@ -24,6 +30,31 @@ const routes: any = [
     meta: {
       needLogin: true, //需要加校检判断的路由
     },
+  },
+  {
+    path: '/admin',
+    name: 'admin',
+    component: admin,
+  },
+  {
+    path: '/adminHome',
+    name: 'adminHome',
+    component: adminHome,
+  },
+  {
+    path: '/adminQuestion',
+    name: 'adminQuestion',
+    component: adminQuestion,
+  },
+  {
+    path: '/adminTestPaper',
+    name: 'adminTestPaper',
+    component: adminTestPaper,
+  },
+  {
+    path: '/adminUser',
+    name: 'adminUser',
+    component: adminUser,
   },
   {
     path: '/questionPage',

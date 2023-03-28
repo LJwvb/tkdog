@@ -14,12 +14,20 @@ import type {
   IGetPaperParams,
   ICaptcha,
   IGetPaperParamsList,
+  IAdminLoginParams,
+  INoIChkQuestions
 } from '@/types';
 
 // 排行榜接口
 export function getRankList() {
   return request('GET', '/getRankingList').then((res: any) => {
     return res.data.data as IRankingList;
+  });
+}
+// 获取未审核的题目接口
+export function getNoChkQuestions() {
+  return request('GET', '/getNoChkQuestions').then((res: any) => {
+    return res.data.data as INoIChkQuestions;
   });
 }
 // 获取审核后的题目接口
@@ -56,6 +64,13 @@ export function login(params: ILoginParams) {
     return res.data as ILoginReturn;
   });
 }
+//管理员登录接口
+export function adminLogin(params: IAdminLoginParams) {
+  return request('POST', '/adminLogin', { data: params }).then((res: any) => {
+    return res.data;
+  });
+}
+
 //验证码接口
 export function getCaptcha(params: ICaptcha) {
   return request('POST', '/captcha', { data: params }).then((res: any) => {

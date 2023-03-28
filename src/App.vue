@@ -1,6 +1,7 @@
 <template>
   <div class="tkdog-login" v-if="store.state?.userData?.phone === ''">
-    <Login> </Login>
+    <Login v-if="router.currentRoute.value.path === '/'"> </Login>
+    <AdminLogin v-else-if="router.currentRoute.value.path !== '/'"></AdminLogin>
   </div>
   <div class="tkdog-container" v-else>
     <!-- 固定导航栏 -->
@@ -20,6 +21,8 @@
 </template>
 <script setup lang="ts">
 import { useStore } from 'vuex';
+import router from '@/router';
+import AdminLogin from '@/views/admin/admin.vue';
 import Login from '@/views/login/Login.vue';
 import NavBar from '@/views/NavBar/Index.vue';
 import BottomBar from '@/views/BottomBar/BottomBar.vue';

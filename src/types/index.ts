@@ -5,6 +5,11 @@ export interface IRankingList {
   get_likes_num: number;
   upload_ques_num: number;
 }
+//获取未审核的题目接口
+export interface INoIChkQuestions {
+  total: number;
+  result: IQuestion[];
+}
 // 获取审核后的题目接口
 export interface IGetQuestionsParams {
   type?: 'all';
@@ -74,7 +79,11 @@ export interface ILoginData {
   avatar: string;
   last_login_time: string;
 }
-
+// 管理员登录接口
+export interface IAdminLoginParams {
+  name: string | number;
+  password: string | number;
+}
 // 用户注册接口
 export interface IRegisterParams {
   phone: string;
