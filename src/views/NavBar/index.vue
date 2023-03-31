@@ -127,13 +127,15 @@ const toAddSubject = () => {
   dialogVisible.value = true;
 };
 const toInfo = () => {
+  store.commit('setActiveMenuIndex', '4');
   router.push({
-    path: '/user/me_info',
+    path: '/user',
   });
 };
 const toMessage = () => {
+  store.commit('setActiveMenuIndex', '4');
   router.push({
-    path: '/user/me_news',
+    path: '/user/UserMessage',
   });
 };
 const toLogin = () => {

@@ -50,7 +50,7 @@ onMounted(async () => {
   height: 100%;
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-evenly;
+  /* justify-content: space-evenly; */
 }
 .test-card {
   width: 400px;

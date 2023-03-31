@@ -1,37 +1,20 @@
-// import { Menu } from '@element-plus/icons-vue/dist/types';
 import { createRouter, createWebHashHistory } from 'vue-router';
-import Home from '@/views/Home/index.vue';
-// import NavBar from '../components/NavBar/index.vue';
-import testPaper from '@/views/TestPaper/index.vue';
-import me_info from '@/views/Personal/me_info.vue';
-import me_collection from '@/views/Personal/me_collection.vue';
-import subject_me from '@/views/Personal/subject_me.vue';
-import me_history from '@/views/Personal/me_history.vue';
-import me_news from '@/views/Personal/me_news.vue';
-import me_test_paper from '@/views/Personal/me_test_paper.vue';
-import addSubject from '@/views/UploadQuestion/index.vue';
-import addPaper from '@/views/addPaper/index.vue';
-import questionPage from '@/views/QuestionPage/index.vue';
-import ProblemInfo from '@/views/ProblemInfo/index.vue';
-import user from '../views/Personal/user.vue';
-import volume from '../components/volume.vue';
-import Login from '../views/login/Login.vue';
 
-const routes: any = [
+const routes = [
   {
     path: '/',
     name: 'home',
-    component: Home,
+    component: () => import('@/views/Home/index.vue'),
   },
   {
     path: '/questionPage',
     name: 'questionPage',
-    component: questionPage,
+    component: () => import('@/views/QuestionPage/index.vue'),
   },
   {
     path: '/testPaper',
     name: 'testPaper',
-    component: testPaper,
+    component: () => import('@/views/TestPaper/index.vue'),
   },
   {
     path: '/testPaper/paperDetail',
@@ -41,58 +24,53 @@ const routes: any = [
   {
     path: '/user',
     name: 'user',
-    component: user,
+    component: () => import('@/views/Personal/User.vue'),
     children: [
       {
-        path: 'me_info',
-        component: me_info,
+        path: 'UserInfo',
+        component: () => import('@/views/Personal/UserInfo.vue'),
       },
       {
-        path: 'me_collection',
-        component: me_collection,
+        path: 'UserLikes',
+        component: () => import('@/views/Personal/UserLikes.vue'),
       },
       {
-        path: 'subject_me',
-        component: subject_me,
+        path: 'UserQuestions',
+        component: () => import('@/views/Personal/UserQuestions.vue'),
       },
       {
-        path: 'me_history',
-        component: me_history,
+        path: 'UserHistory',
+        component: () => import('@/views/Personal/UserHistory.vue'),
       },
       {
-        path: 'me_test_paper',
-        component: me_test_paper,
+        path: 'UserTestPaper',
+        component: () => import('@/views/Personal/UserTestPaper.vue'),
       },
       {
-        path: 'me_news',
-        component: me_news,
+        path: 'UserMessage',
+        component: () => import('@/views/Personal/UserMessage.vue'),
       },
     ],
   },
   {
     path: '/addSubject',
     name: 'addSubject',
-    component: addSubject,
+    component: () => import('@/views/UploadQuestion/index.vue'),
   },
   {
     path: '/addPaper',
     name: 'addPaper',
-    component: addPaper,
+    component: () => import('@/views/addPaper/index.vue'),
   },
   {
     path: '/problemInfo',
     name: 'problemInfo',
-    component: ProblemInfo,
-  },
-  {
-    path: '/volume',
-    name: 'volume',
-    component: volume,
+    component: () => import('@/views/ProblemInfo/index.vue'),
   },
   {
     path: '/Login',
     name: 'Login',
-    component: Login,
+    component: () => import('@/views/login/Login.vue'),
   },
 ];
 
