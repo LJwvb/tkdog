@@ -65,7 +65,7 @@ const prev = () => {
 };
 const goTestPaper = () => {
   clearTimeout(timer);
-  router.push('/testPaper');
+  router.push('/questionPage');
 };
 const done = () => {
   getPaperQuestion({
@@ -88,10 +88,10 @@ const done = () => {
       timer = setInterval(() => {
         if (count === 1) {
           clearInterval(timer);
-          router.push('/testPaper');
+          router.push('/user/UserTestPaper');
         }
         ElMessage({
-          message: `试卷创建成功,${count}秒后跳转到试卷列表`,
+          message: `试卷创建成功,${count}秒后跳转到我的试卷列表`,
           type: 'success',
           duration: 1000,
         });

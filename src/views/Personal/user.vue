@@ -30,12 +30,12 @@
       </el-icon>
       我的试卷
     </el-menu-item>
-    <el-menu-item index="5">
+    <!-- <el-menu-item index="5">
       <el-icon>
         <ChatLineSquare />
       </el-icon>
       消息通知
-    </el-menu-item>
+    </el-menu-item> -->
   </el-menu>
   <UserInfo v-if="activeIndex === '0'" />
 

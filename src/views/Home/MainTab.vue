@@ -39,7 +39,9 @@ const currentTab = ref(isNaN(Number(subjectID)) ? 0 : Number(subjectID));
 // 获取题目列表
 const getQuestionListData = async () => {
   if (questionList.value) return;
-  const res = await getQuestionList({});
+  const res = await getQuestionList({
+    type: 'home',
+  });
   questionList.value = res.result;
   loading.value = false;
 };

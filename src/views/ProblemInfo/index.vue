@@ -159,6 +159,7 @@ const {
   type: whereInterType,
   isClickSearch,
 } = queryString.parse(window?.location?.href?.split('?')[1] || '');
+console.log('id', id);
 
 // 获取store中的用户信息
 const userData = store.state.userData;
@@ -293,6 +294,18 @@ const returnToBefore = () => {
       query: {
         step: 1,
       },
+    });
+    return;
+  }
+  if (whereInterType === 'userLikes') {
+    router.push({
+      path: 'user/UserLikes',
+    });
+    return;
+  }
+  if (whereInterType === 'userHistory') {
+    router.push({
+      path: 'user/UserHistory',
     });
     return;
   }

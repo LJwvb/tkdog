@@ -11,6 +11,7 @@ export interface IGetQuestionsParams {
   currentPage?: number; // 当前页
   pageSize?: number; // 每页条数
   catalogID?: string; // 章节ID
+  ids?: string[]; // 题目ID
 }
 export interface IGetQuestionsReturn {
   total: number;

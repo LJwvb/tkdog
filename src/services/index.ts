@@ -117,3 +117,23 @@ export function getSubjectList() {
     return res.data;
   });
 }
+// 编辑用户信息接口
+export function editUserInfo(params: any) {
+  return request('POST', '/editUserInfo', { data: params }).then((res: any) => {
+    return res.data;
+  });
+}
+// 获取用户信息接口
+export function getUserInfo(params: any) {
+  return request('POST', '/getUserInfo', { data: params }).then((res: any) => {
+    return res.data;
+  });
+}
+// 获取用户上传的题目接口
+export function getUserUploadQues(params: any) {
+  return request('POST', '/getUserUploadQues', { data: params }).then(
+    (res: any) => {
+      return res.data;
+    },
+  );
+}

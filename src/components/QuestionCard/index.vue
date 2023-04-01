@@ -62,7 +62,6 @@ import { ElMessage } from 'element-plus';
 
 import router from '@/router';
 import type { IQuestion } from '@/types';
-import { browseQuestion } from '@/services';
 import { questionType, difficulty, transitionTime } from '@/utils';
 const store = useStore();
 
@@ -115,7 +114,7 @@ const toProblemInfo = () => {
   const setBrowseTopicsIds = setBrowseTopicsId.map((item: string) => item);
   if (!setBrowseTopicsIds.includes(id)) {
     store.commit('setBrowseTopicsId', [...store.state.browseTopicsId, id]);
-    browseQuestion({ id, username: store.state.userData.username });
+    // browseQuestion({ id, username: store.state.userData.username });
   }
 };
 const selectedTopic = () => {

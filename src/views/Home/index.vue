@@ -21,13 +21,16 @@ if (store.state.userData.phone) {
   ElMessage.success('已登录');
 } else {
   login({
-    phone: 123456,
+    phone: 18111111111,
     password: 123456,
   }).then((res) => {
     console.log(res);
     if (res.code === 200 || res?.success) {
       ElMessage.success('登录成功');
-      store.commit('setUserData', res.data);
+      store.commit('setUserData', {
+        ...res.data,
+        phone: 18111111111,
+      });
     } else {
       ElMessage.error(res?.message || '登录失败');
     }

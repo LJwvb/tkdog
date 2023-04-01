@@ -8,7 +8,7 @@
     >上一步</el-button
   >
   <el-button class="prev-step" @click="props.goTestPaper" type="primary" v-else
-    >返回试卷列表</el-button
+    >返回题目列表</el-button
   >
 </template>
 

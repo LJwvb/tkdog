@@ -48,11 +48,9 @@
               </el-icon>
               个人中心
             </el-dropdown-item>
-            <el-dropdown-item @click="toMessage">
-              <el-icon>
-                <Message />
-              </el-icon>
-              消息
+            <el-dropdown-item @click="editPassword">
+              <el-icon><Edit /></el-icon>
+              修改密码
             </el-dropdown-item>
             <el-dropdown-item divided style="color: #f56c6c" @click="toLogin">
               <el-icon>
@@ -65,16 +63,62 @@
       </el-dropdown>
     </div>
     <UploadQuestion v-model:dialogVisible="dialogVisible" />
+    <el-dialog
+      v-model="dialogVisibleEditPassword"
+      title="修改密码"
+      width="400px"
+      center
+    >
+      <el-form ref="ruleFormRef" :model="ruleForm" :rules="rules" status-icon>
+        <el-form-item prop="password" placeholder="请输入密码">
+          <el-input
+            v-model="ruleForm.password"
+            placeholder="请输入长度在 6 到 20 个字符的密码"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="cancel">取消</el-button>
+          <el-button type="primary" @click="submitForm(ruleFormRef)">
+            确定
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watchEffect } from 'vue';
+import { ref, watchEffect, reactive } from 'vue';
 import router from '../../router';
 import { useStore } from 'vuex';
-import UploadQuestion from '../UploadQuestion/index.vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import type { FormInstance, FormRules } from 'element-plus';
+import { editUserInfo } from '@/services';
+import UploadQuestion from '@/components/UploadQuestion/index.vue';
 const dialogVisible = ref(false);
+const dialogVisibleEditPassword = ref(false);
 const store = useStore();
+const ruleFormRef = ref<FormInstance>();
+const ruleForm = reactive({
+  password: '',
+});
+const rules = reactive<FormRules>({
+  password: [
+    {
+      required: true,
+      message: '请输入密码',
+      trigger: 'blur',
+    },
+    {
+      min: 6,
+      max: 20,
+      message: '长度在 6 到 20 个字符',
+      trigger: 'blur',
+    },
+  ],
+});
 
 const activeIndex = ref(store.state.activeMenuIndex ?? '1');
 // 监听路由变化
@@ -132,10 +176,42 @@ const toInfo = () => {
     path: '/user',
   });
 };
-const toMessage = () => {
-  store.commit('setActiveMenuIndex', '4');
-  router.push({
-    path: '/user/UserMessage',
+const editPassword = () => {
+  dialogVisibleEditPassword.value = true;
+};
+const cancel = () => {
+  dialogVisibleEditPassword.value = false;
+};
+const resetForm = (formEl: FormInstance | undefined) => {
+  if (!formEl) return;
+  formEl.resetFields();
+};
+
+const submitForm = async (formEl: FormInstance | undefined) => {
+  if (!formEl) return;
+  await formEl.validate((valid, fields) => {
+    console.log(valid, fields);
+    if (valid) {
+      const params = {
+        password: ruleForm.password,
+        phone: store.state.userData.phone,
+      };
+      editUserInfo(params).then(() => {
+        ElMessage({
+          type: 'success',
+          message: `修改成功,需要重新登录`,
+        });
+        store.commit('setUserData', {});
+
+        dialogVisibleEditPassword.value = false;
+        resetForm(formEl);
+        router.push({
+          path: '/Login',
+        });
+      });
+    } else {
+      return false;
+    }
   });
 };
 const toLogin = () => {

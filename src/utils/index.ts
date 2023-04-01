@@ -60,6 +60,16 @@ export const transitionTime = (addDate: string) => {
   const date = new Date(addDate);
   return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 };
+export const transitionSex = (sex: unknown) => {
+  const sexVal = Number(sex);
+  if (sexVal === 0) {
+    return '女';
+  }
+  if (sexVal === 1) {
+    return '男';
+  }
+  return '未知';
+};
 export const isNaN = (value: any) => {
   return value !== value;
 };
