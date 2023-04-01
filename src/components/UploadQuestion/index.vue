@@ -132,7 +132,7 @@ const ruleForm = reactive({
   answer: '',
 });
 
-const questionType = ref([]);
+const questionType = ref<any>([]);
 
 const rules = reactive<FormRules>({
   question: [{ required: true, message: '请输入题目', trigger: 'blur' }],
