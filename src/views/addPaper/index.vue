@@ -34,10 +34,9 @@ import { useRouter } from 'vue-router';
 import queryString from 'query-string';
 import { useStore } from 'vuex';
 
-import OneStep from '@/components/PaperStep/oneStep.vue';
-// import TwoStep from '@/components/PaperStep/twoStep.vue';
-import ThreeStep from '@/components/PaperStep/threeStep.vue';
-import FourStep from '@/components/PaperStep/fourStep.vue';
+import OneStep from './PaperStep/oneStep.vue';
+import ThreeStep from './PaperStep/threeStep.vue';
+import FourStep from './PaperStep/fourStep.vue';
 import { getPaperQuestion } from '@/services';
 import { ElMessage } from 'element-plus';
 

@@ -21,7 +21,7 @@
 </template>
 <script setup lang="ts">
 import { ref } from 'vue';
-import SubTab from './subTab.vue';
+import SubTab from '@/components/SubTab/index.vue';
 import { getQuestionList } from '@/services';
 import queryString from 'query-string';
 import { isNaN } from '@/utils';

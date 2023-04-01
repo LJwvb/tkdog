@@ -8,8 +8,8 @@
 </template>
 
 <script lang="ts" setup>
-import Tabs from '@/components/Index/index.vue';
-import SideBar from '@/components/Index/slide.vue';
+import Tabs from './MainTab.vue';
+import SideBar from './Slide.vue';
 import { login } from '@/services';
 import { ElMessage } from 'element-plus';
 import { useStore } from 'vuex';

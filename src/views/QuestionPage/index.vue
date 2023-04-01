@@ -63,7 +63,7 @@ import { useStore } from 'vuex';
 import { ElMessage } from 'element-plus';
 import queryString from 'query-string';
 import { searchQuestion, getQuestionList } from '@/services';
-import SubTab from '@/components/Index/subTab.vue';
+import SubTab from '@/components/SubTab/index.vue';
 import QuestionCard from '@/components/QuestionCard/index.vue';
 interface IGetAllQuestionParams {
   type: string;
