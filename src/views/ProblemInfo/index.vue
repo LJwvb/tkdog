@@ -309,6 +309,12 @@ const returnToBefore = () => {
     });
     return;
   }
+  if (whereInterType === 'userQuestions') {
+    router.push({
+      path: 'user/UserQuestions',
+    });
+    return;
+  }
 
   router.push({
     path: '/',
