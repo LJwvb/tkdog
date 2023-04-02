@@ -56,9 +56,9 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 ::-webkit-scrollbar {
-  display: none;
-  width: 10px;
-  height: 10px;
+  /* display: none; */
+  width: 15px;
+  height: 15px;
 }
 ::-webkit-scrollbar-thumb {
   background: #ccc;
@@ -68,8 +68,8 @@ onMounted(() => {
   background: #fff;
   border-radius: 10px;
 }
-::-webkit-scrollbar-button {
+/* ::-webkit-scrollbar-button {
   width: 0;
   height: 0;
-}
+} */
 </style>
