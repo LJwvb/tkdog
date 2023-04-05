@@ -309,6 +309,12 @@ const returnToBefore = () => {
     });
     return;
   }
+  if (whereInterType === 'userQuestions') {
+    router.push({
+      path: 'user/UserQuestions',
+    });
+    return;
+  }
 
   router.push({
     path: '/',
@@ -387,7 +393,6 @@ getSimilarQuestions();
   font-size: 16px;
   background-color: #909399;
   color: #fff;
-  width: 50px;
   height: 25px;
   text-align: center;
   border-radius: 5px;
@@ -418,7 +423,7 @@ getSimilarQuestions();
 }
 .answer {
   position: relative;
-  background-color: #384548;
+  /* background-color: #384548; */
   color: #d1d2d2;
   padding: 0 8px 10px;
   border-radius: 5px;
@@ -433,7 +438,8 @@ getSimilarQuestions();
   background-repeat: no-repeat;
   background-color: #384548;
   margin-bottom: 0;
-  background-position: 4px 14px;
+  background-position: 4px 12px;
+  border-radius: 5px;
 }
 .question-info {
   height: 300px;

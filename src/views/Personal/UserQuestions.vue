@@ -9,7 +9,7 @@
         class="tab-pane"
       >
         <div class="test-card" v-for="ques in item.value" :key="ques.id">
-          <QuestionCard :question="ques" />
+          <QuestionCard :question="ques" type="userQuestions" />
         </div>
       </el-tab-pane>
     </el-tabs>
