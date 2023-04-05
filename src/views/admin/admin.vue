@@ -144,6 +144,7 @@ const toLogin = async () => {
   justify-content: space-around;
   /* background: linear-gradient(225deg, #1493fa, #01c6fa); */
   background: url(../../assets/bg.jpg) no-repeat;
+  background-size: 100% 100%;
 }
 
 .left {
@@ -159,9 +160,9 @@ const toLogin = async () => {
 }
 
 .title-box img {
-  width: 22px;
-  height: 17px;
-  margin-right: 16px;
+  width: 35px;
+  height: 35px;
+  margin-right: 10px;
 }
 
 .title {
@@ -182,7 +183,6 @@ const toLogin = async () => {
 
 .loginBox {
   padding: 35px 35px 15px 35px;
-  width: 350px;
   background: #f5f5f5;
 }
 

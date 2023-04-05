@@ -6,7 +6,12 @@
         <span>题库狗</span>
       </div>
     </div>
-    <el-menu :default-active="activeIndex" class="nav" mode="horizontal" @select="handleSelect">
+    <el-menu
+      :default-active="activeIndex"
+      class="nav"
+      mode="horizontal"
+      @select="handleSelect"
+    >
       <el-menu-item index="1" @click="toHome">
         <el-icon>
           <HomeFilled />
@@ -38,7 +43,10 @@
       </el-button>
       <el-dropdown>
         <span>
-          <el-avatar :size="50" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" />
+          <el-avatar
+            :size="50"
+            src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
+          />
         </span>
         <template #dropdown>
           <el-dropdown-menu>
@@ -65,10 +73,18 @@
       </el-dropdown>
     </div>
     <UploadQuestion v-model:dialogVisible="dialogVisible" />
-    <el-dialog v-model="dialogVisibleEditPassword" title="修改密码" width="400px" center>
+    <el-dialog
+      v-model="dialogVisibleEditPassword"
+      title="修改密码"
+      width="400px"
+      center
+    >
       <el-form ref="ruleFormRef" :model="ruleForm" :rules="rules" status-icon>
         <el-form-item prop="password" placeholder="请输入密码">
-          <el-input v-model="ruleForm.password" placeholder="请输入长度在 6 到 20 个字符的密码" />
+          <el-input
+            v-model="ruleForm.password"
+            placeholder="请输入长度在 6 到 20 个字符的密码"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -81,14 +97,19 @@
       </template>
     </el-dialog>
   </div>
-  <div class="nav-container" v-else>
+  <div class="nav-container" v-else-if="store.state.userData.isAdmin">
     <div class="logo">
       <img src="../../assets/tkdog.png" width="50" />
       <div class="title">
         <span>题库狗</span>
       </div>
     </div>
-    <el-menu :default-active="activeIndex" class="nav" mode="horizontal" @select="handleSelect">
+    <el-menu
+      :default-active="activeIndex"
+      class="nav"
+      mode="horizontal"
+      @select="handleSelect"
+    >
       <el-menu-item index="1" @click="toHomeAdmin">
         <el-icon>
           <HomeFilled />
@@ -125,7 +146,10 @@
       </el-button>
       <el-dropdown>
         <span>
-          <el-avatar :size="50" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" />
+          <el-avatar
+            :size="50"
+            src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
+          />
         </span>
         <template #dropdown>
           <el-dropdown-menu>
@@ -141,6 +165,7 @@
     </div>
     <UploadQuestion v-model:dialogVisible="dialogVisible" />
   </div>
+  <div v-else></div>
 </template>
 
 <script setup lang="ts">
@@ -151,7 +176,6 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import type { FormInstance, FormRules } from 'element-plus';
 import { editUserInfo } from '@/services';
 import UploadQuestion from '@/components/UploadQuestion/index.vue';
-import { max } from 'lodash';
 
 const dialogVisible = ref(false);
 const dialogVisibleEditPassword = ref(false);
@@ -180,6 +204,7 @@ const activeIndex = ref(store.state.activeMenuIndex ?? '1');
 // 监听路由变化
 watchEffect(() => {
   const path = router.currentRoute.value.path;
+
   switch (path) {
     case '/':
       activeIndex.value = '1';
@@ -225,7 +250,6 @@ const toUser = () => {
 };
 const toAddSubject = () => {
   dialogVisible.value = true;
-  alert(111111)
 };
 const toInfo = () => {
   store.commit('setActiveMenuIndex', '4');
@@ -262,9 +286,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
 
         dialogVisibleEditPassword.value = false;
         resetForm(formEl);
-        router.push({
-          path: '/Login',
-        });
+        router.go(-router.currentRoute.value.meta.index);
       });
     } else {
       return false;
@@ -272,9 +294,21 @@ const submitForm = async (formEl: FormInstance | undefined) => {
   });
 };
 const toLogin = () => {
+  // 回退到最初的路由
+  if (store.state.userData.isAdmin) {
+    router
+      .push({
+        path: '/admin',
+      })
+      .finally(() => {
+        window.location.reload();
+      });
+  } else {
+    router.go(-router.currentRoute.value.meta.index);
+  }
   store.commit('setUserData', {});
-  router.go(-max);
 };
+
 //管理员
 const toHomeAdmin = () => {
   router.push({

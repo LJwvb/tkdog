@@ -49,7 +49,7 @@ const routes = [
   {
     path: '/user',
     name: 'user',
-    component: () => import('@/views/Personal/user.vue'),
+    component: () => import('@/views/Personal/User.vue'),
     children: [
       {
         path: 'UserInfo',

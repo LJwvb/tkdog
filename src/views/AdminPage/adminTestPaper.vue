@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="hello"
-    style="background-color: rgba(240, 242, 245, 1); width: 100%"
-  >
+  <div class="hello" style="width: 100%">
     <el-container>
       <el-main style="padding: 10px">
         <el-card>

@@ -1,7 +1,7 @@
 <template>
   <div class="tkdog-login" v-if="store.state?.userData?.phone === ''">
-    <Login v-if="router.currentRoute.value.path === '/'"> </Login>
-    <AdminLogin v-else-if="router.currentRoute.value.path !== '/'"></AdminLogin>
+    <Login v-if="router.currentRoute.value.path !== '/admin'"> </Login>
+    <AdminLogin v-else></AdminLogin>
   </div>
   <div class="tkdog-container" v-else>
     <!-- 固定导航栏 -->
@@ -20,7 +20,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, watchEffect } from 'vue';
 import NavBar from '@/views/NavBar/index.vue';
 import BottomBar from '@/views/BottomBar/index.vue';
 import TestBasket from '@/components/TestBasket/index.vue';
@@ -32,6 +32,7 @@ import router from '@/router';
 onMounted(() => {
   setWaterMark('tkdog', '面试题库');
 });
+
 const store = useStore();
 </script>
 <style>

@@ -2,48 +2,75 @@
   <div class="login-container">
     <div class="loginBox">
       <div class="title-box">
-        <img src="@/assets/tkdog.png" alt="" />
+        <img src="@/assets/tkdog.png" alt="" class="logo" />
         <span class="title">题库狗</span>
         <span class="line"></span>
         <span class="sub-title">用户登录</span>
       </div>
-
-      <!--
-        model：模型值，它里面的属性值要跟后台一致，因为要提交给后台
-        rules：校验规则
-        ref：将来获取表单实例
-       -->
-      <el-form :model="ruleForm" :rules="rules" ref="ruleFormRef" class="login-form">
-        <!-- prop要跟model中的属性和rules中的属性，保持一致 -->
+      <el-form
+        :model="ruleForm"
+        :rules="rules"
+        ref="ruleFormRef"
+        class="login-form"
+      >
         <el-form-item prop="phone">
-          <el-input prefix-icon="user" placeholder="请输入手机号" v-model="ruleForm.phone"></el-input>
+          <el-input
+            prefix-icon="user"
+            placeholder="请输入手机号"
+            v-model="ruleForm.phone"
+          ></el-input>
         </el-form-item>
         <el-form-item prop="password">
-          <el-input prefix-icon="lock" placeholder="请输入密码" v-model="ruleForm.password" show-password></el-input>
+          <el-input
+            prefix-icon="lock"
+            placeholder="请输入密码"
+            v-model="ruleForm.password"
+            show-password
+          ></el-input>
         </el-form-item>
         <el-row>
           <el-col :span="16">
             <el-form-item prop="code">
-              <el-input prefix-icon="key" placeholder="请输入验证码" v-model="ruleForm.code">
+              <el-input
+                prefix-icon="key"
+                placeholder="请输入验证码"
+                v-model="ruleForm.code"
+              >
               </el-input>
             </el-form-item>
           </el-col>
           <el-col :span="7">
-            <div style="cursor: pointer" v-html="loginCaptcha" @click="changeLoginCaptcha"></div>
+            <div
+              style="cursor: pointer"
+              v-html="loginCaptcha"
+              @click="changeLoginCaptcha"
+            ></div>
           </el-col>
         </el-row>
         <el-form-item prop="checked">
-          <el-checkbox v-model="ruleForm.checked" label="0">我已阅读并同意</el-checkbox><el-link type="primary" target="__blank"
-            href="https://in.m.jd.com/help/app/register_info.html">用户协议</el-link>和<el-link type="primary">隐私条款</el-link>
+          <el-checkbox v-model="ruleForm.checked" label="0"
+            >我已阅读并同意</el-checkbox
+          ><el-link
+            type="primary"
+            target="__blank"
+            href="https://in.m.jd.com/help/app/register_info.html"
+            >用户协议</el-link
+          >和<el-link type="primary">隐私条款</el-link>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" style="width: 100%" @click="toLogin">登录</el-button>
+          <el-button type="primary" style="width: 100%" @click="toLogin"
+            >登录</el-button
+          >
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="toRegister" style="width: 100%">注册</el-button>
+          <el-button type="primary" @click="toRegister" style="width: 100%"
+            >注册</el-button
+          >
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="toAdmin" style="width: 100%">管理员登录</el-button>
+          <el-button type="primary" @click="toAdmin" style="width: 100%"
+            >管理员登录</el-button
+          >
         </el-form-item>
       </el-form>
     </div>
@@ -202,8 +229,13 @@ const toAdmin = () => {
   justify-content: space-around;
   /* background: linear-gradient(225deg, #1493fa, #01c6fa); */
   background: url(../../assets/bg.jpg) no-repeat;
+  background-size: 100% 100%;
 }
-
+.logo {
+  width: 35px;
+  height: 35px;
+  margin-right: 10px;
+}
 .left {
   width: 478px;
   height: 550px;
@@ -214,12 +246,6 @@ const toAdmin = () => {
 .title-box {
   display: flex;
   align-items: center;
-}
-
-.title-box img {
-  width: 22px;
-  height: 17px;
-  margin-right: 16px;
 }
 
 .title {
@@ -240,7 +266,7 @@ const toAdmin = () => {
 
 .loginBox {
   padding: 35px 35px 15px 35px;
-  width: 350px;
+  /* width: 350px; */
   background: #f5f5f5;
 }
 
