@@ -4,7 +4,32 @@ const routes = [
   {
     path: '/',
     name: 'home',
-    component: () => import('@/views/Home/Index.vue'),
+    component: () => import('@/views/Home/index.vue'),
+  },
+  {
+    path: '/admin',
+    name: 'admin',
+    component: () => import('@/views/admin/admin.vue'),
+  },
+  {
+    path: '/adminHome',
+    name: 'adminHome',
+    component: () => import('@/views/AdminPage/adminHome.vue'),
+  },
+  {
+    path: '/adminQuestion',
+    name: 'adminQuestion',
+    component: () => import('@/views/AdminPage/adminQuestion.vue'),
+  },
+  {
+    path: '/adminTestPaper',
+    name: 'adminTestPaper',
+    component: () => import('@/views/AdminPage/adminTestPaper.vue'),
+  },
+  {
+    path: '/adminUser',
+    name: 'adminUser',
+    component: () => import('@/views/AdminPage/adminUser.vue'),
   },
   {
     path: '/questionPage',
@@ -24,7 +49,7 @@ const routes = [
   {
     path: '/user',
     name: 'user',
-    component: () => import('@/views/Personal/User.vue'),
+    component: () => import('@/views/Personal/user.vue'),
     children: [
       {
         path: 'UserInfo',

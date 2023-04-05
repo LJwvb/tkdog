@@ -1,31 +1,34 @@
 <template>
-  <div class="nav-container">
+  <div class="nav-container" v-if="!store.state.userData.isAdmin">
     <div class="logo">
       <img src="../../assets/tkdog.png" width="50" />
       <div class="title">
         <span>题库狗</span>
       </div>
     </div>
-    <el-menu
-      :default-active="activeIndex"
-      class="nav"
-      mode="horizontal"
-      @select="handleSelect"
-    >
+    <el-menu :default-active="activeIndex" class="nav" mode="horizontal" @select="handleSelect">
       <el-menu-item index="1" @click="toHome">
-        <el-icon> <HomeFilled /> </el-icon>
+        <el-icon>
+          <HomeFilled />
+        </el-icon>
         <span>首页</span>
       </el-menu-item>
       <el-menu-item index="2" @click="toSubject">
-        <el-icon> <Notebook /> </el-icon>
+        <el-icon>
+          <Notebook />
+        </el-icon>
         <span>题目</span>
       </el-menu-item>
       <el-menu-item index="3" @click="toTest">
-        <el-icon> <List /> </el-icon>
+        <el-icon>
+          <List />
+        </el-icon>
         <span>试卷</span>
       </el-menu-item>
       <el-menu-item index="4" @click="toUser">
-        <el-icon> <User /> </el-icon>
+        <el-icon>
+          <User />
+        </el-icon>
         <span>用户</span>
       </el-menu-item>
     </el-menu>
@@ -35,10 +38,7 @@
       </el-button>
       <el-dropdown>
         <span>
-          <el-avatar
-            :size="50"
-            src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
-          />
+          <el-avatar :size="50" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" />
         </span>
         <template #dropdown>
           <el-dropdown-menu>
@@ -49,7 +49,9 @@
               个人中心
             </el-dropdown-item>
             <el-dropdown-item @click="editPassword">
-              <el-icon><Edit /></el-icon>
+              <el-icon>
+                <Edit />
+              </el-icon>
               修改密码
             </el-dropdown-item>
             <el-dropdown-item divided style="color: #f56c6c" @click="toLogin">
@@ -63,18 +65,10 @@
       </el-dropdown>
     </div>
     <UploadQuestion v-model:dialogVisible="dialogVisible" />
-    <el-dialog
-      v-model="dialogVisibleEditPassword"
-      title="修改密码"
-      width="400px"
-      center
-    >
+    <el-dialog v-model="dialogVisibleEditPassword" title="修改密码" width="400px" center>
       <el-form ref="ruleFormRef" :model="ruleForm" :rules="rules" status-icon>
         <el-form-item prop="password" placeholder="请输入密码">
-          <el-input
-            v-model="ruleForm.password"
-            placeholder="请输入长度在 6 到 20 个字符的密码"
-          />
+          <el-input v-model="ruleForm.password" placeholder="请输入长度在 6 到 20 个字符的密码" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -87,6 +81,66 @@
       </template>
     </el-dialog>
   </div>
+  <div class="nav-container" v-else>
+    <div class="logo">
+      <img src="../../assets/tkdog.png" width="50" />
+      <div class="title">
+        <span>题库狗</span>
+      </div>
+    </div>
+    <el-menu :default-active="activeIndex" class="nav" mode="horizontal" @select="handleSelect">
+      <el-menu-item index="1" @click="toHomeAdmin">
+        <el-icon>
+          <HomeFilled />
+        </el-icon>
+        <span>首页</span>
+      </el-menu-item>
+      <el-menu-item index="2" @click="toSubjectAdmin">
+        <el-icon>
+          <Notebook />
+        </el-icon>
+        <span>题目管理</span>
+      </el-menu-item>
+      <el-menu-item index="3" @click="toTestAdmin">
+        <el-icon>
+          <List />
+        </el-icon>
+        <span>试卷管理</span>
+      </el-menu-item>
+      <el-menu-item index="4" @click="toUserAdmin">
+        <el-icon>
+          <User />
+        </el-icon>
+        <span>用户管理</span>
+      </el-menu-item>
+    </el-menu>
+    <!-- <el-input placeholder="请输入搜索的内容" size="large" class="search">
+      <template #append>
+        <el-button :icon="Search" size="large" />
+      </template>
+    </el-input> -->
+    <div class="left">
+      <el-button type="primary" class="upload" @click="toAddSubject">
+        上传
+      </el-button>
+      <el-dropdown>
+        <span>
+          <el-avatar :size="50" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" />
+        </span>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item divided style="color: #f56c6c" @click="toLogin">
+              <el-icon>
+                <SwitchButton />
+              </el-icon>
+              退出登录
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+    </div>
+    <UploadQuestion v-model:dialogVisible="dialogVisible" />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -97,6 +151,8 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import type { FormInstance, FormRules } from 'element-plus';
 import { editUserInfo } from '@/services';
 import UploadQuestion from '@/components/UploadQuestion/index.vue';
+import { max } from 'lodash';
+
 const dialogVisible = ref(false);
 const dialogVisibleEditPassword = ref(false);
 const store = useStore();
@@ -169,6 +225,7 @@ const toUser = () => {
 };
 const toAddSubject = () => {
   dialogVisible.value = true;
+  alert(111111)
 };
 const toInfo = () => {
   store.commit('setActiveMenuIndex', '4');
@@ -215,8 +272,28 @@ const submitForm = async (formEl: FormInstance | undefined) => {
   });
 };
 const toLogin = () => {
+  store.commit('setUserData', {});
+  router.go(-max);
+};
+//管理员
+const toHomeAdmin = () => {
   router.push({
-    path: '/Login',
+    path: '/adminHome',
+  });
+};
+const toSubjectAdmin = () => {
+  router.push({
+    path: '/adminQuestion',
+  });
+};
+const toTestAdmin = () => {
+  router.push({
+    path: '/adminTestPaper',
+  });
+};
+const toUserAdmin = () => {
+  router.push({
+    path: '/adminUser',
   });
 };
 </script>
@@ -230,32 +307,38 @@ const toLogin = () => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
   padding: 0 20px;
 }
+
 .logo {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 200px;
 }
+
 .title {
   font-size: 20px;
   font-weight: 600;
   margin-left: 10px;
   white-space: nowrap;
 }
+
 .nav {
   border: none !important;
   width: 100%;
   margin-left: 60px;
 }
+
 .search {
   width: 600px;
   margin-right: 20px;
 }
+
 .left {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+
 .upload {
   margin-right: 20px;
 }

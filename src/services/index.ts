@@ -12,12 +12,49 @@ import type {
   IRegisterParams,
   IBrowseQuestion,
   IGetPaperParams,
+  ICaptcha,
+  IGetPaperParamsList,
+  IAdminLoginParams,
+  INoIChkQuestions,
+  IChkQuestions,
+  IDelQuestion,
+  IDelPapers,
 } from '@/types';
 
 // 排行榜接口
 export function getRankList() {
   return request('GET', '/getRankingList').then((res: any) => {
     return res.data.data as IRankingList;
+  });
+}
+// 获取未审核的题目接口
+export function getNoChkQuestions() {
+  return request('GET', '/getNoChkQuestions').then((res: any) => {
+    return res.data.data as INoIChkQuestions;
+  });
+}
+// 获取所有已审核的题目接口
+export function getAllChkQuestions() {
+  return request('GET', '/getAllChkQuestions').then((res: any) => {
+    return res.data.data as IChkQuestions;
+  });
+}
+// 获取所有未审核的试卷接口
+export function getNoChkPaper() {
+  return request('GET', '/getNoChkPaper').then((res: any) => {
+    return res.data.data;
+  });
+}
+// 获取所有已审核的试卷接口
+export function getAllChkPaper() {
+  return request('GET', '/getAllChkPaper').then((res: any) => {
+    return res.data.data;
+  });
+}
+//删除试卷接口
+export function deletePapers(params: IDelPapers) {
+  return request('POST', '/deletePaper', { data: params }).then((res: any) => {
+    return res.data;
   });
 }
 // 获取审核后的题目接口
@@ -57,6 +94,38 @@ export function login(params: ILoginParams) {
 // 用户注册接口
 export function register(params: IRegisterParams) {
   return request('POST', '/register', { data: params });
+}
+//管理员登录接口
+export function adminLogin(params: IAdminLoginParams) {
+  return request('POST', '/adminLogin', { data: params }).then((res: any) => {
+    return res.data;
+  });
+}
+//删除题目接口
+export function deleteQuestions(params: IDelQuestion) {
+  return request('POST', '/deleteQuestions', { data: params }).then(
+    (res: any) => {
+      return res.data;
+    },
+  );
+}
+//审核题目接口
+export function chkQuestions(params: any) {
+  return request('POST', '/chkQuestions', { data: params }).then((res: any) => {
+    return res.data;
+  });
+}
+//审核试卷接口
+export function chkPaper(params: any) {
+  return request('POST', '/chkPaper', { data: params }).then((res: any) => {
+    return res.data;
+  });
+}
+//验证码接口
+export function getCaptcha(params: ICaptcha) {
+  return request('POST', '/captcha', { data: params }).then((res: any) => {
+    return res.data;
+  });
 }
 // 题目浏览接口
 export function browseQuestion(params: IBrowseQuestion) {

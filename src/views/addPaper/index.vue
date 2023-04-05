@@ -120,8 +120,8 @@ const done = () => {
   width: 100%;
 }
 .step-content {
-  position: absolute;
-  top: 100px;
+  position: relative;
+  top: 10px;
   width: 100%;
 }
 .next-step {

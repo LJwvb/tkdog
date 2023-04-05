@@ -37,33 +37,32 @@
         </div>
       </div>
     </div>
-    <el-button
-      type="primary"
-      class="btn"
-      @click="selectedTopic"
-      v-if="props.type !== 'paper'"
-    >
-      选题</el-button
-    >
-    <el-button
-      type="danger"
-      class="btn"
-      @click="deleteTopic"
-      v-if="props.type === 'paper'"
-      >删除</el-button
-    >
+    <el-button type="primary" class="btn0" @click="selectedTopic" v-if="props.type !== 'paper'">选题</el-button>
+    <div v-if="store.state.userData.isAdmin">
+      <el-button type="danger" class="btn2" @click="() => {deleteQuestion(question.id)
+      }">删除</el-button>
+      <el-button type="primary" class="btn1" v-if="activeName === 'nochk'"
+        @click="() => check(checkParams)">审核通过</el-button>
+      <el-button type="info" class="btn3" v-if="activeName === 'nochk'"
+        @click="() => uncheck(unCheckParams)">审核不通过</el-button>
+        <el-button type="primary" class="btn1" @click="selectedTopic" v-if="activeName === 'chk'">
+      选题</el-button>
+    </div>
+    <el-button type="danger" class="btn0" @click="deleteTopic" v-if="props.type === 'paper'">删除</el-button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { defineProps, ref, computed } from 'vue';
+import { defineProps, ref, computed, watchEffect, watch } from 'vue';
 import { useStore } from 'vuex';
 import { ElMessage } from 'element-plus';
 
 import router from '@/router';
 import type { IQuestion } from '@/types';
+import { browseQuestion, deleteQuestions, getQuestionList } from '@/services';
 import { questionType, difficulty, transitionTime } from '@/utils';
 const store = useStore();
+// const questionList = ref();
 
 const props = defineProps({
   question: {
@@ -82,8 +81,38 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
+  deleteQuestion: {
+    type: Function,
+    default: () => {},
+  },
+  check: {
+    type: Function,
+    default: () => {},
+  },
+  uncheck: {
+    type: Function,
+    default: () => {},
+  },
+  activeName: {
+    type: String,
+    default: '',
+  },
 });
 const question = props.question as IQuestion;
+const checkParams = {
+  id: question.id,
+  chkState: 1,
+  chkUser: store.state.userData.name,
+  chkRemarks: '审核通过',
+  creator: question.creator,
+};
+const unCheckParams = {
+  id: question.id,
+  chkState: -1,
+  chkUser: store.state.userData.name,
+  chkRemarks: '审核不通过',
+  creator: question.creator,
+};
 
 const tags = Array.isArray(question?.tags)
   ? question?.tags?.filter((item: string) => item !== '')
@@ -114,7 +143,7 @@ const toProblemInfo = () => {
   const setBrowseTopicsIds = setBrowseTopicsId.map((item: string) => item);
   if (!setBrowseTopicsIds.includes(id)) {
     store.commit('setBrowseTopicsId', [...store.state.browseTopicsId, id]);
-    // browseQuestion({ id, username: store.state.userData.username });
+    browseQuestion({ id, username: store.state.userData.username });
   }
 };
 const selectedTopic = () => {
@@ -155,29 +184,35 @@ const deleteTopic = () => {
   border: 2px solid #e6e6e6;
   box-shadow: -10px -10px 20px #e6e6e6 inset;
 }
+
 .card {
   width: 100%;
   height: 100%;
 }
+
 .title {
   align-items: center;
   font-size: 25px;
   width: 100%;
   font-weight: bold;
 }
+
 .title-text {
   width: 90%;
   word-wrap: break-word;
 }
+
 .tags {
   display: flex;
   align-items: center;
   justify-content: flex-start;
   margin-top: 10px;
 }
+
 .tag-item {
   margin-right: 10px;
 }
+
 .info {
   display: flex;
   align-items: center;
@@ -193,6 +228,7 @@ const deleteTopic = () => {
   background-color: #ccc;
   margin: 0px 20px;
 }
+
 .nums {
   display: flex;
   align-items: center;
@@ -202,18 +238,39 @@ const deleteTopic = () => {
   position: absolute;
   bottom: 10px;
 }
+
 .num-item {
   display: flex;
   align-items: center;
   justify-content: flex-start;
   width: 100%;
 }
+
 .num-text {
   margin-left: 5px;
 }
-.btn {
+
+.btn0 {
   position: absolute;
   right: 10px;
   bottom: 10px;
+}
+
+.btn1 {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}
+
+.btn2 {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+}
+
+.btn3 {
+  position: absolute;
+  right: 10px;
+  bottom: 95px;
 }
 </style>

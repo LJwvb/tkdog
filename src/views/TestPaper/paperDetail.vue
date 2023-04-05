@@ -15,7 +15,7 @@
     <el-card style="margin-bottom: 20px">
       <div class="paper-info">
         <h4>试卷信息</h4>
-        <div>标题：{{ paperInfo.paper_title }}</div>
+        <div>标题：{{ paperInfo?.paper_title }}</div>
         <div class="tags">
           标签：
           <el-tag v-for="tag in tags" :key="tag" class="tag-item">
@@ -29,7 +29,7 @@
             <el-icon>
               <Avatar />
             </el-icon>
-            <div style="margin-left: 5px">{{ paperInfo.author }}</div>
+            <div style="margin-left: 5px">{{ paperInfo?.author }}</div>
           </div>
           <div class="allline"></div>
         </div>

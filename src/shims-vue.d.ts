@@ -5,3 +5,5 @@ declare module '*.vue' {
   export default component;
 }
 declare const window: any;
+
+declare module 'md5';
