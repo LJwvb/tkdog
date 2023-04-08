@@ -1,6 +1,6 @@
 <template>
   <div class="index">
-    <div class="index-left">
+    <div class="index-left" v-loading="loading">
       <el-tabs v-model="currentTab" type="card" class="el-table">
         <el-tab-pane
           v-for="item in questionList"
@@ -55,6 +55,10 @@ getQuestionListData();
   box-shadow: var(--el-box-shadow-light);
   border-radius: 5px;
   border: 1px solid var(--el-card-border-color);
+  min-height: 400px;
+}
+.index-left {
+  width: 100%;
 }
 ::v-deep.el-tabs__content {
   overflow: visible !important;

@@ -410,6 +410,7 @@ getSimilarQuestions();
 }
 .tag-item {
   margin-right: 5px;
+  margin-bottom: 10px;
 }
 .question {
   margin-top: 20px;

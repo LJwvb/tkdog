@@ -62,7 +62,7 @@
   <EditUserInfo v-model:dialogVisible="dialogVisible" :userInfo="userInfo" />
 </template>
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { useStore } from 'vuex';
 import { transitionTime, transitionSex } from '@/utils/index';
 import { getUserInfo } from '@/services';
@@ -86,6 +86,17 @@ onMounted(() => {
     }
   });
 });
+// 如果用户信息发生变化，重新获取用户信息
+watch(
+  () => store.state.userData,
+  (newVal, oldVal) => {
+    getUserInfo({ phone: phone }).then((res) => {
+      if (res.code === 200) {
+        userInfo.value = res.data;
+      }
+    });
+  },
+);
 </script>
 <style scoped>
 .user-info-container {

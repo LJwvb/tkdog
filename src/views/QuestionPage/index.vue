@@ -31,7 +31,7 @@
         <el-button @click="clearSearch">清空</el-button>
       </el-form>
     </el-card>
-    <el-card style="margin-top: 20px">
+    <el-card style="margin-top: 20px; min-height: 500px" v-loading="loading">
       <SubTab
         :questionList="allQuestion"
         type="all"
@@ -85,6 +85,7 @@ const from = ref();
 const allQuestion = ref();
 const searchData = ref();
 const clickSearch = ref(false);
+const loading = ref(true);
 
 const store = useStore();
 
@@ -106,9 +107,11 @@ const onSubmit = () => {
     ElMessage.error('请至少输入一项搜索条件');
     return;
   }
+  loading.value = true;
   searchQuestion(form).then((res) => {
     searchData.value = res.data;
     clickSearch.value = true;
+    loading.value = false;
   });
   store.commit('setSearchHistory', form);
 };
@@ -117,8 +120,9 @@ const getAllQuestion = (refresh?: boolean) => {
     getAllQuestionParams.refresh = true;
   }
   getQuestionList(getAllQuestionParams).then((res) => {
-    allQuestion.value = res.result.list;
+    allQuestion.value = res?.result?.list;
     clickSearch.value = false;
+    loading.value = false;
   });
 };
 

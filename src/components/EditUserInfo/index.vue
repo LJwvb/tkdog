@@ -19,16 +19,16 @@
         <el-form-item label="手机号">
           <el-input disabled :placeholder="phone" />
         </el-form-item>
-        <el-form-item label="用户名" prop="username" placeholder="请输入用户名">
-          <el-input v-model="ruleForm.username" />
+        <el-form-item label="用户名">
+          <el-input :placeholder="username" disabled />
         </el-form-item>
         <el-form-item label="邮箱" prop="email" placeholder="请输入邮箱">
           <el-input v-model="ruleForm.email" />
         </el-form-item>
         <el-form-item label="性别" prop="sex" placeholder="请选择性别">
           <el-select v-model="ruleForm.sex" placeholder="请选择性别">
-            <el-option label="男" value="0" />
-            <el-option label="女" value="1" />
+            <el-option label="男" value="1" />
+            <el-option label="女" value="0" />
             <el-option label="未知" value="2" />
           </el-select>
         </el-form-item>
@@ -67,6 +67,7 @@ const formSize = ref('default');
 const ruleFormRef = ref<FormInstance>();
 const store = useStore();
 const phone = store.state.userData.phone;
+const username = store.state.userData.username;
 const props = defineProps({
   dialogVisible: Boolean,
   userInfo: {
@@ -120,7 +121,6 @@ const submitForm = async (formEl: FormInstance | undefined) => {
         )
           .then(() => {
             editUserInfo(params).then((res) => {
-              console.log(res);
               if (res.code === 200) {
                 ElMessage.success('修改成功');
                 emit('update:dialogVisible', false);
@@ -132,9 +132,18 @@ const submitForm = async (formEl: FormInstance | undefined) => {
             });
           })
           .catch(() => {});
+      } else {
+        editUserInfo(params).then((res) => {
+          if (res.code === 200) {
+            ElMessage.success('修改成功');
+            emit('update:dialogVisible', false);
+            store.commit('setUserData', {
+              ...store.state.userData,
+              ...params,
+            });
+          }
+        });
       }
-
-      console.log(params);
     } else {
       return false;
     }

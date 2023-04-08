@@ -1,6 +1,6 @@
 <template>
-  <div class="user-info-container">
-    <el-card v-if="ids !== ''">
+  <div class="user-info-container" v-loading="loading">
+    <el-card v-if="ids !== ''" style="min-height: 500px">
       <div v-for="item in questionList" :key="item.id">
         <QuestionCard :question="item" type="userHistory" />
       </div>
@@ -18,11 +18,14 @@ import QuestionCard from '@/components/QuestionCard/index.vue';
 import { getQuestionList } from '@/services';
 const store = useStore();
 const questionList = ref();
+const loading = ref(true);
+
 const ids = store.state.browseTopicsId.join(',');
 
 onMounted(() => {
   getQuestionList({ type: 'user', ids: ids }).then((res) => {
-    questionList.value = res.result;
+    questionList.value = res?.result;
+    loading.value = false;
   });
 });
 </script>

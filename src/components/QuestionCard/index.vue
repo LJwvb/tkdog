@@ -37,18 +37,54 @@
         </div>
       </div>
     </div>
-    <el-button type="primary" class="btn0" @click="selectedTopic" v-if="props.type !== 'paper'">选题</el-button>
+    <el-button
+      type="primary"
+      class="btn0"
+      @click="selectedTopic"
+      v-if="props.type === '' || props.type === 'checked'"
+      >选题</el-button
+    >
     <div v-if="store.state.userData.isAdmin">
-      <el-button type="danger" class="btn2" @click="() => {deleteQuestion(question.id)
-      }">删除</el-button>
-      <el-button type="primary" class="btn1" v-if="activeName === 'nochk'"
-        @click="() => check(checkParams)">审核通过</el-button>
-      <el-button type="info" class="btn3" v-if="activeName === 'nochk'"
-        @click="() => uncheck(unCheckParams)">审核不通过</el-button>
-        <el-button type="primary" class="btn1" @click="selectedTopic" v-if="activeName === 'chk'">
-      选题</el-button>
+      <el-button
+        type="danger"
+        class="btn2"
+        @click="
+          () => {
+            deleteQuestion(question.id);
+          }
+        "
+        >删除</el-button
+      >
+      <el-button
+        type="primary"
+        class="btn1"
+        v-if="activeName === 'nochk'"
+        @click="() => check(checkParams)"
+        >审核通过</el-button
+      >
+      <el-button
+        type="info"
+        class="btn3"
+        v-if="activeName === 'nochk'"
+        @click="() => uncheck(unCheckParams)"
+        >审核不通过</el-button
+      >
+      <el-button
+        type="primary"
+        class="btn1"
+        @click="selectedTopic"
+        v-if="activeName === 'chk'"
+      >
+        选题</el-button
+      >
     </div>
-    <el-button type="danger" class="btn0" @click="deleteTopic" v-if="props.type === 'paper'">删除</el-button>
+    <el-button
+      type="danger"
+      class="btn0"
+      @click="deleteTopic"
+      v-if="props.type === 'paper'"
+      >删除</el-button
+    >
   </div>
 </template>
 
@@ -98,6 +134,7 @@ const props = defineProps({
     default: '',
   },
 });
+console.log(props);
 const question = props.question as IQuestion;
 const checkParams = {
   id: question.id,

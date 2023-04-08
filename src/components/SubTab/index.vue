@@ -6,9 +6,12 @@
       :label="typeItem.catalog.catalogName"
       :name="index"
     >
-      <div v-for="item in typeItem.questionList" :key="item?.id">
-        <QuestionCard :question="item" :type="props.type" />
+      <div v-if="typeItem.questionList.length > 0">
+        <div v-for="item in typeItem.questionList" :key="item?.id">
+          <QuestionCard :question="item" :type="props.type" />
+        </div>
       </div>
+      <el-empty v-else :image-size="200" description="暂无题目" />
       <div class="more" @click="goQuestion" v-if="props.type !== 'all'">
         前往题目页查看更多题目>>>
       </div>

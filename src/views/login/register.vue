@@ -1,14 +1,26 @@
 <template>
   <div>
     <el-dialog title="用户注册" v-model="dialogVisible" width="600px" center>
-      <el-form :model="ruleForm" ref="ruleFormRef" :rules="rules" label-width="80px" label-position="left">
+      <el-form
+        :model="ruleForm"
+        ref="ruleFormRef"
+        :rules="rules"
+        label-width="80px"
+        label-position="left"
+      >
         <el-form-item label="昵称" prop="username">
-          <el-input v-model="ruleForm.username"></el-input>
+          <el-input
+            v-model="ruleForm.username"
+            placeholder="请输入用户名"
+            ref="inputRef"
+            @focus="focusInput"
+            @blur="blurInput"
+          ></el-input>
         </el-form-item>
         <el-form-item label="性别" prop="sex">
           <el-radio-group v-model="ruleForm.sex">
-            <el-radio label="0"> 男 </el-radio>
-            <el-radio label="1"> 女 </el-radio>
+            <el-radio label="1"> 男 </el-radio>
+            <el-radio label="0"> 女 </el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="邮箱" prop="email">
@@ -27,7 +39,11 @@
             </el-form-item>
           </el-col>
           <el-col :span="7" style="margin-left: 10px">
-            <div style="cursor: pointer" v-html="registerCaptcha" @click="changeRegisterCaptcha"></div>
+            <div
+              style="cursor: pointer"
+              v-html="registerCaptcha"
+              @click="changeRegisterCaptcha"
+            ></div>
           </el-col>
         </el-row>
       </el-form>
@@ -42,7 +58,7 @@
 
 <script lang="ts">
 import { defineComponent, reactive, ref, watch } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElNotification } from 'element-plus';
 import { register, getCaptcha } from '@/services';
 import type { ICaptcha } from '@/types';
 
@@ -68,10 +84,22 @@ export default defineComponent({
     };
     Captcha();
 
-    const changeRegisterCaptcha =async () => {
+    const changeRegisterCaptcha = async () => {
       const res = await getCaptcha(params);
-      registerCaptcha.value =res.data.data;
+      registerCaptcha.value = res.data.data;
     };
+    const focusInput = () => {
+      ElNotification({
+        title: '提示',
+        message: '用户名不可修改，请谨慎输入',
+        type: 'warning',
+        duration: 0,
+      });
+    };
+    const blurInput = () => {
+      ElNotification.closeAll();
+    };
+
     // 模型
     const ruleForm = reactive({
       // 模型
@@ -97,7 +125,8 @@ export default defineComponent({
             if (!value) return callback(new Error('邮箱不能为空'));
             // 在下一行禁用eslint，类似上一种方法，只是写的位置不同罢了
             // eslint-disable-next-line
-            const reg = /^([a-zA-Z]|[0-9])(\w|\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$/
+            const reg =
+              /^([a-zA-Z]|[0-9])(\w|\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$/;
             if (!reg.test(value)) return callback(new Error('邮箱不合法'));
             callback();
           },
@@ -175,6 +204,8 @@ export default defineComponent({
       changeRegisterCaptcha,
       handleRegister,
       registerCaptcha,
+      focusInput,
+      blurInput,
     };
   },
 });

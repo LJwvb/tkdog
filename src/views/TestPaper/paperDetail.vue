@@ -16,7 +16,7 @@
       <div class="paper-info">
         <h4>试卷信息</h4>
         <div>标题：{{ paperInfo?.paper_title }}</div>
-        <div class="tags">
+        <div class="tags" v-if="tags?.length > 0">
           标签：
           <el-tag v-for="tag in tags" :key="tag" class="tag-item">
             {{ tag }}
