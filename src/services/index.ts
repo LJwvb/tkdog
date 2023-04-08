@@ -206,3 +206,9 @@ export function getUserUploadQues(params: any) {
     },
   );
 }
+// 获取用户列表
+export function getUserList(params: any) {
+  return request('POST', '/getUserList', { data: params }).then((res: any) => {
+    return res.data;
+  });
+}

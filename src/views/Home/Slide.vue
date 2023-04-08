@@ -14,9 +14,7 @@
           <div v-for="item in dailyData" :key="item.id" class="question">
             {{ item?.question }}
           </div>
-          <el-button class="button" text @click="showModal('daily')">
-            点击了解
-          </el-button>
+          <el-button class="button" text @click="goDaily"> 点击了解 </el-button>
         </el-skeleton>
       </el-card>
     </el-col>
@@ -37,7 +35,7 @@
           <span>
             题库狗一个干净且高级的面试刷题网站源码，支持自由组卷，通过Vue3+Node.js的全栈项目，程序包含网站前台+管理员后台
           </span>
-          <el-button class="button" text @click="showModal('about')">
+          <el-button class="button" text @click="showModal('a')">
             点击了解
           </el-button>
         </div>
@@ -70,7 +68,8 @@
   </el-row>
 </template>
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import router from '@/router';
 import { getRankList, getDailyQuestion } from '@/services';
 
 const rankData = ref();
@@ -90,12 +89,23 @@ const getDaily = async () => {
   loadingDaily.value = false;
 };
 
-getRank();
-
-getDaily();
+onMounted(() => {
+  getRank();
+  getDaily();
+});
 
 const showModal = (type: string) => {
   console.log(type);
+};
+const goDaily = () => {
+  const id = dailyData.value[0].id;
+  router.push({
+    path: `/problemInfo`,
+    query: {
+      id,
+      type: 'daily',
+    },
+  });
 };
 </script>
 

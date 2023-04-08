@@ -1,5 +1,9 @@
 <template>
-  <div class="user-info-container" v-loading="loading">
+  <div
+    class="user-info-container"
+    v-loading="loading"
+    element-loading-text="Loading..."
+  >
     <el-card v-if="ids !== ''" style="min-height: 500px">
       <div v-for="item in questionList" :key="item.id">
         <QuestionCard :question="item" type="userLikes" />

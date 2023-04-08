@@ -18,6 +18,7 @@ export default createStore({
     activeMenuIndex: '1',
     browseTopicsId: [],
     searchHistory: {},
+    collapseName: '',
   },
   mutations: {
     setUserData(state, payload) {
@@ -37,6 +38,9 @@ export default createStore({
     },
     setPaperInfo(state, payload) {
       state.paperInfo = payload;
+    },
+    setCollapseName(state, payload) {
+      state.collapseName = payload;
     },
   },
   actions: {},

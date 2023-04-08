@@ -1,5 +1,9 @@
 <template>
-  <div class="user-info-container" v-loading="loading">
+  <div
+    class="user-info-container"
+    v-loading="loading"
+    element-loading-text="Loading..."
+  >
     <el-card v-if="questionList?.length > 0" style="min-height: 500px">
       <el-tabs v-model="active" class="tabs">
         <el-tab-pane

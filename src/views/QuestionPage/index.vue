@@ -31,7 +31,11 @@
         <el-button @click="clearSearch">清空</el-button>
       </el-form>
     </el-card>
-    <el-card style="margin-top: 20px; min-height: 500px" v-loading="loading">
+    <el-card
+      style="margin-top: 20px; min-height: 500px"
+      v-loading="loading"
+      element-loading-text="Loading..."
+    >
       <SubTab
         :questionList="allQuestion"
         type="all"

@@ -1,6 +1,10 @@
 <template>
   <div class="index">
-    <div class="index-left" v-loading="loading">
+    <div
+      class="index-left"
+      v-loading="loading"
+      element-loading-text="Loading..."
+    >
       <el-tabs v-model="currentTab" type="card" class="el-table">
         <el-tab-pane
           v-for="item in questionList"

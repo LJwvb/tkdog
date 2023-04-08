@@ -3,19 +3,23 @@
     <el-container>
       <el-main style="padding: 10px">
         <el-card>
-          <el-tabs v-model="activeName" @tab-click="handleClick">
-            <el-tab-pane label="未审核" name="nochk" :key="nochk"></el-tab-pane>
-            <el-tab-pane label="已审核" name="chk" :key="chk"></el-tab-pane>
+          <el-tabs v-model="activeName">
+            <el-tab-pane label="未审核" name="nochk" key="nochk"></el-tab-pane>
+            <el-tab-pane label="已审核" name="chk" key="chk"></el-tab-pane>
           </el-tabs>
-          <div v-if="activeName === 'nochk'">
-            <div
-              v-for="item in NoChkQuestions"
-              :key="item?.id"
-              style="margin: 28px"
-            >
+          <div v-if="NoChkQuestions?.length === 0 && activeName === 'nochk'">
+            <el-empty :image-size="200" description="没有未审核题目" />
+          </div>
+          <div
+            v-if="activeName === 'nochk'"
+            style="min-height: 500px"
+            v-loading="loading"
+            element-loading-text="Loading..."
+          >
+            <div v-for="item in NoChkQuestions" :key="item?.id">
               <QuestionCard
                 :question="item"
-                type="item?.id"
+                type="admin"
                 :deleteQuestion="deleteQuestion"
                 :check="check"
                 :uncheck="uncheck"
@@ -23,20 +27,23 @@
               />
             </div>
           </div>
-
-          <div v-if="activeName === 'chk'">
-            <div
-              v-for="item in ChkQuestions"
-              :key="item?.id"
-              style="margin: 28px"
-            >
+          <div
+            v-if="activeName === 'chk'"
+            style="min-height: 500px"
+            v-loading="loading"
+            element-loading-text="Loading..."
+          >
+            <div v-for="item in ChkQuestions" :key="item?.id">
               <QuestionCard
                 :question="item"
-                type="item?.id"
+                type="admin"
                 :deleteQuestion="deleteQuestion"
                 activeName="chk"
               />
             </div>
+          </div>
+          <div v-if="ChkQuestions?.length === 0 && activeName === 'chk'">
+            <el-empty :image-size="200" description="没有已审核题目" />
           </div>
         </el-card>
       </el-main>
@@ -45,7 +52,7 @@
 </template>
 <script setup lang="ts">
 import QuestionCard from '@/components/QuestionCard/index.vue';
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import {
   getAllChkQuestions,
   getNoChkQuestions,
@@ -60,32 +67,29 @@ interface IChkQuestion {
   creator: string;
 }
 const activeName = ref('nochk');
-
-const loading = ref(true);
-
-const questionList = ref();
-
-// 选中的主标签页
-// const currentTab = ref(isNaN(Number(subjectID)) ? 0 : Number(subjectID));
+//获取已审核题目
+const ChkQuestions = ref();
 
 //获取未审核题目
 const NoChkQuestions = ref();
+const loading = ref(true);
+
 const getNoChkQuestion = async () => {
   const res = await getNoChkQuestions();
   NoChkQuestions.value = res.result;
 };
-
-getNoChkQuestion();
-//获取已审核题目
-const ChkQuestions = ref();
 const getAllChkQuestion = async () => {
   const res = await getAllChkQuestions();
   ChkQuestions.value = res;
 };
+onMounted(() => {
+  getNoChkQuestion();
+  getAllChkQuestion();
+  loading.value = false;
+});
+
 const deleteQuestion = (id: number) => {
-  console.log(id);
   deleteQuestions({ id }).then((res) => {
-    console.log(res);
     if (res.code === 200) {
       getNoChkQuestion();
       getAllChkQuestion();
@@ -94,14 +98,12 @@ const deleteQuestion = (id: number) => {
 };
 const check = (params: IChkQuestion) => {
   chkQuestions(params).then((res) => {
-    console.log(res);
     if (res.code === 200) {
       getNoChkQuestion();
       getAllChkQuestion();
     }
   });
 };
-getAllChkQuestion();
 const uncheck = (params: IChkQuestion) => {
   chkQuestions(params).then((res) => {
     if (res.code == 200) {
@@ -109,24 +111,9 @@ const uncheck = (params: IChkQuestion) => {
     }
   });
 };
-// const getLabel = (i: string) => {
-//   if (i === 'purviewPaper') {
-//     return '官方';
-//   } else {
-//     return '个人';
-//   }
-// };
-
-// const handleClick = (tab, event) => {
-//   console.log(tab, event);
-// };
 </script>
 
 <style scoped>
-body {
-  background-color: rgba(240, 242, 245, 1);
-}
-
 .createPaper {
   width: 80px;
   height: 35px;
@@ -185,5 +172,8 @@ body {
 .paperCard {
   display: flex;
   flex-wrap: wrap;
+}
+::v-deep .el-loading-mask {
+  z-index: 9;
 }
 </style>

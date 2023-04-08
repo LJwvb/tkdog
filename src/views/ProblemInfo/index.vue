@@ -3,7 +3,7 @@
     <el-icon><ArrowLeftBold /></el-icon>
     返回
   </el-button>
-  <div class="info-container">
+  <div class="info-container" v-loading="loading">
     <!-- 题目详情 -->
     <el-card class="container">
       <div class="grid-content">
@@ -46,14 +46,14 @@
           <div class="question-detail" v-html="questionDetail.questionDetail" />
         </div>
         <div>
-          <el-collapse accordion>
+          <!-- <el-collapse accordion v-model="collapseName">
             <el-collapse-item name="1">
-              <template #title>
-                <h5>答案与解析(点击展开)</h5>
-              </template>
-              <div class="answer" v-html="questionDetail.answer" />
-            </el-collapse-item>
-          </el-collapse>
+              <template #title> -->
+          <h5>答案与解析</h5>
+          <!-- </template> -->
+          <div class="answer" v-html="questionDetail.answer" />
+          <!-- </el-collapse-item>
+          </el-collapse> -->
         </div>
       </div>
     </el-card>
@@ -134,7 +134,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import queryString from 'query-string';
 import { ArrowLeftBold } from '@element-plus/icons-vue';
@@ -159,7 +159,6 @@ const {
   type: whereInterType,
   isClickSearch,
 } = queryString.parse(window?.location?.href?.split('?')[1] || '');
-console.log('id', id);
 
 // 获取store中的用户信息
 const userData = store.state.userData;
@@ -173,6 +172,8 @@ const questionDetail = ref({} as IQuestion);
 const similarQuestions = ref([] as any[]);
 // 是否点击了喜欢
 const isClickLike = ref(false);
+const collapseName = ref('');
+const loading = ref(true);
 const tags = computed(() => {
   return questionDetail.value.tags
     ?.split(',')
@@ -199,8 +200,13 @@ const getDailyQuestion = async (value?: number) => {
   } else {
     isClickLike.value = false;
   }
-  const res = await getQuestionDetail({ id: value || id } as any);
-  questionDetail.value = res;
+  getQuestionDetail({ id: value || id } as any)
+    .then((res) => {
+      questionDetail.value = res;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 };
 // 获取相似题目
 const getSimilarQuestions = async (value?: number) => {
@@ -315,6 +321,18 @@ const returnToBefore = () => {
     });
     return;
   }
+  if (whereInterType === 'daily') {
+    router.push({
+      path: '/questionPage',
+    });
+    return;
+  }
+  if (whereInterType === 'admin') {
+    router.push({
+      path: '/adminQuestion',
+    });
+    return;
+  }
 
   router.push({
     path: '/',
@@ -324,9 +342,26 @@ const returnToBefore = () => {
     },
   });
 };
-
-getDailyQuestion();
-getSimilarQuestions();
+onMounted(() => {
+  getDailyQuestion();
+  getSimilarQuestions();
+  if (store.state.collapseName) {
+    collapseName.value = '1';
+  } else {
+    collapseName.value = '';
+  }
+});
+watch(
+  () => store.state.collapseName,
+  (val) => {
+    console.log(val);
+    if (val) {
+      collapseName.value = '1';
+    } else {
+      collapseName.value = '';
+    }
+  },
+);
 </script>
 
 <style scoped>
@@ -424,10 +459,8 @@ getSimilarQuestions();
 }
 .answer {
   position: relative;
-  /* background-color: #384548; */
-  color: #d1d2d2;
-  padding: 0 8px 10px;
   border-radius: 5px;
+  margin-top: 20px;
 }
 .answer::before {
   content: '';
@@ -438,7 +471,7 @@ getSimilarQuestions();
   background-size: 40px;
   background-repeat: no-repeat;
   background-color: #384548;
-  margin-bottom: 0;
+  margin-bottom: 10px;
   background-position: 4px 12px;
   border-radius: 5px;
 }

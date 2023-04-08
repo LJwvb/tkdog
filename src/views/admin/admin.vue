@@ -35,6 +35,12 @@
             >登录</el-button
           >
         </el-form-item>
+        <el-button
+          type="primary"
+          style="width: 100%; margin-bottom: 10px"
+          @click="toPersonLogin"
+          >去个人登录</el-button
+        >
       </el-form>
     </div>
     <div class="right">
@@ -129,6 +135,9 @@ const toLogin = async () => {
   } catch (error) {
     console.log('error is ', error);
   }
+};
+const toPersonLogin = () => {
+  router.push('/');
 };
 </script>
 
