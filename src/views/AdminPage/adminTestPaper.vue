@@ -3,15 +3,30 @@
     <el-container>
       <el-main style="padding: 10px">
         <el-card>
-          <el-tabs v-model="activeNames" @tab-click="handleClick">
-            <el-tab-pane label="未审核" name="nochk" :key="nochk"></el-tab-pane>
-            <el-tab-pane label="已审核" name="chk" :key="chk"></el-tab-pane>
+          <el-tabs v-model="activeNames">
+            <el-tab-pane
+              label="未审核的试卷"
+              name="nochk"
+              key="nochk"
+            ></el-tab-pane>
+            <el-tab-pane
+              label="已审核的试卷"
+              name="chk"
+              key="chk"
+            ></el-tab-pane>
           </el-tabs>
-          <div v-if="activeNames === 'nochk'" class="tab-pane">
+          <div v-if="!NoChkPaper && activeNames === 'nochk'">
+            <el-empty :image-size="200" description="没有未审核试卷" />
+          </div>
+          <div
+            v-if="activeNames === 'nochk'"
+            class="tab-pane"
+            v-loading="loading"
+            element-loading-text="Loading..."
+          >
             <div
               v-for="item in NoChkPaper"
               :key="item.paper_id"
-              style="margin: 28px"
               class="test-card"
             >
               <TestCard
@@ -23,12 +38,15 @@
               />
             </div>
           </div>
-
-          <div v-if="activeNames === 'chk'" class="tab-pane">
+          <div
+            v-if="activeNames === 'chk'"
+            class="tab-pane"
+            v-loading="loading"
+            element-loading-text="Loading..."
+          >
             <div
               v-for="item in ChkPaper"
               :key="item.paper_id"
-              style="margin: 28px"
               class="test-card"
             >
               <TestCard
@@ -40,6 +58,9 @@
               />
             </div>
           </div>
+          <div v-if="!ChkPaper && activeNames === 'chk'">
+            <el-empty :image-size="200" description="没有已审核试卷" />
+          </div>
         </el-card>
       </el-main>
     </el-container>
@@ -47,7 +68,7 @@
 </template>
 <script setup lang="ts">
 import TestCard from '@/components/TestCard/index.vue';
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import {
   getNoChkPaper,
   chkPaper,
@@ -55,30 +76,30 @@ import {
   deletePapers,
 } from '@/services';
 
-const activeNames = ref('nochk');
 interface IChkPapers {
   paperId: string;
   chkState: number;
 }
 
-// 选中的主标签页
-// const currentTab = ref(isNaN(Number(subjectID)) ? 0 : Number(subjectID));
+const NoChkPaper = ref(); //获取未审核试卷
+const ChkPaper = ref(); //获取已审核试卷
+const activeNames = ref('nochk');
+const loading = ref(true);
 
-//获取未审核试卷
-const NoChkPaper = ref();
 const getNoChkPapers = async () => {
   const res = await getNoChkPaper();
-  console.log(res);
   NoChkPaper.value = res;
 };
-getNoChkPapers();
-//获取已审核试卷
-const ChkPaper = ref();
+
 const getAllChkPapers = async () => {
   const res = await getAllChkPaper();
   ChkPaper.value = res;
 };
-getAllChkPapers();
+onMounted(() => {
+  getAllChkPapers();
+  getNoChkPaper();
+  loading.value = false;
+});
 //删除试卷
 const deletePaper = (paper_id: number) => {
   console.log(paper_id);
@@ -98,7 +119,6 @@ const check = (params: IChkPapers) => {
     }
   });
 };
-// getAllChkQuestion();
 const uncheck = (params: IChkPapers) => {
   chkPaper(params).then((res) => {
     if (res.code == 200) {

@@ -1,6 +1,6 @@
 <template>
-  <el-card class="test-paper-container" @click="goPaperDetail">
-    <div >
+  <div class="test-paper-container">
+    <el-card class="container" @click="goPaperDetail">
       <div class="test-title">{{ paper?.paper_title }}</div>
       <div class="tags">
         <el-tag v-for="tag in tags" :key="tag" class="tag-item">
@@ -22,7 +22,7 @@
         </div>
       </div>
       <div class="watermark">{{ name }}</div>
-    </div>
+    </el-card>
     <div v-if="store.state.userData.isAdmin">
       <el-button
         type="danger"
@@ -49,7 +49,7 @@
         >审核不通过</el-button
       >
     </div>
-  </el-card>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -107,7 +107,6 @@ const addDate = computed(() => {
   return transitionTime(props.paper?.ctime);
 });
 const goPaperDetail = () => {
-  
   router.push({
     path: '/testPaper/paperDetail',
     query: {
@@ -120,6 +119,11 @@ const goPaperDetail = () => {
 <style scoped>
 .test-paper-container {
   position: relative;
+  height: 100%;
+}
+.container {
+  position: relative;
+  cursor: pointer;
   height: 100%;
 }
 

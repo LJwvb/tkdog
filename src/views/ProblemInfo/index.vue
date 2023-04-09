@@ -93,7 +93,7 @@
       </div>
     </el-card>
     <el-card>
-      <h4>相似题目</h4>
+      <h4>为你推荐</h4>
       <div class="similar-questions" v-if="similarQuestions?.length">
         <el-card
           v-for="item in similarQuestions"
@@ -117,15 +117,7 @@
           <div class="similar-question-text">
             {{ item.question }}
           </div>
-          <el-button
-            type="primary"
-            @click="
-              () => {
-                router.push({ path: '/problemInfo', query: { id: item.id } });
-                getDailyQuestion(item?.id);
-                getSimilarQuestions(item?.id);
-              }
-            "
+          <el-button type="primary" @click="goSimilarQuestion(item.id)"
             >查看</el-button
           >
         </el-card>
@@ -148,6 +140,7 @@ import {
   likeQuestion,
   unlikeQuestion,
   getSimilarQuestion,
+  browseQuestion,
 } from '@/services';
 import {
   questionType,
@@ -285,6 +278,17 @@ const selectedTopic = () => {
     };
     store.commit('addSelectedTopic', [...selectedTopic, data]);
     ElMessage.success('选题成功，请在试题篮已选题目中查看');
+  }
+};
+const goSimilarQuestion = (id: number) => {
+  router.push({ path: '/problemInfo', query: { id: id } });
+  getDailyQuestion(id);
+  getSimilarQuestions(id);
+  const setBrowseTopicsId = store.state.browseTopicsId;
+  const setBrowseTopicsIds = setBrowseTopicsId.map((item: string) => item);
+  if (!setBrowseTopicsIds.includes(id)) {
+    store.commit('setBrowseTopicsId', [...store.state.browseTopicsId, id]);
+    browseQuestion({ id, username: store.state.userData.username });
   }
 };
 const returnToBefore = () => {

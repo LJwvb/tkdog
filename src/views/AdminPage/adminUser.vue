@@ -45,40 +45,133 @@
             <el-button
               type="primary"
               size="small"
-              :disabled="scope.row.role === 0"
+              v-if="scope.row.role === 0"
+              @click="editPassword(scope.row)"
               >编辑</el-button
             >
             <el-button
               type="danger"
               size="small"
-              :disabled="scope.row.role === 0"
+              v-if="scope.row.role === undefined"
+              @click="deleteUserFun(scope.row.userId)"
               >删除</el-button
             >
           </div>
         </template>
       </el-table-column>
     </el-table>
+    <el-dialog
+      v-model="dialogVisibleEditPassword"
+      title="修改密码"
+      width="400px"
+      center
+    >
+      <el-form ref="ruleFormRef" :model="ruleForm" :rules="rules" status-icon>
+        <el-form-item prop="password" placeholder="请输入密码">
+          <el-input
+            v-model="ruleForm.password"
+            placeholder="请输入长度在 6 到 20 个字符的密码"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="cancel">取消</el-button>
+          <el-button type="primary" @click="submitForm(ruleFormRef)">
+            确定
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue';
-import { getUserList } from '@/services';
+import { ref, onMounted, reactive } from 'vue';
+import { getUserList, deleteUser, editAdminPassword } from '@/services';
 import { transitionSex, transitionTime } from '@/utils/index';
+import { ElMessage } from 'element-plus';
+import type { FormInstance, FormRules } from 'element-plus';
 
 const userInfo = ref();
+const dialogVisibleEditPassword = ref(false);
+const ruleFormRef = ref<FormInstance>();
+const ruleForm = reactive({
+  password: '',
+});
+const isAdmin = ref('');
+const rules = reactive<FormRules>({
+  password: [
+    {
+      required: true,
+      message: '请输入密码',
+      trigger: 'blur',
+    },
+    {
+      min: 6,
+      max: 20,
+      message: '长度在 6 到 20 个字符',
+      trigger: 'blur',
+    },
+  ],
+});
+
 const getUser = async () => {
   const res = await getUserList({});
   res.data.forEach((item: any) => {
     item.name = item?.username || item?.name;
     item.integral =
       item?.like_ques_num * 5 +
-      item?.upload_ques_num * 1 +
-      item?.approvedNums * 2;
+        item?.upload_ques_num * 1 +
+        item?.approvedNums * 2 || 0;
   });
 
   userInfo.value = res.data;
 };
+const deleteUserFun = (id: number) => {
+  deleteUser({ userId: id }).then((res) => {
+    ElMessage.success('删除成功');
+    getUser();
+  });
+};
+const editPassword = (val: any) => {
+  dialogVisibleEditPassword.value = true;
+  isAdmin.value = val.id;
+};
+const cancel = () => {
+  dialogVisibleEditPassword.value = false;
+};
+const resetForm = (formEl: FormInstance | undefined) => {
+  if (!formEl) return;
+  formEl.resetFields();
+};
 
+const submitForm = async (formEl: FormInstance | undefined) => {
+  if (!formEl) return;
+  await formEl.validate((valid, fields) => {
+    if (valid) {
+      const params = {
+        password: ruleForm.password,
+        id: isAdmin.value,
+      };
+      editAdminPassword(params).then((res) => {
+        if (res.code !== 200) {
+          ElMessage.error(res.message);
+          return;
+        }
+        ElMessage({
+          type: 'success',
+          message: `修改成功`,
+        });
+
+        dialogVisibleEditPassword.value = false;
+        resetForm(formEl);
+        getUser();
+      });
+    } else {
+      return false;
+    }
+  });
+};
 onMounted(() => {
   getUser();
 });

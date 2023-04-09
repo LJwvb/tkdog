@@ -101,7 +101,7 @@
     <div class="logo">
       <img src="../../assets/tkdog.png" width="50" />
       <div class="title">
-        <span>题库狗</span>
+        <span>题库狗后台管理</span>
       </div>
     </div>
     <el-menu
@@ -345,8 +345,6 @@ const toUserAdmin = () => {
 .logo {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 200px;
 }
 
 .title {

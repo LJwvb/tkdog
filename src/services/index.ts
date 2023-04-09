@@ -212,3 +212,17 @@ export function getUserList(params: any) {
     return res.data;
   });
 }
+// 删除用户
+export function deleteUser(params: any) {
+  return request('POST', '/deleteUser', { data: params }).then((res: any) => {
+    return res.data;
+  });
+}
+// 修改管理员密码
+export function editAdminPassword(params: any) {
+  return request('POST', '/editAdminPassword', { data: params }).then(
+    (res: any) => {
+      return res.data;
+    },
+  );
+}

@@ -121,13 +121,12 @@ const toLogin = async () => {
           phone: 'admin',
           username: res?.data?.name,
         });
-        console.log(1111111111111);
         ElMessage.success({
           message: '登录成功~',
           type: 'success',
         });
         localStorage.setItem('uid', ruleForm.name);
-        router.push('/adminPage');
+        router.push('/adminHome');
       } else {
         ElMessage.error(res.message);
       }

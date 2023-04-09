@@ -4,15 +4,22 @@
       <el-main style="padding: 10px">
         <el-card>
           <el-tabs v-model="activeName">
-            <el-tab-pane label="未审核" name="nochk" key="nochk"></el-tab-pane>
-            <el-tab-pane label="已审核" name="chk" key="chk"></el-tab-pane>
+            <el-tab-pane
+              label="未审核的题目"
+              name="nochk"
+              key="nochk"
+            ></el-tab-pane>
+            <el-tab-pane
+              label="已审核的题目"
+              name="chk"
+              key="chk"
+            ></el-tab-pane>
           </el-tabs>
           <div v-if="NoChkQuestions?.length === 0 && activeName === 'nochk'">
             <el-empty :image-size="200" description="没有未审核题目" />
           </div>
           <div
             v-if="activeName === 'nochk'"
-            style="min-height: 500px"
             v-loading="loading"
             element-loading-text="Loading..."
           >
@@ -29,7 +36,6 @@
           </div>
           <div
             v-if="activeName === 'chk'"
-            style="min-height: 500px"
             v-loading="loading"
             element-loading-text="Loading..."
           >
