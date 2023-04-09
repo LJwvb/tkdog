@@ -41,8 +41,11 @@
       type="primary"
       class="btn0"
       @click="selectedTopic"
-      v-if="props.type === '' || props.type === 'checked'"
-      >选题</el-button
+      v-if="
+        props.type === '' || props.type === 'checked' || props.type === 'all'
+      "
+      :disabled="isChecked"
+      >{{ isChecked ? '已选题' : '选题' }}</el-button
     >
     <div v-if="store.state.userData.isAdmin">
       <el-button
@@ -98,8 +101,7 @@ import type { IQuestion } from '@/types';
 import { browseQuestion, deleteQuestions, getQuestionList } from '@/services';
 import { questionType, difficulty, transitionTime } from '@/utils';
 const store = useStore();
-// const questionList = ref();
-
+const isChecked = ref(false);
 const props = defineProps({
   question: {
     type: Array as unknown as () => IQuestion,
@@ -185,10 +187,9 @@ const toProblemInfo = () => {
 };
 const selectedTopic = () => {
   // 获取之前选中的题目
-  const selectedTopic = store.state.selectedTopic;
+  const stateSelectedTopic = store.state.selectedTopic;
   // 获取之前选中的题目id
-  const selectedTopicIds = selectedTopic.map((item: IQuestion) => item.id);
-  console.log(selectedTopic);
+  const selectedTopicIds = stateSelectedTopic.map((item: IQuestion) => item.id);
   // 判断是否已经选中
   if (selectedTopicIds.includes(id)) {
     ElMessage.error('已选中该题，若想取消请在试题篮已选题目中取消');
@@ -198,8 +199,9 @@ const selectedTopic = () => {
       ...question,
       data: new Date().toLocaleString(),
     };
-    store.commit('addSelectedTopic', [...selectedTopic, data]);
+    store.commit('addSelectedTopic', [...stateSelectedTopic, data]);
     ElMessage.success('选题成功，请在试题篮已选题目中查看');
+    isChecked.value = true;
   }
 };
 const deleteTopic = () => {
@@ -208,8 +210,20 @@ const deleteTopic = () => {
   const index = selectedTopicIds.indexOf(id);
   selectedTopic.splice(index, 1);
   store.commit('setSelectedTopic', selectedTopic);
+  isChecked.value = false;
   ElMessage.success('删除成功');
 };
+watchEffect(() => {
+  // 获取之前选中的题目
+  const stateSelectedTopic = store.state.selectedTopic;
+  // 获取之前选中的题目id
+  const selectedTopicIds = stateSelectedTopic.map((item: IQuestion) => item.id);
+  if (selectedTopicIds.includes(id)) {
+    isChecked.value = true;
+  } else {
+    isChecked.value = false;
+  }
+});
 </script>
 <style scoped>
 .card-container {

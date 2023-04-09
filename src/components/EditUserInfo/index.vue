@@ -79,18 +79,12 @@ const props = defineProps({
 const { dialogVisible } = toRefs(props);
 
 const ruleForm = reactive({
-  username: store.state.userData.username,
   email: store.state.userData.email,
   sex: store.state.userData.sex,
   personalIntroduction: store.state.userData.personalIntroduction,
 });
 
 const rules = reactive<FormRules>({
-  username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 1, max: 10, message: '长度在 3 到 10 个字符', trigger: 'blur' },
-  ],
-
   email: [
     { required: false, message: '请输入邮箱', trigger: 'blur' },
     { type: 'email', message: '请输入正确的邮箱', trigger: 'blur' },
@@ -109,41 +103,17 @@ const submitForm = async (formEl: FormInstance | undefined) => {
         ...ruleForm,
         phone: phone,
       };
-      if (ruleForm.username !== store.state.userData.username) {
-        ElMessageBox.confirm(
-          '您修改了用户名，修改后您上传的题目署名不会变更，是否继续修改？',
-          'Warning',
-          {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning',
-          },
-        )
-          .then(() => {
-            editUserInfo(params).then((res) => {
-              if (res.code === 200) {
-                ElMessage.success('修改成功');
-                emit('update:dialogVisible', false);
-                store.commit('setUserData', {
-                  ...store.state.userData,
-                  ...params,
-                });
-              }
-            });
-          })
-          .catch(() => {});
-      } else {
-        editUserInfo(params).then((res) => {
-          if (res.code === 200) {
-            ElMessage.success('修改成功');
-            emit('update:dialogVisible', false);
-            store.commit('setUserData', {
-              ...store.state.userData,
-              ...params,
-            });
-          }
-        });
-      }
+
+      editUserInfo(params).then((res) => {
+        if (res.code === 200) {
+          ElMessage.success('修改成功');
+          emit('update:dialogVisible', false);
+          store.commit('setUserData', {
+            ...store.state.userData,
+            ...params,
+          });
+        }
+      });
     } else {
       return false;
     }
@@ -153,7 +123,6 @@ const submitForm = async (formEl: FormInstance | undefined) => {
 const resetForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return;
   formEl.resetFields();
-  ruleForm.username = '';
   ruleForm.email = '';
   ruleForm.sex = '';
   ruleForm.personalIntroduction = '';

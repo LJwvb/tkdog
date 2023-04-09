@@ -70,7 +70,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import router from '@/router';
-import { getRankList, getDailyQuestion } from '@/services';
+import { getRankList, getDailyQuestion, browseQuestion } from '@/services';
+import { useStore } from 'vuex';
+const store = useStore();
 
 const rankData = ref();
 const dailyData = ref();
@@ -106,6 +108,12 @@ const goDaily = () => {
       type: 'daily',
     },
   });
+  const setBrowseTopicsId = store.state.browseTopicsId;
+  const setBrowseTopicsIds = setBrowseTopicsId.map((item: string) => item);
+  if (!setBrowseTopicsIds.includes(id)) {
+    store.commit('setBrowseTopicsId', [...store.state.browseTopicsId, id]);
+    browseQuestion({ id, username: store.state.userData.username });
+  }
 };
 </script>
 

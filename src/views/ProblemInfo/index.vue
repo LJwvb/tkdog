@@ -31,8 +31,12 @@
               </div>
             </el-button>
           </div>
-          <el-button type="primary" class="btn" @click="selectedTopic"
-            >选题</el-button
+          <el-button
+            type="primary"
+            class="btn"
+            :disabled="isChecked"
+            @click="selectedTopic"
+            >{{ isChecked ? '已选题' : '选题' }}</el-button
           >
         </div>
         <el-tag v-for="tag in tags" :key="tag" class="tag-item">
@@ -134,7 +138,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watchEffect } from 'vue';
 import { ElMessage } from 'element-plus';
 import queryString from 'query-string';
 import { ArrowLeftBold } from '@element-plus/icons-vue';
@@ -172,7 +176,7 @@ const questionDetail = ref({} as IQuestion);
 const similarQuestions = ref([] as any[]);
 // 是否点击了喜欢
 const isClickLike = ref(false);
-const collapseName = ref('');
+const isChecked = ref(false);
 const loading = ref(true);
 const tags = computed(() => {
   return questionDetail.value.tags
@@ -345,23 +349,19 @@ const returnToBefore = () => {
 onMounted(() => {
   getDailyQuestion();
   getSimilarQuestions();
-  if (store.state.collapseName) {
-    collapseName.value = '1';
+});
+watchEffect(() => {
+  // 获取之前选中的题目
+  const stateSelectedTopic = store.state.selectedTopic;
+  // 获取之前选中的题目id
+  const selectedTopicIds = stateSelectedTopic.map((item: IQuestion) => item.id);
+  console.log(selectedTopicIds);
+  if (selectedTopicIds.includes(Number(id))) {
+    isChecked.value = true;
   } else {
-    collapseName.value = '';
+    isChecked.value = false;
   }
 });
-watch(
-  () => store.state.collapseName,
-  (val) => {
-    console.log(val);
-    if (val) {
-      collapseName.value = '1';
-    } else {
-      collapseName.value = '';
-    }
-  },
-);
 </script>
 
 <style scoped>
