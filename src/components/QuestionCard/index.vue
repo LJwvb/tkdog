@@ -76,9 +76,10 @@
         type="primary"
         class="btn1"
         @click="selectedTopic"
+        :disabled="isChecked"
         v-if="activeName === 'chk'"
       >
-        选题</el-button
+        {{ isChecked ? '已选题' : '选题' }}</el-button
       >
     </div>
     <el-button

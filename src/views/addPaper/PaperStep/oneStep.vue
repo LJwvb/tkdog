@@ -46,7 +46,9 @@
     </el-form-item>
     <el-form-item label="权限" prop="auth" style="margin-bottom: 0">
       <el-radio-group v-model="ruleForm.auth" @change="selectAuth">
-        <el-radio label="3">私有</el-radio>
+        <el-radio label="3" v-if="!store.state.userData?.isAdmin"
+          >私有</el-radio
+        >
         <el-radio label="1">公开</el-radio>
       </el-radio-group>
     </el-form-item>
@@ -75,7 +77,7 @@ const store = useStore();
 const ruleForm = reactive({
   name: store.state.paperInfo.name || '',
   desc: store.state.paperInfo.desc || '',
-  auth: store.state.paperInfo.auth || '',
+  auth: store.state.userData?.isAdmin ? '1' : store.state.paperInfo.auth || '',
 });
 const rules = reactive({
   name: [{ required: true, message: '请输入试卷名称', trigger: 'blur' }],
@@ -115,7 +117,7 @@ const handleInputConfirm = () => {
   inputValue.value = '';
 };
 const selectAuth = (value: string) => {
-  if (value === '1') {
+  if (value === '1' && !store.state.userData?.isAdmin) {
     showWarning.value = true;
   } else {
     showWarning.value = false;

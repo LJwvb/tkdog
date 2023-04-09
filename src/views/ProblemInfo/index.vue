@@ -338,6 +338,9 @@ const returnToBefore = () => {
   if (whereInterType === 'admin') {
     router.push({
       path: '/adminQuestion',
+      query: {
+        index: 'chk',
+      },
     });
     return;
   }

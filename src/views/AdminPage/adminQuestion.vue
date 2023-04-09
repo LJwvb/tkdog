@@ -59,6 +59,8 @@
 <script setup lang="ts">
 import QuestionCard from '@/components/QuestionCard/index.vue';
 import { ref, reactive, computed, onMounted } from 'vue';
+import queryString from 'query-string';
+
 import {
   getAllChkQuestions,
   getNoChkQuestions,
@@ -72,7 +74,10 @@ interface IChkQuestion {
   chkRemarks?: string;
   creator: string;
 }
-const activeName = ref('nochk');
+const { index } = queryString.parse(
+  window?.location?.href?.split('?')[1] || '',
+);
+const activeName = ref(index || 'nochk');
 //获取已审核题目
 const ChkQuestions = ref();
 

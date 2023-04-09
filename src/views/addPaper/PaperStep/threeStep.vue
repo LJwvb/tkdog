@@ -51,7 +51,16 @@ const nextStep = () => {
   props.done();
 };
 const addQuestion = () => {
-  router.push('/questionPage');
+  if (store.state.userData.isAdmin) {
+    router.push({
+      path: '/adminQuestion',
+      query: {
+        index: 'chk',
+      },
+    });
+  } else {
+    router.push('/questionPage');
+  }
 };
 </script>
 

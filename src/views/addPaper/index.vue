@@ -64,15 +64,24 @@ const prev = () => {
   if (active.value-- < 0) active.value = 1;
 };
 const goTestPaper = () => {
+  if (store.state.userData.isAdmin) {
+    router.push({
+      path: '/adminQuestion',
+      query: {
+        index: 'chk',
+      },
+    });
+  } else {
+    router.push('/questionPage');
+  }
   clearTimeout(timer);
-  router.push('/questionPage');
 };
 const done = () => {
   getPaperQuestion({
     ids: questionList.value?.map((item: any) => item.id)?.join(','),
     paperTitle: paperInfo.value?.name,
     paperTags: paperInfo.value?.dynamicTags?.join(','),
-    purview: paperInfo.value?.auth,
+    purview: store.state.userData?.isAdmin ? -1 : paperInfo.value?.auth,
     author: store.state.userData.username,
   }).then((res) => {
     if (res.code === 200) {
@@ -87,11 +96,15 @@ const done = () => {
       let count = 5;
       timer = setInterval(() => {
         if (count === 1) {
+          if (store.state.userData.isAdmin) {
+            router.push('/adminTestPaper');
+          } else {
+            router.push('/user/UserTestPaper');
+          }
           clearInterval(timer);
-          router.push('/user/UserTestPaper');
         }
         ElMessage({
-          message: `试卷创建成功,${count}秒后跳转到我的试卷列表`,
+          message: `试卷创建成功,${count}秒后跳转到试卷列表`,
           type: 'success',
           duration: 1000,
         });

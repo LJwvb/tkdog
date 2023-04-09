@@ -27,6 +27,7 @@
                 :uncheck="uncheck"
                 :deletePaper="deletePaper"
                 activeNames="nochk"
+                :name="item?.purview === 0 ? '公开' : '私有'"
               />
             </div>
           </div>
@@ -45,6 +46,7 @@
                 :paper="item"
                 :deletePaper="deletePaper"
                 activeNames="chk"
+                :name="item?.purview === 3 ? '私有个人试卷' : '公开试卷'"
               />
             </div>
           </div>
@@ -59,6 +61,8 @@
 <script setup lang="ts">
 import TestCard from '@/components/TestCard/index.vue';
 import { ref, reactive, computed, onMounted } from 'vue';
+import queryString from 'query-string';
+
 import {
   getNoChkPaper,
   chkPaper,
@@ -70,10 +74,12 @@ interface IChkPapers {
   paperId: string;
   chkState: number;
 }
-
+const { index } = queryString.parse(
+  window?.location?.href?.split('?')[1] || '',
+);
 const NoChkPaper = ref<any[]>([]); //获取未审核试卷
 const ChkPaper = ref<any[]>([]); //获取已审核试卷
-const activeNames = ref('nochk');
+const activeNames = ref(index || 'nochk');
 const loading = ref(true);
 
 const getNoChkPapers = async () => {
