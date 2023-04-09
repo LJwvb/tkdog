@@ -307,6 +307,7 @@ const toLogin = () => {
     router.go(-router.currentRoute.value.meta.index);
   }
   store.commit('setUserData', {});
+  store.commit('setActiveMenuIndex', '1');
 };
 
 //管理员

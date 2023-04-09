@@ -4,23 +4,15 @@
       <el-main style="padding: 10px">
         <el-card>
           <el-tabs v-model="activeNames">
-            <el-tab-pane
-              label="未审核的试卷"
-              name="nochk"
-              key="nochk"
-            ></el-tab-pane>
-            <el-tab-pane
-              label="已审核的试卷"
-              name="chk"
-              key="chk"
-            ></el-tab-pane>
+            <el-tab-pane label="未审核的试卷" name="nochk"></el-tab-pane>
+            <el-tab-pane label="已审核的试卷" name="chk"></el-tab-pane>
           </el-tabs>
-          <div v-if="!NoChkPaper && activeNames === 'nochk'">
+          <div v-if="NoChkPaper?.length === 0 && activeNames === 'nochk'">
             <el-empty :image-size="200" description="没有未审核试卷" />
           </div>
           <div
             v-if="activeNames === 'nochk'"
-            class="tab-pane"
+            class="tab-pane-nochk"
             v-loading="loading"
             element-loading-text="Loading..."
           >
@@ -51,14 +43,12 @@
             >
               <TestCard
                 :paper="item"
-                :check="check"
-                :uncheck="uncheck"
                 :deletePaper="deletePaper"
                 activeNames="chk"
               />
             </div>
           </div>
-          <div v-if="!ChkPaper && activeNames === 'chk'">
+          <div v-if="ChkPaper?.length === 0 && activeNames === 'chk'">
             <el-empty :image-size="200" description="没有已审核试卷" />
           </div>
         </el-card>
@@ -81,8 +71,8 @@ interface IChkPapers {
   chkState: number;
 }
 
-const NoChkPaper = ref(); //获取未审核试卷
-const ChkPaper = ref(); //获取已审核试卷
+const NoChkPaper = ref<any[]>([]); //获取未审核试卷
+const ChkPaper = ref<any[]>([]); //获取已审核试卷
 const activeNames = ref('nochk');
 const loading = ref(true);
 
@@ -94,15 +84,15 @@ const getNoChkPapers = async () => {
 const getAllChkPapers = async () => {
   const res = await getAllChkPaper();
   ChkPaper.value = res;
-};
-onMounted(() => {
-  getAllChkPapers();
-  getNoChkPaper();
   loading.value = false;
+};
+
+onMounted(() => {
+  getNoChkPapers();
+  getAllChkPapers();
 });
 //删除试卷
 const deletePaper = (paper_id: number) => {
-  console.log(paper_id);
   deletePapers({ paperId: paper_id }).then((res) => {
     console.log(res);
     if (res.code === 200) {
@@ -113,7 +103,6 @@ const deletePaper = (paper_id: number) => {
 };
 const check = (params: IChkPapers) => {
   chkPaper(params).then((res) => {
-    console.log(res);
     if (res.code === 200) {
       getNoChkPapers();
     }
@@ -129,16 +118,17 @@ const uncheck = (params: IChkPapers) => {
 </script>
 
 <style scoped>
-body {
-  background-color: rgba(240, 242, 245, 1);
-}
-
 .tab-pane {
   width: 100%;
   height: 100%;
   display: flex;
   flex-wrap: wrap;
-  /* justify-content: space-evenly; */
+}
+.tab-pane-nochk {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .test-card {
