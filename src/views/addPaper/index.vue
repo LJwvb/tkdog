@@ -98,8 +98,10 @@ const done = () => {
         if (count === 1) {
           if (store.state.userData.isAdmin) {
             router.push('/adminTestPaper');
+            store.commit('setActiveMenuIndex', '3');
           } else {
             router.push('/user/UserTestPaper');
+            store.commit('setActiveMenuIndex', '4');
           }
           clearInterval(timer);
         }

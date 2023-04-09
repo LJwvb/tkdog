@@ -111,6 +111,7 @@ const check = (params: IChkPapers) => {
   chkPaper(params).then((res) => {
     if (res.code === 200) {
       getNoChkPapers();
+      getAllChkPapers();
     }
   });
 };

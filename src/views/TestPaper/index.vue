@@ -10,6 +10,9 @@
       <div class="test-card" v-for="paper in item.value" :key="paper.id">
         <TestCard :paper="paper" :name="item?.name" />
       </div>
+      <div v-if="item.value.length === 0" class="tabs">
+        <el-empty :image-size="200" description="没有试卷" />
+      </div>
     </el-tab-pane>
   </el-tabs>
 </template>
