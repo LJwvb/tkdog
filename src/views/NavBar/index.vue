@@ -308,6 +308,8 @@ const toLogin = () => {
   }
   store.commit('setUserData', {});
   store.commit('setActiveMenuIndex', '1');
+  store.commit('setBrowseTopicsId', []);
+  store.commit('addSelectedTopic', []);
 };
 
 //管理员

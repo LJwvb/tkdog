@@ -24,12 +24,12 @@ const store = useStore();
 const questionList = ref();
 const loading = ref(true);
 
-const ids = store.state.userData.likeTopicsId
-  ? store.state.userData.likeTopicsId?.slice(1)?.join(',')
-  : '';
+const ids = store.state.userData?.likeTopicsId;
+
+const idsStr = Array.isArray(ids) ? ids.join(',') : ids;
 
 onMounted(() => {
-  getQuestionList({ type: 'user', ids: ids }).then((res) => {
+  getQuestionList({ type: 'user', ids: idsStr }).then((res) => {
     questionList.value = res?.result;
     loading.value = false;
   });
