@@ -362,7 +362,6 @@ watchEffect(() => {
   const stateSelectedTopic = store.state.selectedTopic;
   // 获取之前选中的题目id
   const selectedTopicIds = stateSelectedTopic.map((item: IQuestion) => item.id);
-  console.log(selectedTopicIds);
   if (selectedTopicIds.includes(Number(id))) {
     isChecked.value = true;
   } else {

@@ -100,7 +100,6 @@ onMounted(() => {
 //删除试卷
 const deletePaper = (paper_id: number) => {
   deletePapers({ paperId: paper_id }).then((res) => {
-    console.log(res);
     if (res.code === 200) {
       getNoChkPaper();
       getAllChkPapers();

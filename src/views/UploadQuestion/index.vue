@@ -261,7 +261,6 @@ const submitForm = async (formEl: FormInstance | undefined) => {
         tags: dynamicTags.value.join(','), // 标签
         creator: store.state.userData?.username || store.state.userData?.name, // 创建者
       };
-      console.log(params, '1111111111', store.state.userData);
       uploadQuestion(params).then((res: any) => {
         emit('update:dialogVisible', false);
         ElMessage.success(res.message);

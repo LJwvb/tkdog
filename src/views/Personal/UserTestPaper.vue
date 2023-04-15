@@ -18,11 +18,9 @@ import { getPaper } from '@/services';
 import TestCard from '@/components/TestCard/index.vue';
 const store = useStore();
 const paperList = ref();
-console.log(paperList);
 
 onMounted(() => {
   getPaper({ author: store?.state?.userData?.username }).then((res) => {
-    console.log(res?.data);
     paperList.value = res?.data;
   });
 });

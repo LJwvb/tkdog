@@ -61,7 +61,6 @@ const activeIndex = ref('0');
 
 const handleSelect = (index: string) => {
   activeIndex.value = index;
-  console.log(activeIndex.value);
   router.push({
     path: paths.value[Number(index)],
   });

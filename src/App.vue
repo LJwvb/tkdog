@@ -35,7 +35,16 @@ onMounted(() => {
 
 const store = useStore();
 watchEffect(() => {
-  console.log(router.currentRoute.value.meta.isAdmin);
+  const path = router.currentRoute.value.path;
+  if (path !== '/404') {
+    const is404 = router.options.routes.every((item) => {
+      return item.path !== path;
+    });
+    if (is404) {
+      router.push('/404');
+    }
+  }
+
   if (!store.state.userData.isAdmin) {
     if (router.currentRoute.value.meta.isAdmin) {
       router.push('/404');

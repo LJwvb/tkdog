@@ -175,7 +175,6 @@ const toLogin = async () => {
   const form: any = unref(ruleFormRef);
 
   if (!form) return;
-  console.log(ruleForm);
   try {
     if (md5(ruleForm.code) === CaptchaPassword.value) {
       if (ruleForm.checked) {
@@ -203,7 +202,6 @@ const toLogin = async () => {
       changeLoginCaptcha();
     }
   } catch (error) {
-    console.log('error is ', error);
     // 刷新验证码
     changeLoginCaptcha();
   }

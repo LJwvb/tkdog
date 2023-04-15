@@ -84,7 +84,6 @@ interface IForm {
 const { isClickSearch, catalogID } = queryString.parse(
   window?.location?.href?.split('?')[1] || '',
 );
-console.log('isClickSearch', isClickSearch);
 const from = ref();
 const allQuestion = ref();
 const searchData = ref();
@@ -143,7 +142,6 @@ const clearSearch = () => {
 };
 watchEffect(() => {
   if (isClickSearch === 'true' && store.state.searchHistory) {
-    console.log('isClickSearch', isClickSearch);
     clickSearch.value = true;
     const searchHistory = store.state.searchHistory;
     form.keyword = searchHistory.keyword;

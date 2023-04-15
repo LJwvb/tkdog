@@ -271,7 +271,6 @@ const resetForm = (formEl: FormInstance | undefined) => {
 const submitForm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return;
   await formEl.validate((valid, fields) => {
-    console.log(valid, fields);
     if (valid) {
       const params = {
         password: ruleForm.password,

@@ -137,7 +137,6 @@ const props = defineProps({
     default: '',
   },
 });
-console.log(props);
 const question = props.question as IQuestion;
 const checkParams = {
   id: question.id,

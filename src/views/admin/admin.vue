@@ -109,10 +109,8 @@ const toLogin = async () => {
   const form: any = unref(ruleFormRef);
 
   if (!form) return;
-  console.log(ruleForm);
   try {
     adminLogin(ruleForm).then(async (res) => {
-      console.log(res);
       form.validate();
 
       if (res.code === 200) {
@@ -133,7 +131,7 @@ const toLogin = async () => {
       }
     });
   } catch (error) {
-    console.log('error is ', error);
+    //
   }
 };
 const toPersonLogin = () => {

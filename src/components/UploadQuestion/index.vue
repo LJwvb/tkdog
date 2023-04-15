@@ -198,7 +198,6 @@ const handleInputConfirm = () => {
 const submitForm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return;
   await formEl.validate((valid, fields) => {
-    console.log(valid, fields);
     if (valid) {
       const params = {
         ...ruleForm,
