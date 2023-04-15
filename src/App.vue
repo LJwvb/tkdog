@@ -34,6 +34,22 @@ onMounted(() => {
 });
 
 const store = useStore();
+watchEffect(() => {
+  console.log(router.currentRoute.value.meta.isAdmin);
+  if (!store.state.userData.isAdmin) {
+    if (router.currentRoute.value.meta.isAdmin) {
+      router.push('/404');
+    } else {
+      return;
+    }
+  } else {
+    if (router.currentRoute.value.meta.isAdmin === false) {
+      router.push('/404');
+    } else {
+      return;
+    }
+  }
+});
 </script>
 <style>
 .tkdog-container {

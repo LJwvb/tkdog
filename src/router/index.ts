@@ -2,8 +2,16 @@ import { createRouter, createWebHashHistory } from 'vue-router';
 
 const routes = [
   {
+    path: '/404',
+    name: '404',
+    component: () => import('@/components/ErrorPage/index.vue'),
+  },
+  {
     path: '/',
     name: 'home',
+    meta: {
+      isAdmin: false,
+    },
     component: () => import('@/views/Home/index.vue'),
   },
   // {
@@ -14,31 +22,50 @@ const routes = [
   {
     path: '/adminHome',
     name: 'adminHome',
+    meta: {
+      isAdmin: true,
+    },
     component: () => import('@/views/AdminPage/adminHome.vue'),
   },
   {
     path: '/adminQuestion',
     name: 'adminQuestion',
+    meta: {
+      isAdmin: true,
+    },
     component: () => import('@/views/AdminPage/adminQuestion.vue'),
   },
   {
     path: '/adminTestPaper',
     name: 'adminTestPaper',
+    meta: {
+      isAdmin: true,
+    },
     component: () => import('@/views/AdminPage/adminTestPaper.vue'),
   },
   {
     path: '/adminUser',
     name: 'adminUser',
+    isAdmin: true,
+    meta: {
+      isAdmin: true,
+    },
     component: () => import('@/views/AdminPage/adminUser.vue'),
   },
   {
     path: '/questionPage',
     name: 'questionPage',
+    meta: {
+      isAdmin: false,
+    },
     component: () => import('@/views/QuestionPage/index.vue'),
   },
   {
     path: '/testPaper',
     name: 'testPaper',
+    meta: {
+      isAdmin: false,
+    },
     component: () => import('@/views/TestPaper/index.vue'),
   },
   {
@@ -49,6 +76,9 @@ const routes = [
   {
     path: '/user',
     name: 'user',
+    meta: {
+      isAdmin: false,
+    },
     component: () => import('@/views/Personal/User.vue'),
     children: [
       {
@@ -76,11 +106,6 @@ const routes = [
         component: () => import('@/views/Personal/UserMessage.vue'),
       },
     ],
-  },
-  {
-    path: '/addSubject',
-    name: 'addSubject',
-    component: () => import('@/views/UploadQuestion/index.vue'),
   },
   {
     path: '/addPaper',

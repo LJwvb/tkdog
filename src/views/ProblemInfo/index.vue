@@ -292,50 +292,7 @@ const goSimilarQuestion = (id: number) => {
   }
 };
 const returnToBefore = () => {
-  if (whereInterType === 'all') {
-    router.push({
-      path: '/questionPage',
-      query: {
-        isClickSearch,
-        catalogID: questionDetail.value.catalogID,
-      },
-    });
-    return;
-  }
-  if (whereInterType === 'paper') {
-    router.push({
-      path: '/addPaper',
-      query: {
-        step: 1,
-      },
-    });
-    return;
-  }
-  if (whereInterType === 'userLikes') {
-    router.push({
-      path: 'user/UserLikes',
-    });
-    return;
-  }
-  if (whereInterType === 'userHistory') {
-    router.push({
-      path: 'user/UserHistory',
-    });
-    return;
-  }
-  if (whereInterType === 'userQuestions') {
-    router.push({
-      path: 'user/UserQuestions',
-    });
-    return;
-  }
-  if (whereInterType === 'daily') {
-    router.push({
-      path: '/questionPage',
-    });
-    return;
-  }
-  if (whereInterType === 'admin') {
+  if (store.state.userData?.isAdmin) {
     router.push({
       path: '/adminQuestion',
       query: {
@@ -343,15 +300,58 @@ const returnToBefore = () => {
       },
     });
     return;
+  } else {
+    if (whereInterType === 'all') {
+      router.push({
+        path: '/questionPage',
+        query: {
+          isClickSearch,
+          catalogID: questionDetail.value.catalogID,
+        },
+      });
+      return;
+    }
+    if (whereInterType === 'paper') {
+      router.push({
+        path: '/addPaper',
+        query: {
+          step: 1,
+        },
+      });
+      return;
+    }
+    if (whereInterType === 'userLikes') {
+      router.push({
+        path: 'user/UserLikes',
+      });
+      return;
+    }
+    if (whereInterType === 'userHistory') {
+      router.push({
+        path: 'user/UserHistory',
+      });
+      return;
+    }
+    if (whereInterType === 'userQuestions') {
+      router.push({
+        path: 'user/UserQuestions',
+      });
+      return;
+    }
+    if (whereInterType === 'daily') {
+      router.push({
+        path: '/questionPage',
+      });
+      return;
+    }
+    router.push({
+      path: '/',
+      query: {
+        subjectID: questionDetail.value.subjectID,
+        catalogID: questionDetail.value.catalogID,
+      },
+    });
   }
-
-  router.push({
-    path: '/',
-    query: {
-      subjectID: questionDetail.value.subjectID,
-      catalogID: questionDetail.value.catalogID,
-    },
-  });
 };
 onMounted(() => {
   getDailyQuestion();
