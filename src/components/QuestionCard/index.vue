@@ -187,7 +187,7 @@ const toProblemInfo = () => {
   }
 };
 const selectedTopic = () => {
-  // 获取之前选中的题目
+  // 获取之前选中的题目A
   const stateSelectedTopic = store.state.selectedTopic;
   // 获取之前选中的题目id
   const selectedTopicIds = stateSelectedTopic.map((item: IQuestion) => item.id);
