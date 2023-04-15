@@ -121,6 +121,7 @@ const toLogin = async () => {
           phone: 'admin',
           username: res?.data?.name,
         });
+        store.commit('setBrowseTopicsId', []);
         ElMessage.success({
           message: '登录成功~',
           type: 'success',
