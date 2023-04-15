@@ -184,7 +184,7 @@ export default defineComponent({
           ElMessage.error(res.data.message);
 
           // 刷新验证码
-          // changeRegisterCaptcha();
+          changeRegisterCaptcha();
         }
       });
     };

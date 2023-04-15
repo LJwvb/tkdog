@@ -67,11 +67,11 @@
             >注册</el-button
           >
         </el-form-item>
-        <el-form-item>
+        <!-- <el-form-item>
           <el-button type="primary" @click="toAdmin" style="width: 100%"
             >管理员登录</el-button
           >
-        </el-form-item>
+        </el-form-item> -->
       </el-form>
     </div>
     <div class="right">
@@ -192,6 +192,7 @@ const toLogin = async () => {
             router.push('/');
           } else {
             ElMessage.error(res.message);
+            changeLoginCaptcha();
           }
         });
       } else {
@@ -199,9 +200,12 @@ const toLogin = async () => {
       }
     } else {
       ElMessage.error('验证码错误');
+      changeLoginCaptcha();
     }
   } catch (error) {
     console.log('error is ', error);
+    // 刷新验证码
+    changeLoginCaptcha();
   }
 };
 
