@@ -223,7 +223,7 @@ const like = () => {
     unlikeQuestion({
       id: questionDetail.value.id,
       creator: questionDetail.value.creator,
-      username: 'admin',
+      username: store.state.userData.username,
     }).then(() => {
       ElMessage({
         message: '取消点赞',
@@ -244,7 +244,7 @@ const like = () => {
     likeQuestion({
       id: questionDetail.value.id,
       creator: questionDetail.value.creator,
-      username: 'admin',
+      username: store.state.userData.username,
     }).then(() => {
       ElMessage({
         message: '点赞成功',
