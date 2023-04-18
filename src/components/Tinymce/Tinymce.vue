@@ -8,7 +8,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import tinymce from 'tinymce/tinymce';
 import 'tinymce/themes/silver';
 import 'tinymce/icons/default/icons';
@@ -99,7 +99,7 @@ const emits = defineEmits([
   'inited',
   'init-error',
 ]);
-const { attrs } = getCurrentInstance();
+const { attrs } = getCurrentInstance() || {};
 const tinymceId = ref(buildShortUUID('tiny-vue'));
 const containerWidth = computed(() => {
   const width = props.width;
@@ -111,11 +111,9 @@ const containerWidth = computed(() => {
 const editorRef = ref(null);
 const fullscreen = ref(false);
 const elRef = ref(null);
-const tinymceContent = computed(() => props.modelValue);
 
-const initOptions = computed(() => {
+const initOptions: any = computed(() => {
   const { height, options, toolbar, plugins } = props;
-  const publicPath = '/';
   return {
     selector: `#${unref(tinymceId)}`,
     height,
@@ -129,35 +127,26 @@ const initOptions = computed(() => {
     link_title: false,
     object_resizing: false,
     auto_focus: true,
+    inline: '',
     skin: 'oxide',
     skin_url: '/resource/tinymce/skins/ui/oxide',
     content_css: '/resource/tinymce/skins/ui/oxide/content.min.css',
     ...options,
-    setup: (editor) => {
+    setup: (editor: any) => {
       editorRef.value = editor;
-      editor.on('init', (e) => initSetup(e));
+      editor.on('init', (e: any) => initSetup(e));
     },
   };
 });
 
-const disabled = computed(() => {
-  const { options } = props;
-  const getdDisabled = options && Reflect.get(options, 'readonly');
-  const editor = unref(editorRef);
-  if (editor) {
-    editor.setMode(getdDisabled ? 'readonly' : 'design');
-  }
-  return getdDisabled ?? false;
-});
-
 watch(
-  () => attrs.disabled,
+  () => attrs?.disabled,
   () => {
-    const editor = unref(editorRef);
+    const editor = unref<any>(editorRef);
     if (!editor) {
       return;
     }
-    editor.setMode(attrs.disabled ? 'readonly' : 'design');
+    editor?.setMode(attrs?.disabled ? 'readonly' : 'design');
   },
 );
 
@@ -186,20 +175,20 @@ function destory() {
   }
 }
 
-function initSetup(e) {
-  const editor = unref(editorRef);
+function initSetup(e: any) {
+  const editor = unref<any>(editorRef);
   if (!editor) {
     return;
   }
   const value = props.modelValue || '';
 
-  editor.setContent(value);
+  editor?.setContent(value);
   bindModelHandlers(editor);
   bindHandlers(e, attrs, unref(editorRef));
 }
 
 function initEditor() {
-  const el = unref(elRef);
+  const el = unref<any>(elRef);
   if (el) {
     el.style.visibility = '';
   }
@@ -213,19 +202,19 @@ function initEditor() {
     });
 }
 
-function setValue(editor, val, prevVal) {
+function setValue(editor: any, val: any, prevVal: any) {
   if (
     editor &&
     typeof val === 'string' &&
     val !== prevVal &&
-    val !== editor.getContent({ format: attrs.outputFormat })
+    val !== editor.getContent({ format: attrs?.outputFormat })
   ) {
     editor.setContent(val);
   }
 }
 
-function bindModelHandlers(editor) {
-  const modelEvents = attrs.modelEvents ? attrs.modelEvents : null;
+function bindModelHandlers(editor: any) {
+  const modelEvents = attrs?.modelEvents ? attrs.modelEvents : null;
   const normalizedEvents = Array.isArray(modelEvents)
     ? modelEvents.join(' ')
     : modelEvents;
@@ -248,39 +237,14 @@ function bindModelHandlers(editor) {
   );
 
   editor.on(normalizedEvents || 'change keyup undo redo', () => {
-    const content = editor.getContent({ format: attrs.outputFormat });
+    const content = editor.getContent({ format: attrs?.outputFormat });
     emits('update:modelValue', content);
     emits('change', content);
   });
 
-  editor.on('FullscreenStateChanged', (e) => {
+  editor.on('FullscreenStateChanged', (e: any) => {
     fullscreen.value = e.state;
   });
-}
-
-function handleImageUploading(name) {
-  const editor = unref(editorRef);
-  if (!editor) {
-    return;
-  }
-  editor.execCommand('mceInsertContent', false, getUploadingImgName(name));
-  const content = editor?.getContent() ?? '';
-  setValue(editor, content);
-}
-
-function handleDone(name, url) {
-  const editor = unref(editorRef);
-  if (!editor) {
-    return;
-  }
-  const content = editor?.getContent() ?? '';
-  const val =
-    content?.replace(getUploadingImgName(name), `<img src="${url}"/>`) ?? '';
-  setValue(editor, val);
-}
-
-function getUploadingImgName(name) {
-  return `[uploading:${name}]`;
 }
 </script>
 
