@@ -40,6 +40,9 @@ watchEffect(() => {
     const is404 = router.options.routes.every((item) => {
       return item.path !== path;
     });
+    if (path === '/admin') {
+      return;
+    }
     if (is404) {
       router.push('/404');
     }
