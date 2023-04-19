@@ -38,7 +38,8 @@ watchEffect(() => {
   const path = router.currentRoute.value.path;
   if (path !== '/404') {
     const is404 = router.options.routes.every((item) => {
-      return item.path !== path;
+      if (item?.children) {
+        return;
     });
     if (path === '/admin') {
       return;
