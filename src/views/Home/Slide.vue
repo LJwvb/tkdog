@@ -44,9 +44,9 @@
   </el-row>
   <el-row>
     <el-col :span="24">
-      <el-card>
+      <el-card class="third">
         <div>排行榜</div>
-        <el-scrollbar height="400px">
+        <el-scrollbar height="400px" v-if="rankData?.length > 0">
           <el-skeleton :loading="loadingRank" animated :rows="10">
             <div v-for="(item, index) in rankData" :key="index">
               <div class="border_bottom">
@@ -55,14 +55,19 @@
                   <img :src="item.avatar" alt="" class="avatar" />
                   <div class="name">{{ item.username }}</div>
                 </div>
-                <div class="">
-                  <div class="level">获赞数：{{ item.get_likes_num }}</div>
-                  <div class="role">上传数：{{ item.upload_ques_num }}</div>
+                <div class="level">
+                  <div v-if="item?.get_likes_num > 0">
+                    获赞数：{{ item.get_likes_num }}
+                  </div>
+                  <div v-if="item.upload_ques_num > 0">
+                    上传数：{{ item.upload_ques_num }}
+                  </div>
                 </div>
               </div>
             </div>
           </el-skeleton>
         </el-scrollbar>
+        <el-empty description="暂无没有用户上榜" v-else />
       </el-card>
     </el-col>
   </el-row>
@@ -174,6 +179,7 @@ const goDaily = () => {
   width: 30px;
   height: 30px;
   border-radius: 50%;
+  object-fit: cover;
 }
 .row {
   display: flex;
@@ -185,6 +191,11 @@ const goDaily = () => {
   font-size: large;
   margin-right: 10px;
   font-weight: bold;
+}
+.level {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .authority {
   display: flex;

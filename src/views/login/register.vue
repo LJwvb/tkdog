@@ -42,7 +42,7 @@
             <div
               style="cursor: pointer"
               v-html="registerCaptcha"
-              @click="changeRegisterCaptcha"
+              @click="Captcha"
             ></div>
           </el-col>
         </el-row>
@@ -60,6 +60,8 @@
 import { defineComponent, reactive, ref, watch } from 'vue';
 import { ElMessage, ElNotification } from 'element-plus';
 import { register, getCaptcha } from '@/services';
+import md5 from 'md5';
+
 import type { ICaptcha } from '@/types';
 
 export default defineComponent({
@@ -84,10 +86,11 @@ export default defineComponent({
     };
     Captcha();
 
-    const changeRegisterCaptcha = async () => {
-      const res = await getCaptcha(params);
-      registerCaptcha.value = res.data.data;
-    };
+    // const changeRegisterCaptcha = async () => {
+    //   const res = await getCaptcha(params);
+    //   registerCaptcha.value = res.data.data;
+    //   CaptchaAnswer.value = res.data.text;
+    // };
     const focusInput = () => {
       ElNotification({
         title: '提示',
@@ -125,8 +128,8 @@ export default defineComponent({
             if (!value) return callback(new Error('邮箱不能为空'));
             // 在下一行禁用eslint，类似上一种方法，只是写的位置不同罢了
             // eslint-disable-next-line
-            const reg =
-              /^([a-zA-Z]|[0-9])(\w|\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$/;
+            const reg = /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/;
+
             if (!reg.test(value)) return callback(new Error('邮箱不合法'));
             callback();
           },
@@ -168,6 +171,10 @@ export default defineComponent({
     const handleRegister = async () => {
       ruleFormRef.value.validate(async (valid: boolean) => {
         if (!valid) return;
+        if (md5(ruleForm.code) !== CaptchaAnswer.value) {
+          ElMessage.error('验证码错误');
+          return;
+        }
 
         const res: any = await register(ruleForm);
         if (res.data.code === 200) {
@@ -184,7 +191,7 @@ export default defineComponent({
           ElMessage.error(res.data.message);
 
           // 刷新验证码
-          changeRegisterCaptcha();
+          Captcha();
         }
       });
     };
@@ -201,11 +208,12 @@ export default defineComponent({
       ruleForm,
       rules,
       ruleFormRef,
-      changeRegisterCaptcha,
+      // changeRegisterCaptcha,
       handleRegister,
       registerCaptcha,
       focusInput,
       blurInput,
+      Captcha,
     };
   },
 });

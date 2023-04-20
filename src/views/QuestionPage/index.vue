@@ -43,6 +43,19 @@
         :catalogID="Number(catalogID)"
         v-if="!clickSearch"
       />
+      <el-pagination
+        v-model:current-page="currentPage"
+        background
+        layout="slot, prev, pager, next"
+        :total="total"
+        prev-text="上一页"
+        next-text="下一页"
+        hide-on-single-page="true"
+        @current-change="handleCurrentChange"
+        v-if="!clickSearch"
+      >
+        <template #default> 共 {{ total }} 条 </template>
+      </el-pagination>
       <div v-if="clickSearch">
         <div v-if="searchData?.length === 0">
           <el-icon
@@ -89,8 +102,9 @@ const allQuestion = ref();
 const searchData = ref();
 const clickSearch = ref(false);
 const loading = ref(true);
-
 const store = useStore();
+const currentPage = ref(1);
+const total = ref(0);
 
 const form = reactive<IForm>({
   keyword: '',
@@ -124,6 +138,7 @@ const getAllQuestion = (refresh?: boolean) => {
   }
   getQuestionList(getAllQuestionParams).then((res) => {
     allQuestion.value = res?.result?.list;
+    total.value = res?.total;
     clickSearch.value = false;
     loading.value = false;
   });
@@ -140,6 +155,16 @@ const clearSearch = () => {
   clickSearch.value = false;
   store.commit('setSearchHistory', '');
 };
+
+const handleCurrentChange = (val: number) => {
+  getAllQuestionParams.currentPage = val;
+  // 滚到顶部
+  document.documentElement.scrollTop = 0;
+  getAllQuestion();
+};
+onMounted(() => {
+  getAllQuestion();
+});
 watchEffect(() => {
   if (isClickSearch === 'true' && store.state.searchHistory) {
     clickSearch.value = true;
@@ -152,7 +177,7 @@ watchEffect(() => {
     });
     return;
   }
-  getAllQuestion(false);
+  // getAllQuestion(false);
 });
 </script>
 <style scoped>

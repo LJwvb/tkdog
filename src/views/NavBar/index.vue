@@ -43,10 +43,7 @@
       </el-button>
       <el-dropdown>
         <span>
-          <el-avatar
-            :size="50"
-            src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
-          />
+          <el-avatar :size="50" :src="store.state.userData?.avatar" />
         </span>
         <template #dropdown>
           <el-dropdown-menu>
@@ -133,6 +130,10 @@
           <User />
         </el-icon>
         <span>用户管理</span>
+      </el-menu-item>
+      <el-menu-item index="5" @click="toCommentAdmin">
+        <el-icon><ChatLineSquare /></el-icon>
+        <span>评论管理</span>
       </el-menu-item>
     </el-menu>
     <!-- <el-input placeholder="请输入搜索的内容" size="large" class="search">
@@ -257,6 +258,7 @@ const toInfo = () => {
     path: '/user',
   });
 };
+
 const editPassword = () => {
   dialogVisibleEditPassword.value = true;
 };
@@ -285,7 +287,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
 
         dialogVisibleEditPassword.value = false;
         resetForm(formEl);
-        router.go(-router.currentRoute.value.meta.index);
+        router.go(-router.currentRoute.value.meta.index!);
       });
     } else {
       return false;
@@ -303,7 +305,7 @@ const toLogin = () => {
         window.location.reload();
       });
   } else {
-    router.go(-router.currentRoute.value.meta.index);
+    router.go(-router.currentRoute.value.meta.index!);
   }
   store.commit('setUserData', {});
   store.commit('setActiveMenuIndex', '1');
@@ -330,6 +332,11 @@ const toTestAdmin = () => {
 const toUserAdmin = () => {
   router.push({
     path: '/adminUser',
+  });
+};
+const toCommentAdmin = () => {
+  router.push({
+    path: '/adminComment',
   });
 };
 </script>

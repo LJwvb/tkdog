@@ -17,6 +17,7 @@
       <BottomBar></BottomBar>
     </div>
     <TestBasket />
+    <CommentSection v-if="!store.state?.userData?.isAdmin" />
   </div>
 </template>
 <script setup lang="ts">
@@ -24,6 +25,7 @@ import { onMounted, watchEffect } from 'vue';
 import NavBar from '@/views/NavBar/index.vue';
 import BottomBar from '@/views/BottomBar/index.vue';
 import TestBasket from '@/components/TestBasket/index.vue';
+import CommentSection from '@/components/CommentSection/index.vue';
 import { setWaterMark } from './utils/waterMark';
 import Login from '@/views/login/Login.vue';
 import AdminLogin from '@/views/admin/admin.vue';
@@ -40,10 +42,13 @@ watchEffect(() => {
     const is404 = router.options.routes.every((item) => {
       if (item?.children) {
         return;
+      }
+      return item.path !== path;
     });
     if (path === '/admin') {
       return;
     }
+
     if (is404) {
       router.push('/404');
     }

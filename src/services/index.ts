@@ -226,3 +226,17 @@ export function editAdminPassword(params: any) {
     },
   );
 }
+// 评论接口
+export function addComment(params: any) {
+  return request('POST', '/addComment', { data: params }).then((res: any) => {
+    return res.data;
+  });
+}
+// 获取评论接口
+export function getCommentList(params: any) {
+  return request('GET', '/getCommentList', { data: params }).then(
+    (res: any) => {
+      return res.data;
+    },
+  );
+}

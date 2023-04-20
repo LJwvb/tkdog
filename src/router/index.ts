@@ -46,11 +46,18 @@ const routes: any = [
   {
     path: '/adminUser',
     name: 'adminUser',
-    isAdmin: true,
     meta: {
       isAdmin: true,
     },
     component: () => import('@/views/AdminPage/adminUser.vue'),
+  },
+  {
+    path: '/adminComment',
+    name: 'adminComment',
+    meta: {
+      isAdmin: true,
+    },
+    component: () => import('@/views/AdminPage/adminComment.vue'),
   },
   {
     path: '/questionPage',

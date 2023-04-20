@@ -1,7 +1,4 @@
 <template>
-  <!-- <BreadCrumb parent="页面示例" current="数据可视化"></BreadCrumb> -->
-
-  <!--  page  -->
   <div class="card">
     <div ref="chart1" class="zhexian"></div>
     <div ref="chart2" class="clock"></div>

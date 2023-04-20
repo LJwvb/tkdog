@@ -232,7 +232,6 @@ const showAddTag = computed(() => {
   if (inputVisible.value) return false;
   return dynamicTags.value.length < 5;
 });
-alert(22222);
 const handleCloseTag = (tag: string) => {
   dynamicTags.value.splice(dynamicTags.value.indexOf(tag), 1);
 };
