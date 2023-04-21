@@ -41,21 +41,11 @@
         type="all"
         @tabClick="tabClick"
         :catalogID="Number(catalogID)"
+        :currentPage="currentPage"
+        :total="total"
+        @handleCurrentChange="handleCurrentChange"
         v-if="!clickSearch"
       />
-      <el-pagination
-        v-model:current-page="currentPage"
-        background
-        layout="slot, prev, pager, next"
-        :total="total"
-        prev-text="上一页"
-        next-text="下一页"
-        hide-on-single-page="true"
-        @current-change="handleCurrentChange"
-        v-if="!clickSearch"
-      >
-        <template #default> 共 {{ total }} 条 </template>
-      </el-pagination>
       <div v-if="clickSearch">
         <div v-if="searchData?.length === 0">
           <el-icon
@@ -136,16 +126,18 @@ const getAllQuestion = (refresh?: boolean) => {
   if (refresh) {
     getAllQuestionParams.refresh = true;
   }
-  getQuestionList(getAllQuestionParams).then((res) => {
+  getQuestionList(getAllQuestionParams as any).then((res) => {
     allQuestion.value = res?.result?.list;
     total.value = res?.total;
     clickSearch.value = false;
-    loading.value = false;
   });
+  loading.value = false;
 };
 
 const tabClick = (type: string) => {
   getAllQuestionParams.catalogID = type;
+  getAllQuestionParams.currentPage = 1;
+  currentPage.value = 1;
 };
 
 const clearSearch = () => {
@@ -160,6 +152,7 @@ const handleCurrentChange = (val: number) => {
   getAllQuestionParams.currentPage = val;
   // 滚到顶部
   document.documentElement.scrollTop = 0;
+  loading.value = true;
   getAllQuestion();
 };
 onMounted(() => {
@@ -177,8 +170,14 @@ watchEffect(() => {
     });
     return;
   }
-  // getAllQuestion(false);
 });
+
+watch(
+  () => getAllQuestionParams.catalogID,
+  () => {
+    getAllQuestion();
+  },
+);
 </script>
 <style scoped>
 .top-container {

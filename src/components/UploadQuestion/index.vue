@@ -113,6 +113,7 @@ import {
   onMounted,
   defineProps,
   nextTick,
+  watchEffect,
 } from 'vue';
 import Tinymce from '@/components/Tinymce/Tinymce.vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
@@ -239,9 +240,11 @@ const handleClose = (done: () => void) => {
       // catch error
     });
 };
-onMounted(async () => {
-  const res = await getSubjectList();
-  questionType.value = res.data;
+watchEffect(async () => {
+  if (dialogVisible.value) {
+    const res = await getSubjectList();
+    questionType.value = res.data;
+  }
 });
 </script>
 

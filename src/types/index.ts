@@ -39,7 +39,8 @@ export interface IGetQuestionsParams {
   type?: string; // all:全部
   currentPage?: number; // 当前页
   pageSize?: number; // 每页条数
-  catalogID?: string; // 章节ID
+  catalogID?: number; // 章节ID
+  subjectID?: number; // 科目ID
   ids?: string[]; // 题目ID
 }
 export interface IGetQuestionsReturn {
