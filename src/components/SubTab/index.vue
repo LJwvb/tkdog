@@ -1,4 +1,4 @@
-d
+dd
 <template>
   <el-tabs v-model="active" class="tabs" @tab-click="tabClick">
     <div v-if="type === 'home'">
@@ -32,6 +32,21 @@ d
         <el-empty v-else :image-size="200" description="暂无题目" />
       </el-tab-pane>
     </div>
+    <div v-else-if="type === 'userInfo'">
+      <el-tab-pane
+        v-for="(typeItem, index) in questionList"
+        :key="typeItem.id"
+        :label="typeItem.type"
+        :name="index"
+      >
+        <div v-if="typeItem.result.length > 0">
+          <div v-for="item in typeItem.result" :key="item?.id">
+            <QuestionCard :question="item" :type="type" />
+          </div>
+        </div>
+        <el-empty v-else :image-size="200" description="没有上传题目" />
+      </el-tab-pane>
+    </div>
   </el-tabs>
 
   <el-pagination
@@ -52,10 +67,8 @@ import { defineProps, watchEffect, ref } from 'vue';
 
 import QuestionCard from '@/components/QuestionCard/index.vue';
 import { isNaN } from '@/utils';
-import { useStore } from 'vuex';
 import router from '@/router';
 
-const store = useStore();
 // 接收父组件传递的数据
 const props = defineProps({
   questionList: {

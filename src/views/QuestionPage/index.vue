@@ -57,8 +57,22 @@
           /></el-icon>
           <el-empty :image-size="200" />
         </div>
-        <div v-else v-for="item in searchData" :key="item.id">
-          <QuestionCard :question="item" type="all" :isClickSearch="true" />
+        <div v-else>
+          <div v-for="item in searchData" :key="item.id">
+            <QuestionCard :question="item" type="all" :isClickSearch="true" />
+          </div>
+          <el-pagination
+            v-model:current-page="currentSearchPage"
+            background
+            layout="slot, prev, pager, next"
+            :total="searchTotal"
+            prev-text="上一页"
+            next-text="下一页"
+            hide-on-single-page="true"
+            @current-change="handleSearchCurrentChange"
+          >
+            <template #default> 共 {{ searchTotal }} 条 </template>
+          </el-pagination>
         </div>
       </div>
     </el-card>
@@ -76,13 +90,18 @@ interface IGetAllQuestionParams {
   type: string;
   currentPage: number;
   pageSize: number;
-  catalogID: string;
+  catalogID: any;
   refresh: boolean;
 }
+
 interface IForm {
   keyword: string;
   questionType: string;
   difficulty: string;
+}
+interface ISearchQuestionParams extends IForm {
+  currentPage: number;
+  pageSize: number;
 }
 const { isClickSearch, catalogID } = queryString.parse(
   window?.location?.href?.split('?')[1] || '',
@@ -94,7 +113,9 @@ const clickSearch = ref(false);
 const loading = ref(true);
 const store = useStore();
 const currentPage = ref(1);
+const currentSearchPage = ref(1);
 const total = ref(0);
+const searchTotal = ref(0);
 
 const form = reactive<IForm>({
   keyword: '',
@@ -105,8 +126,15 @@ const getAllQuestionParams = reactive<IGetAllQuestionParams>({
   type: 'all',
   currentPage: 1,
   pageSize: 10,
-  catalogID: String(catalogID),
+  catalogID: catalogID || 0,
   refresh: false,
+});
+const getSearchDataParams = reactive<ISearchQuestionParams>({
+  keyword: '',
+  questionType: '',
+  difficulty: '',
+  currentPage: 1,
+  pageSize: 10,
 });
 
 const onSubmit = () => {
@@ -115,11 +143,7 @@ const onSubmit = () => {
     return;
   }
   loading.value = true;
-  searchQuestion(form).then((res) => {
-    searchData.value = res.data;
-    clickSearch.value = true;
-    loading.value = false;
-  });
+  getSearchData({ currentPage: 1 });
   store.commit('setSearchHistory', form);
 };
 const getAllQuestion = (refresh?: boolean) => {
@@ -132,6 +156,18 @@ const getAllQuestion = (refresh?: boolean) => {
     clickSearch.value = false;
   });
   loading.value = false;
+};
+const getSearchData = (val?: { currentPage: number }) => {
+  searchQuestion({
+    ...form,
+    currentPage: val ? val.currentPage : currentSearchPage.value,
+    pageSize: 10,
+  }).then((res) => {
+    searchData.value = res.data?.result;
+    searchTotal.value = res.data?.total;
+    clickSearch.value = true;
+    loading.value = false;
+  });
 };
 
 const tabClick = (type: string) => {
@@ -154,6 +190,13 @@ const handleCurrentChange = (val: number) => {
   document.documentElement.scrollTop = 0;
   loading.value = true;
   getAllQuestion();
+};
+const handleSearchCurrentChange = (val: number) => {
+  getSearchDataParams.currentPage = val;
+  // 滚到顶部
+  document.documentElement.scrollTop = 0;
+  loading.value = true;
+  getSearchData();
 };
 onMounted(() => {
   getAllQuestion();

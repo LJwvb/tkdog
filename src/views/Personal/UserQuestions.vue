@@ -4,27 +4,14 @@
     v-loading="loading"
     element-loading-text="Loading..."
   >
-    <el-card v-if="questionList?.length > 0" style="min-height: 500px">
-      <el-tabs v-model="active" class="tabs">
-        <el-tab-pane
-          v-for="(item, index) in questionList"
-          :key="item.id"
-          :label="item.name"
-          :name="index"
-          class="tab-pane"
-        >
-          <div v-if="item?.value?.length > 0">
-            <div class="test-card" v-for="ques in item.value" :key="ques.id">
-              <QuestionCard :question="ques" :type="item.key" />
-            </div>
-          </div>
-          <el-empty v-else :image-size="200" description="" />
-        </el-tab-pane>
-      </el-tabs>
-    </el-card>
-    <el-card v-else>
-      <el-empty :image-size="200" description="没有上传题目" />
-    </el-card>
+    <SubTab
+      :questionList="questionList"
+      :currentPage="currentPage"
+      :total="total"
+      type="userInfo"
+      @tabClick="tabClick"
+      @handleCurrentChange="handleCurrentChange"
+    />
   </div>
 </template>
 <script setup lang="ts">
@@ -32,38 +19,46 @@ import { ref, reactive, onMounted } from 'vue';
 import { useStore } from 'vuex';
 
 import { getUserUploadQues } from '@/services';
-import QuestionCard from '@/components/QuestionCard/index.vue';
+import SubTab from '@/components/SubTab/index.vue';
 const store = useStore();
 
 const questionList = ref<any>([]);
-const active = ref<any>(0);
+const currentPage = ref(1);
+const total = ref(0);
 const loading = ref(true);
 
-const transFromName = (name: string) => {
-  if (name === 'uncheck') {
-    return '未审核通过的题目';
-  }
-  if (name === 'checked') {
-    return '审核通过的题目';
-  }
-};
-onMounted(async () => {
+const getUserUploadQuesParams = reactive({
+  username: store?.state?.userData?.username,
+  currentPage: 1,
+  pageSize: 10,
+  chkState: 0,
+});
+const getUserUploadQuesData = async (val?: { currentPage: number }) => {
   const res = await getUserUploadQues({
-    username: store?.state?.userData?.username,
+    ...getUserUploadQuesParams,
+    ...val,
   });
+  console.log(res?.data?.[0]);
   loading.value = false;
-  if (res?.data?.uncheck?.length === 0 && res?.data?.checked?.length === 0) {
-    questionList.value = [];
-    return;
-  }
+  questionList.value = res?.data;
+  total.value = res?.total;
+};
+const handleCurrentChange = (val: number) => {
+  getUserUploadQuesParams.currentPage = val;
+  // 滚到顶部
+  document.documentElement.scrollTop = 0;
+  loading.value = true;
+  getUserUploadQuesData({ currentPage: val });
+};
+const tabClick = (type: number) => {
+  getUserUploadQuesParams.chkState = type;
+  getUserUploadQuesParams.currentPage = 1;
+  currentPage.value = 1;
+  getUserUploadQuesData();
+};
 
-  questionList.value = Object.keys(res.data).map((key) => {
-    return {
-      name: transFromName(key),
-      key: key,
-      value: res.data[key],
-    };
-  });
+onMounted(() => {
+  getUserUploadQuesData();
 });
 </script>
 <style scoped>

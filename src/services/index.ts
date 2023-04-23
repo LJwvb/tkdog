@@ -202,7 +202,7 @@ export function getUserInfo(params: any) {
 export function getUserUploadQues(params: any) {
   return request('POST', '/getUserUploadQues', { data: params }).then(
     (res: any) => {
-      return res.data;
+      return res.data.data;
     },
   );
 }
