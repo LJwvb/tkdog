@@ -19,13 +19,13 @@ dd
     </div>
     <div v-else-if="type === 'all'">
       <el-tab-pane
-        v-for="(typeItem, index) in props.questionList"
-        :key="typeItem.catalog.catalogID"
-        :label="typeItem.catalog.catalogName"
-        :name="index"
+        v-for="typeItem in questionList"
+        :key="typeItem.subjectID"
+        :label="typeItem.subjectName"
+        :name="typeItem.subjectID"
       >
-        <div v-if="typeItem.questionList.length > 0">
-          <div v-for="item in typeItem.questionList" :key="item?.id">
+        <div v-if="questionList.length > 0">
+          <div v-for="item in typeItem.item" :key="item?.id">
             <QuestionCard :question="item" :type="props.type" />
           </div>
         </div>
@@ -109,18 +109,20 @@ const active = ref<any>(0);
 const currentPage = ref(props.currentPage);
 watchEffect(() => {
   if (props.type === 'all') {
-    active.value = props?.catalogID || 0;
+    active.value = props?.subjectID || 0;
   } else {
     if (props?.itemSubjectID === props?.subjectID) {
       active.value = isNaN(props?.catalogID) ? 0 : props.catalogID;
     }
   }
 });
-
 const goQuestion = () => {
   // 跳转到题目页
   router.push({
     path: '/questionPage',
+    query: {
+      subjectID: props?.itemSubjectID,
+    },
   });
 };
 const emit = defineEmits(['tabClick', 'handleCurrentChange']);

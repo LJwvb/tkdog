@@ -41,6 +41,7 @@
         type="all"
         @tabClick="tabClick"
         :catalogID="Number(catalogID)"
+        :subjectID="Number(subjectID)"
         :currentPage="currentPage"
         :total="total"
         @handleCurrentChange="handleCurrentChange"
@@ -90,8 +91,9 @@ interface IGetAllQuestionParams {
   type: string;
   currentPage: number;
   pageSize: number;
-  catalogID: any;
-  refresh: boolean;
+  catalogID?: any;
+  subjectID?: any;
+  refresh?: boolean;
 }
 
 interface IForm {
@@ -103,7 +105,7 @@ interface ISearchQuestionParams extends IForm {
   currentPage: number;
   pageSize: number;
 }
-const { isClickSearch, catalogID } = queryString.parse(
+const { isClickSearch, catalogID, subjectID } = queryString.parse(
   window?.location?.href?.split('?')[1] || '',
 );
 const from = ref();
@@ -126,7 +128,8 @@ const getAllQuestionParams = reactive<IGetAllQuestionParams>({
   type: 'all',
   currentPage: 1,
   pageSize: 10,
-  catalogID: catalogID || 0,
+  // catalogID: catalogID || 0,
+  subjectID: Number(subjectID) || 0,
   refresh: false,
 });
 const getSearchDataParams = reactive<ISearchQuestionParams>({
@@ -151,8 +154,10 @@ const getAllQuestion = (refresh?: boolean) => {
     getAllQuestionParams.refresh = true;
   }
   getQuestionList(getAllQuestionParams as any).then((res) => {
-    allQuestion.value = res?.result?.list;
+    console.log(res);
+    allQuestion.value = res?.result;
     total.value = res?.total;
+
     clickSearch.value = false;
   });
   loading.value = false;
@@ -171,7 +176,8 @@ const getSearchData = (val?: { currentPage: number }) => {
 };
 
 const tabClick = (type: string) => {
-  getAllQuestionParams.catalogID = type;
+  console.log(type);
+  getAllQuestionParams.subjectID = type;
   getAllQuestionParams.currentPage = 1;
   currentPage.value = 1;
 };
@@ -216,7 +222,7 @@ watchEffect(() => {
 });
 
 watch(
-  () => getAllQuestionParams.catalogID,
+  () => getAllQuestionParams.subjectID,
   () => {
     getAllQuestion();
   },

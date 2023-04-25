@@ -306,7 +306,7 @@ const returnToBefore = () => {
         path: '/questionPage',
         query: {
           isClickSearch,
-          catalogID: questionDetail.value.catalogID,
+          subjectID: questionDetail.value.subjectID,
         },
       });
       return;

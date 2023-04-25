@@ -41,7 +41,7 @@
           </el-col>
           <el-col :span="7">
             <div
-              style="cursor: pointer"
+              style="cursor: pointer; min-width: 120px"
               v-html="loginCaptcha"
               @click="changeLoginCaptcha"
             ></div>

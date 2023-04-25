@@ -42,9 +42,11 @@
         上传
       </el-button>
       <el-dropdown>
-        <span>
-          <el-avatar :size="50" :src="store.state.userData?.avatar" />
-        </span>
+        <el-avatar
+          :size="50"
+          :src="store.state.userData?.avatar"
+          style="width: 50px; height: 50px"
+        />
         <template #dropdown>
           <el-dropdown-menu>
             <el-dropdown-item @click="toInfo">

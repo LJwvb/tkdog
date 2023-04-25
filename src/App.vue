@@ -68,6 +68,13 @@ watchEffect(() => {
     }
   }
 });
+//静止键盘回车键
+document.onkeydown = function (e) {
+  const ev: any = document.all ? window.event : e;
+  if (ev.keyCode == 13) {
+    ev.returnValue = false;
+  }
+};
 </script>
 <style>
 .tkdog-container {
