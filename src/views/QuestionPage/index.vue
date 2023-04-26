@@ -43,6 +43,7 @@
         :catalogID="Number(catalogID)"
         :subjectID="Number(subjectID)"
         :currentPage="currentPage"
+        :subjectIDList="subjectIDList"
         :total="total"
         @handleCurrentChange="handleCurrentChange"
         v-if="!clickSearch"
@@ -84,7 +85,7 @@ import { ref, reactive, watchEffect, onMounted, watch } from 'vue';
 import { useStore } from 'vuex';
 import { ElMessage } from 'element-plus';
 import queryString from 'query-string';
-import { searchQuestion, getQuestionList } from '@/services';
+import { searchQuestion, getQuestionList, getSubjectList } from '@/services';
 import SubTab from '@/components/SubTab/index.vue';
 import QuestionCard from '@/components/QuestionCard/index.vue';
 interface IGetAllQuestionParams {
@@ -118,6 +119,7 @@ const currentPage = ref(1);
 const currentSearchPage = ref(1);
 const total = ref(0);
 const searchTotal = ref(0);
+const subjectIDList = ref();
 
 const form = reactive<IForm>({
   keyword: '',
@@ -154,10 +156,8 @@ const getAllQuestion = (refresh?: boolean) => {
     getAllQuestionParams.refresh = true;
   }
   getQuestionList(getAllQuestionParams as any).then((res) => {
-    console.log(res);
     allQuestion.value = res?.result;
     total.value = res?.total;
-
     clickSearch.value = false;
   });
   loading.value = false;
@@ -176,7 +176,7 @@ const getSearchData = (val?: { currentPage: number }) => {
 };
 
 const tabClick = (type: string) => {
-  console.log(type);
+  loading.value = true;
   getAllQuestionParams.subjectID = type;
   getAllQuestionParams.currentPage = 1;
   currentPage.value = 1;
@@ -206,6 +206,9 @@ const handleSearchCurrentChange = (val: number) => {
 };
 onMounted(() => {
   getAllQuestion();
+  getSubjectList().then((res) => {
+    subjectIDList.value = res.data;
+  });
 });
 watchEffect(() => {
   if (isClickSearch === 'true' && store.state.searchHistory) {

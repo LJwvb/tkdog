@@ -19,13 +19,13 @@ dd
     </div>
     <div v-else-if="type === 'all'">
       <el-tab-pane
-        v-for="typeItem in questionList"
+        v-for="typeItem in subjectIDList"
         :key="typeItem.subjectID"
-        :label="typeItem.subjectName"
+        :label="typeItem.content"
         :name="typeItem.subjectID"
       >
         <div v-if="questionList.length > 0">
-          <div v-for="item in typeItem.item" :key="item?.id">
+          <div v-for="item in questionList" :key="item?.id">
             <QuestionCard :question="item" :type="props.type" />
           </div>
         </div>
@@ -100,6 +100,10 @@ const props = defineProps({
     default: 0,
   },
   catalogIDList: {
+    type: Array as any,
+    default: () => [],
+  },
+  subjectIDList: {
     type: Array as any,
     default: () => [],
   },
