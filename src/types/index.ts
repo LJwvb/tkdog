@@ -56,7 +56,7 @@ export interface IQuestion {
   answer: string; // 答案
   addDate: string; // 添加时间
   tags: any; // 标签
-  questionType: number; // 题目类型 0: '单选题' 1: '多选题' 2: '判断题' 3: '填空题'4: '简答题'
+  questionType: string; // 题目类型 0: '单选题' 1: '多选题' 2: '判断题' 3: '填空题'4: '简答题'
   remarks?: string; // 备注
   number?: number; // 试题编号
   direction: string; // 题目方向

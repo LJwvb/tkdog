@@ -30,7 +30,6 @@
         <el-form-item label="题目类型" prop="questionType">
           <el-radio-group v-model="ruleForm.questionType">
             <el-radio label="0"> 单选题 </el-radio>
-            <el-radio label="1"> 多选题 </el-radio>
             <el-radio label="2"> 判断题 </el-radio>
             <el-radio label="3"> 简答题 </el-radio>
             <el-radio label="4"> 未知 </el-radio>
@@ -73,10 +72,41 @@
 
         <el-form-item
           label="题目详情"
-          prop="questionDetail"
-          v-if="ruleForm.questionType != '3'"
+          v-if="ruleForm.questionType"
+          class="ques-detail"
         >
-          <Tinymce v-model="ruleForm.questionDetail" width="100%" />
+          <Tinymce
+            v-model="ruleForm.questionDetail"
+            width="100%"
+            v-if="
+              ruleForm.questionType === '3' || ruleForm.questionType === '4'
+            "
+          />
+          <div v-else-if="ruleForm.questionType === '0'" style="width: 100%">
+            <div
+              v-for="(option, index) in singleChoice"
+              :key="index"
+              style="margin: 0 20px 10px 0"
+            >
+              <el-input v-model="option.value">
+                <template #prepend>{{ option.code }}</template></el-input
+              >
+            </div>
+            <el-button type="primary" @click="addSingleChoiceOption"
+              >添加选项</el-button
+            >
+          </div>
+          <div v-else-if="ruleForm.questionType === '2'" style="width: 100%">
+            <div
+              v-for="(option, index) in judgeChoice"
+              :key="index"
+              style="margin: 0 20px 10px 0"
+            >
+              <el-input v-model="option.value">
+                <template #prepend>{{ option.code }}</template></el-input
+              >
+            </div>
+          </div>
         </el-form-item>
         <el-form-item label="题目答案与解析" prop="answer">
           <Tinymce v-model="ruleForm.answer" width="100%" />
@@ -132,7 +162,25 @@ const ruleForm = reactive({
   questionDetail: '',
   answer: '',
 });
-
+// 单选题选项
+const singleChoice = reactive([
+  { code: 'A', value: '' },
+  { code: 'B', value: '' },
+  { code: 'C', value: '' },
+]);
+//判断题选项
+const judgeChoice = reactive([
+  { code: '正确', value: '' },
+  { code: '错误', value: '' },
+]);
+// 添加单选题选项
+const addSingleChoiceOption = () => {
+  const nextCode = String.fromCharCode(singleChoice.length + 65);
+  singleChoice.push({
+    code: nextCode,
+    value: '',
+  });
+};
 const questionType = ref<any>([]);
 
 const rules = reactive<FormRules>({
@@ -200,15 +248,32 @@ const submitForm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return;
   await formEl.validate((valid, fields) => {
     if (valid) {
+      const quesDetail =
+        ruleForm.questionType === '3' || ruleForm.questionType === '4'
+          ? ruleForm.questionDetail
+          : ruleForm.questionType === '1'
+          ? JSON.stringify(singleChoice)
+          : JSON.stringify(judgeChoice);
       const params = {
         ...ruleForm,
+        questionDetail: quesDetail,
         tags: dynamicTags.value.join(','), // 标签
         creator: store.state.userData.username, // 创建者
       };
+
       uploadQuestion(params).then((res: any) => {
         emit('update:dialogVisible', false);
         ElMessage.success(res.message);
         resetForm(formEl);
+        dynamicTags.value = [];
+        // 清空单选题选项
+        singleChoice.forEach((item) => {
+          item.value = '';
+        });
+        // 清空判断题选项
+        judgeChoice.forEach((item) => {
+          item.value = '';
+        });
       });
     } else {
       return false;
@@ -219,6 +284,12 @@ const submitForm = async (formEl: FormInstance | undefined) => {
 const resetForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return;
   formEl.resetFields();
+  singleChoice.forEach((item) => {
+    item.value = '';
+  });
+  judgeChoice.forEach((item) => {
+    item.value = '';
+  });
 };
 
 const props = defineProps({
@@ -257,5 +328,12 @@ watchEffect(async () => {
 }
 .tag {
   margin-right: 5px;
+}
+.singleChoice {
+  display: flex;
+  flex-direction: column;
+}
+.ques-detail ::v-deep .el-form-item__content {
+  align-items: normal;
 }
 </style>

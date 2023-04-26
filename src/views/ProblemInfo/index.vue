@@ -47,7 +47,33 @@
           <div class="question">
             {{ questionDetail.question }}
           </div>
-          <div class="question-detail" v-html="questionDetail.questionDetail" />
+          <div
+            class="question-detail"
+            v-html="questionDetail.questionDetail"
+            v-if="
+              questionDetail.questionType === '3' ||
+              questionDetail.questionType === '4'
+            "
+          />
+          <div
+            v-else-if="
+              questionDetail.questionType === '0' ||
+              questionDetail.questionType === '2'
+            "
+            class="single-choice"
+          >
+            <div
+              v-for="(option, index) in JSON.parse(
+                questionDetail.questionDetail,
+              )"
+              :key="index"
+            >
+              <div class="option">
+                <div class="option-code">{{ option.code }}:</div>
+                <div class="option-value">{{ option.value }}</div>
+              </div>
+            </div>
+          </div>
         </div>
         <div>
           <!-- <el-collapse accordion v-model="collapseName">
@@ -390,7 +416,22 @@ watchEffect(() => {
 .slide-container h4 {
   margin: 0;
 }
-
+.single-choice {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.option {
+  display: flex;
+  align-items: center;
+}
+.option-code {
+  margin-right: 10px;
+  font-size: 25px;
+}
+.option-value {
+  font-size: 16px;
+  color: #000000;
+}
 .btn-box {
   position: absolute;
   right: 0px;
