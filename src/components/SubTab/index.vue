@@ -24,7 +24,7 @@ dd
         :label="typeItem.content"
         :name="typeItem.subjectID"
       >
-        <div v-if="questionList.length > 0">
+        <div v-if="questionList?.length > 0">
           <div v-for="item in questionList" :key="item?.id">
             <QuestionCard :question="item" :type="props.type" />
           </div>

@@ -155,12 +155,13 @@ const getAllQuestion = (refresh?: boolean) => {
   if (refresh) {
     getAllQuestionParams.refresh = true;
   }
+  loading.value = true;
   getQuestionList(getAllQuestionParams as any).then((res) => {
     allQuestion.value = res?.result;
     total.value = res?.total;
     clickSearch.value = false;
+    loading.value = false;
   });
-  loading.value = false;
 };
 const getSearchData = (val?: { currentPage: number }) => {
   searchQuestion({

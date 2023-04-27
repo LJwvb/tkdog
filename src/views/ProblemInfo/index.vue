@@ -76,14 +76,8 @@
           </div>
         </div>
         <div>
-          <!-- <el-collapse accordion v-model="collapseName">
-            <el-collapse-item name="1">
-              <template #title> -->
           <h5>答案与解析</h5>
-          <!-- </template> -->
           <div class="answer" v-html="questionDetail.answer" />
-          <!-- </el-collapse-item>
-          </el-collapse> -->
         </div>
       </div>
     </el-card>
