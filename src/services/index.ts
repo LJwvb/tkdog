@@ -28,28 +28,36 @@ export function getRankList() {
   });
 }
 // 获取未审核的题目接口
-export function getNoChkQuestions() {
-  return request('GET', '/getNoChkQuestions').then((res: any) => {
-    return res.data.data as INoIChkQuestions;
-  });
+export function getNoChkQuestions(params: any) {
+  return request('POST', '/getNoChkQuestions', { data: params }).then(
+    (res: any) => {
+      return res.data.data as INoIChkQuestions;
+    },
+  );
 }
 // 获取所有已审核的题目接口
-export function getAllChkQuestions() {
-  return request('GET', '/getAllChkQuestions').then((res: any) => {
-    return res.data.data as IChkQuestions;
-  });
+export function getAllChkQuestions(params: any) {
+  return request('POST', '/getAllChkQuestions', { data: params }).then(
+    (res: any) => {
+      return res.data.data as IChkQuestions;
+    },
+  );
 }
 // 获取所有未审核的试卷接口
-export function getNoChkPaper() {
-  return request('GET', '/getNoChkPaper').then((res: any) => {
-    return res.data.data;
-  });
+export function getNoChkPaper(params: any) {
+  return request('POST', '/getNoChkPaper', { data: params }).then(
+    (res: any) => {
+      return res.data.data;
+    },
+  );
 }
 // 获取所有已审核的试卷接口
-export function getAllChkPaper() {
-  return request('GET', '/getAllChkPaper').then((res: any) => {
-    return res.data.data;
-  });
+export function getAllChkPaper(params: any) {
+  return request('POST', '/getAllChkPaper', { data: params }).then(
+    (res: any) => {
+      return res.data.data;
+    },
+  );
 }
 //删除试卷接口
 export function deletePapers(params: IDelPapers) {

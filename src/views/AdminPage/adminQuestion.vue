@@ -3,7 +3,7 @@
     <el-container>
       <el-main style="padding: 10px">
         <el-card>
-          <el-tabs v-model="activeName">
+          <el-tabs v-model="activeName" @tab-click="handleClick">
             <el-tab-pane
               label="未审核的题目"
               name="nochk"
@@ -33,6 +33,18 @@
                 activeName="nochk"
               />
             </div>
+            <el-pagination
+              v-model:current-page="currentNoChkPage"
+              background
+              layout="slot, prev, pager, next"
+              :total="noChkTotal"
+              prev-text="上一页"
+              next-text="下一页"
+              hide-on-single-page="true"
+              @current-change="handleNoChkCurrentChange"
+            >
+              <template #default> 共 {{ noChkTotal }} 条 </template>
+            </el-pagination>
           </div>
           <div
             v-if="activeName === 'chk'"
@@ -47,6 +59,18 @@
                 activeName="chk"
               />
             </div>
+            <el-pagination
+              v-model:current-page="currentChkPage"
+              background
+              layout="slot, prev, pager, next"
+              :total="chkTotal"
+              prev-text="上一页"
+              next-text="下一页"
+              hide-on-single-page="true"
+              @current-change="handleChkCurrentChange"
+            >
+              <template #default> 共 {{ chkTotal }} 条 </template>
+            </el-pagination>
           </div>
           <div v-if="ChkQuestions?.length === 0 && activeName === 'chk'">
             <el-empty :image-size="200" description="没有已审核题目" />
@@ -73,6 +97,7 @@ interface IChkQuestion {
   chkUser: string;
   chkRemarks?: string;
   creator: string;
+  activeName: string;
 }
 const { index } = queryString.parse(
   window?.location?.href?.split('?')[1] || '',
@@ -84,41 +109,88 @@ const ChkQuestions = ref();
 //获取未审核题目
 const NoChkQuestions = ref();
 const loading = ref(true);
+const currentNoChkPage = ref(1);
+const currentChkPage = ref(1);
+const noChkTotal = ref(0);
+const chkTotal = ref(0);
 
+const nochkParams = reactive({
+  currentPage: 1,
+  pageSize: 10,
+});
+const chkParams = reactive({
+  currentPage: 1,
+  pageSize: 10,
+});
+const handleNoChkCurrentChange = (val: number) => {
+  nochkParams.currentPage = val;
+  // 滚到顶部
+  document.documentElement.scrollTop = 0;
+  loading.value = true;
+  getNoChkQuestion();
+};
+const handleChkCurrentChange = (val: number) => {
+  chkParams.currentPage = val;
+  // 滚到顶部
+  document.documentElement.scrollTop = 0;
+  loading.value = true;
+  getAllChkQuestion();
+};
 const getNoChkQuestion = async () => {
-  const res = await getNoChkQuestions();
+  const res = await getNoChkQuestions(nochkParams);
   NoChkQuestions.value = res.result;
+  noChkTotal.value = res.total;
+  loading.value = false;
 };
 const getAllChkQuestion = async () => {
-  const res = await getAllChkQuestions();
-  ChkQuestions.value = res;
+  const res = await getAllChkQuestions(chkParams);
+  ChkQuestions.value = res.result;
+  chkTotal.value = res.total;
+  loading.value = false;
+};
+const handleClick = (tab: any) => {
+  loading.value = true;
+  if (tab.name === 'nochk') {
+    getNoChkQuestion();
+  } else {
+    getAllChkQuestion();
+  }
 };
 onMounted(() => {
   getNoChkQuestion();
-  getAllChkQuestion();
   loading.value = false;
 });
 
-const deleteQuestion = (id: number) => {
+const deleteQuestion = (id: number, activeName: string) => {
   deleteQuestions({ id }).then((res) => {
     if (res.code === 200) {
-      getNoChkQuestion();
-      getAllChkQuestion();
+      if (activeName === 'nochk') {
+        getNoChkQuestion();
+      } else {
+        getAllChkQuestion();
+      }
     }
   });
 };
 const check = (params: IChkQuestion) => {
   chkQuestions(params).then((res) => {
     if (res.code === 200) {
-      getNoChkQuestion();
-      getAllChkQuestion();
+      if (activeName.value === 'nochk') {
+        getNoChkQuestion();
+      } else {
+        getAllChkQuestion();
+      }
     }
   });
 };
 const uncheck = (params: IChkQuestion) => {
   chkQuestions(params).then((res) => {
     if (res.code == 200) {
-      getNoChkQuestion();
+      if (activeName.value === 'nochk') {
+        getNoChkQuestion();
+      } else {
+        getAllChkQuestion();
+      }
     }
   });
 };

@@ -29,7 +29,7 @@
         class="btn2"
         @click="
           () => {
-            deletePaper(props.paper?.paper_id);
+            deletePaper(props.paper?.paper_id, activeNames);
           }
         "
         >删除</el-button
@@ -38,14 +38,14 @@
         type="primary"
         class="btn1"
         v-if="activeNames === 'nochk'"
-        @click="() => check(checkParams)"
+        @click="() => check(checkParams, activeNames)"
         >审核通过</el-button
       >
       <el-button
         type="info"
         class="btn3"
         v-if="activeNames === 'nochk'"
-        @click="() => uncheck(unCheckParams)"
+        @click="() => uncheck(unCheckParams, activeNames)"
         >审核不通过</el-button
       >
     </div>

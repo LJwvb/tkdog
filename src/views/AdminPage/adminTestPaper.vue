@@ -3,52 +3,78 @@
     <el-container>
       <el-main style="padding: 10px">
         <el-card>
-          <el-tabs v-model="activeNames">
+          <el-tabs v-model="activeNames" @tab-click="handleClick">
             <el-tab-pane label="未审核的试卷" name="nochk"></el-tab-pane>
             <el-tab-pane label="已审核的试卷" name="chk"></el-tab-pane>
           </el-tabs>
           <div v-if="NoChkPaper?.length === 0 && activeNames === 'nochk'">
             <el-empty :image-size="200" description="没有未审核试卷" />
           </div>
-          <div
-            v-if="activeNames === 'nochk'"
-            class="tab-pane-nochk"
-            v-loading="loading"
-            element-loading-text="Loading..."
-          >
+          <div v-if="activeNames === 'nochk'">
             <div
-              v-for="item in NoChkPaper"
-              :key="item.paper_id"
-              class="test-card"
+              class="tab-pane-nochk"
+              v-loading="loading"
+              element-loading-text="Loading..."
             >
-              <TestCard
-                :paper="item"
-                :check="check"
-                :uncheck="uncheck"
-                :deletePaper="deletePaper"
-                activeNames="nochk"
-                :name="item?.purview === 0 ? '公开' : '私有'"
-              />
+              <div
+                v-for="item in NoChkPaper"
+                :key="item.paper_id"
+                class="test-card"
+              >
+                <TestCard
+                  :paper="item"
+                  :check="check"
+                  :uncheck="uncheck"
+                  :deletePaper="deletePaper"
+                  activeNames="nochk"
+                  :name="item?.purview === 0 ? '公开' : '私有'"
+                />
+              </div>
             </div>
+            <el-pagination
+              v-model:current-page="currentNoChkPage"
+              background
+              layout="slot, prev, pager, next"
+              :total="noChkTotal"
+              prev-text="上一页"
+              next-text="下一页"
+              hide-on-single-page="true"
+              @current-change="handleNoChkCurrentChange"
+            >
+              <template #default> 共 {{ noChkTotal }} 条 </template>
+            </el-pagination>
           </div>
-          <div
-            v-if="activeNames === 'chk'"
-            class="tab-pane"
-            v-loading="loading"
-            element-loading-text="Loading..."
-          >
+          <div v-if="activeNames === 'chk'">
             <div
-              v-for="item in ChkPaper"
-              :key="item.paper_id"
-              class="test-card"
+              class="tab-pane"
+              v-loading="loading"
+              element-loading-text="Loading..."
             >
-              <TestCard
-                :paper="item"
-                :deletePaper="deletePaper"
-                activeNames="chk"
-                :name="item?.purview === 3 ? '私有个人试卷' : '公开试卷'"
-              />
+              <div
+                v-for="item in ChkPaper"
+                :key="item.paper_id"
+                class="test-card"
+              >
+                <TestCard
+                  :paper="item"
+                  :deletePaper="deletePaper"
+                  activeNames="chk"
+                  :name="item?.purview === 3 ? '私有个人试卷' : '公开试卷'"
+                />
+              </div>
             </div>
+            <el-pagination
+              v-model:current-page="currentChkPage"
+              background
+              layout="slot, prev, pager, next"
+              :total="chkTotal"
+              prev-text="上一页"
+              next-text="下一页"
+              hide-on-single-page="true"
+              @current-change="handleChkCurrentChange"
+            >
+              <template #default> 共 {{ chkTotal }} 条 </template>
+            </el-pagination>
           </div>
           <div v-if="ChkPaper?.length === 0 && activeNames === 'chk'">
             <el-empty :image-size="200" description="没有已审核试卷" />
@@ -73,6 +99,7 @@ import {
 interface IChkPapers {
   paperId: string;
   chkState: number;
+  activeNames: string;
 }
 const { index } = queryString.parse(
   window?.location?.href?.split('?')[1] || '',
@@ -81,43 +108,93 @@ const NoChkPaper = ref<any[]>([]); //获取未审核试卷
 const ChkPaper = ref<any[]>([]); //获取已审核试卷
 const activeNames = ref(index || 'nochk');
 const loading = ref(true);
+const currentNoChkPage = ref(1);
+const currentChkPage = ref(1);
+const noChkTotal = ref(0);
+const chkTotal = ref(0);
+
+const nochkParams = reactive({
+  currentPage: 1,
+  pageSize: 10,
+});
+const chkParams = reactive({
+  currentPage: 1,
+  pageSize: 10,
+});
+
+const handleNoChkCurrentChange = (val: number) => {
+  nochkParams.currentPage = val;
+  // 滚到顶部
+  document.documentElement.scrollTop = 0;
+  loading.value = true;
+  getNoChkPapers();
+};
+const handleChkCurrentChange = (val: number) => {
+  chkParams.currentPage = val;
+  // 滚到顶部
+  document.documentElement.scrollTop = 0;
+  loading.value = true;
+  getAllChkPapers();
+};
 
 const getNoChkPapers = async () => {
-  const res = await getNoChkPaper();
-  NoChkPaper.value = res;
+  const res = await getNoChkPaper(nochkParams);
+  NoChkPaper.value = res?.result;
+  noChkTotal.value = res?.total;
+  loading.value = false;
 };
 
 const getAllChkPapers = async () => {
-  const res = await getAllChkPaper();
-  ChkPaper.value = res;
+  const res = await getAllChkPaper(chkParams);
+  ChkPaper.value = res?.result;
+  chkTotal.value = res?.total;
   loading.value = false;
+};
+const handleClick = (tab: any) => {
+  loading.value = true;
+  if (tab.name === 'nochk') {
+    getNoChkPapers();
+  } else {
+    getAllChkPapers();
+  }
 };
 
 onMounted(() => {
   getNoChkPapers();
-  getAllChkPapers();
+  loading.value = false;
 });
 //删除试卷
-const deletePaper = (paper_id: number) => {
+const deletePaper = (paper_id: number, activeNames: string) => {
   deletePapers({ paperId: paper_id }).then((res) => {
     if (res.code === 200) {
-      getNoChkPaper();
-      getAllChkPapers();
+      if (activeNames === 'nochk') {
+        getNoChkPapers();
+      } else {
+        getAllChkPapers();
+      }
     }
   });
 };
+
 const check = (params: IChkPapers) => {
   chkPaper(params).then((res) => {
     if (res.code === 200) {
-      getNoChkPapers();
-      getAllChkPapers();
+      if (activeNames.value === 'nochk') {
+        getNoChkPapers();
+      } else {
+        getAllChkPapers();
+      }
     }
   });
 };
 const uncheck = (params: IChkPapers) => {
   chkPaper(params).then((res) => {
     if (res.code == 200) {
-      getNoChkPapers();
+      if (activeNames.value === 'nochk') {
+        getNoChkPapers();
+      } else {
+        getAllChkPapers();
+      }
     }
   });
 };

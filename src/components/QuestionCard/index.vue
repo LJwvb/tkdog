@@ -53,7 +53,7 @@
         class="btn2"
         @click="
           () => {
-            deleteQuestion(question.id);
+            deleteQuestion(question.id, activeName);
           }
         "
         >删除</el-button
@@ -62,14 +62,14 @@
         type="primary"
         class="btn1"
         v-if="activeName === 'nochk'"
-        @click="() => check(checkParams)"
+        @click="() => check(checkParams, activeName)"
         >审核通过</el-button
       >
       <el-button
         type="info"
         class="btn3"
         v-if="activeName === 'nochk'"
-        @click="() => uncheck(unCheckParams)"
+        @click="() => uncheck(unCheckParams, activeName)"
         >审核不通过</el-button
       >
       <el-button
