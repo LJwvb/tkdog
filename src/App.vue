@@ -1,27 +1,30 @@
 <template>
-  <div class="tkdog-login" v-if="store.state?.userData?.phone === ''">
-    <Login v-if="router.currentRoute.value.path !== '/admin'"> </Login>
-    <AdminLogin v-else></AdminLogin>
+  <div v-if="windowWidth">
+    <div class="tkdog-login" v-if="store.state?.userData?.phone === ''">
+      <Login v-if="router.currentRoute.value.path !== '/admin'"> </Login>
+      <AdminLogin v-else></AdminLogin>
+    </div>
+    <div class="tkdog-container" v-else>
+      <!-- 固定导航栏 -->
+      <div class="home-nav">
+        <NavBar></NavBar>
+      </div>
+      <!-- 动态页面主体 -->
+      <div class="home-body">
+        <router-view />
+      </div>
+      <!-- 尾部-->
+      <div class="home-bottom">
+        <BottomBar></BottomBar>
+      </div>
+      <TestBasket />
+      <CommentSection v-if="!store.state?.userData?.isAdmin" />
+    </div>
   </div>
-  <div class="tkdog-container" v-else>
-    <!-- 固定导航栏 -->
-    <div class="home-nav">
-      <NavBar></NavBar>
-    </div>
-    <!-- 动态页面主体 -->
-    <div class="home-body">
-      <router-view />
-    </div>
-    <!-- 尾部-->
-    <div class="home-bottom">
-      <BottomBar></BottomBar>
-    </div>
-    <TestBasket />
-    <CommentSection v-if="!store.state?.userData?.isAdmin" />
-  </div>
+  <h1 v-else>请使用电脑访问</h1>
 </template>
 <script setup lang="ts">
-import { onMounted, watchEffect } from 'vue';
+import { onMounted, ref, watchEffect } from 'vue';
 import NavBar from '@/views/NavBar/index.vue';
 import BottomBar from '@/views/BottomBar/index.vue';
 import TestBasket from '@/components/TestBasket/index.vue';
@@ -36,6 +39,7 @@ onMounted(() => {
 });
 
 const store = useStore();
+const windowWidth = ref(true);
 watchEffect(() => {
   const path = router.currentRoute.value.path;
   if (path !== '/404') {
@@ -75,6 +79,19 @@ document.onkeydown = function (e) {
     ev.returnValue = false;
   }
 };
+window.addEventListener('resize', () => {
+  if (window.innerWidth < 768) {
+    windowWidth.value = false;
+  } else {
+    windowWidth.value = true;
+  }
+});
+
+if (window.innerWidth < 768) {
+  windowWidth.value = false;
+} else {
+  windowWidth.value = true;
+}
 </script>
 <style>
 .tkdog-container {

@@ -310,6 +310,14 @@ const goSimilarQuestion = (id: number) => {
     store.commit('setBrowseTopicsId', [...store.state.browseTopicsId, id]);
     browseQuestion({ id, username: store.state.userData.username });
   }
+  const stateSelectedTopic = store.state.selectedTopic;
+  // 获取之前选中的题目id
+  const selectedTopicIds = stateSelectedTopic.map((item: IQuestion) => item.id);
+  if (selectedTopicIds.includes(Number(id))) {
+    isChecked.value = true;
+  } else {
+    isChecked.value = false;
+  }
 };
 const returnToBefore = () => {
   if (store.state.userData?.isAdmin) {

@@ -1,6 +1,22 @@
 <template>
   <div class="hello" style="width: 100%">
-    <el-container>
+    <div class="search">
+      <el-form :model="form" ref="from">
+        <el-form-item label="搜索">
+          <el-input
+            placeholder="请输入搜索的内容"
+            class="search"
+            v-model="form.keyword"
+          >
+          </el-input>
+        </el-form-item>
+      </el-form>
+      <el-button type="primary" @click="onSubmit" style="margin-left: 20px"
+        >搜索</el-button
+      >
+      <el-button @click="clearSearch">清空</el-button>
+    </div>
+    <el-container v-if="!clickSearch">
       <el-main style="padding: 10px">
         <el-card>
           <el-tabs v-model="activeName" @tab-click="handleClick">
@@ -78,18 +94,53 @@
         </el-card>
       </el-main>
     </el-container>
+    <div v-else>
+      <div v-if="searchData?.length === 0">
+        <el-icon
+          size="35"
+          color="#aaa"
+          style="float: right"
+          @click="clearSearch"
+          ><CircleClose
+        /></el-icon>
+        <el-empty :image-size="200" />
+      </div>
+      <div v-else>
+        <div v-for="item in searchData" :key="item.id">
+          <QuestionCard
+            :question="item"
+            activeName="chk"
+            :isClickSearch="true"
+          />
+        </div>
+        <el-pagination
+          v-model:current-page="currentSearchPage"
+          background
+          layout="slot, prev, pager, next"
+          :total="searchTotal"
+          prev-text="上一页"
+          next-text="下一页"
+          hide-on-single-page="true"
+          @current-change="handleSearchCurrentChange"
+        >
+          <template #default> 共 {{ searchTotal }} 条 </template>
+        </el-pagination>
+      </div>
+    </div>
   </div>
 </template>
 <script setup lang="ts">
 import QuestionCard from '@/components/QuestionCard/index.vue';
 import { ref, reactive, computed, onMounted } from 'vue';
 import queryString from 'query-string';
+import { ElMessage } from 'element-plus';
 
 import {
   getAllChkQuestions,
   getNoChkQuestions,
   deleteQuestions,
   chkQuestions,
+  searchQuestion,
 } from '@/services';
 interface IChkQuestion {
   id: number;
@@ -105,7 +156,7 @@ const { index } = queryString.parse(
 const activeName = ref(index || 'nochk');
 //获取已审核题目
 const ChkQuestions = ref();
-
+const from = ref();
 //获取未审核题目
 const NoChkQuestions = ref();
 const loading = ref(true);
@@ -113,12 +164,24 @@ const currentNoChkPage = ref(1);
 const currentChkPage = ref(1);
 const noChkTotal = ref(0);
 const chkTotal = ref(0);
+const searchData = ref();
+const clickSearch = ref(false);
+const currentSearchPage = ref(1);
+const searchTotal = ref(0);
 
 const nochkParams = reactive({
   currentPage: 1,
   pageSize: 10,
 });
 const chkParams = reactive({
+  currentPage: 1,
+  pageSize: 10,
+});
+const form = reactive({
+  keyword: '',
+});
+const getSearchDataParams = reactive({
+  keyword: '',
   currentPage: 1,
   pageSize: 10,
 });
@@ -156,8 +219,44 @@ const handleClick = (tab: any) => {
     getAllChkQuestion();
   }
 };
+const onSubmit = () => {
+  if (!form.keyword) {
+    ElMessage.error('请输入搜索关键词');
+    return;
+  }
+  loading.value = true;
+  getSearchData({ currentPage: 1 });
+};
+const clearSearch = () => {
+  form.keyword = '';
+  clickSearch.value = false;
+};
+
+const getSearchData = (val?: { currentPage: number }) => {
+  searchQuestion({
+    ...form,
+    currentPage: val ? val.currentPage : currentSearchPage.value,
+    pageSize: 10,
+  }).then((res) => {
+    searchData.value = res.data?.result;
+    searchTotal.value = res.data?.total;
+    clickSearch.value = true;
+    loading.value = false;
+  });
+};
+const handleSearchCurrentChange = (val: number) => {
+  getSearchDataParams.currentPage = val;
+  // 滚到顶部
+  document.documentElement.scrollTop = 0;
+  loading.value = true;
+  getSearchData();
+};
 onMounted(() => {
-  getNoChkQuestion();
+  if (index === 'nochk' || !index) {
+    getNoChkQuestion();
+  } else {
+    getAllChkQuestion();
+  }
   loading.value = false;
 });
 
@@ -255,6 +354,10 @@ const uncheck = (params: IChkQuestion) => {
 .paperCard {
   display: flex;
   flex-wrap: wrap;
+}
+.search {
+  display: flex;
+  flex-direction: row;
 }
 ::v-deep .el-loading-mask {
   z-index: 9;
