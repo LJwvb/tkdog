@@ -116,10 +116,11 @@ const clickSearch = ref(false);
 const loading = ref(true);
 const store = useStore();
 const currentPage = ref(1);
-const currentSearchPage = ref(1);
+const currentSearchPage = ref(store.state.searchHistory?.currentPage || 1);
 const total = ref(0);
 const searchTotal = ref(0);
 const subjectIDList = ref();
+const searchPaginationClick = ref(false);
 
 const form = reactive<IForm>({
   keyword: '',
@@ -149,7 +150,10 @@ const onSubmit = () => {
   }
   loading.value = true;
   getSearchData({ currentPage: 1 });
-  store.commit('setSearchHistory', form);
+  store.commit('setSearchHistory', {
+    ...form,
+    currentPage: 1,
+  });
 };
 const getAllQuestion = (refresh?: boolean) => {
   if (refresh) {
@@ -199,27 +203,50 @@ const handleCurrentChange = (val: number) => {
   getAllQuestion();
 };
 const handleSearchCurrentChange = (val: number) => {
-  getSearchDataParams.currentPage = val;
   // 滚到顶部
   document.documentElement.scrollTop = 0;
   loading.value = true;
-  getSearchData();
+  searchPaginationClick.value = true;
+  getSearchData({
+    currentPage: val,
+  });
+  store.commit('setSearchHistory', {
+    ...form,
+    currentPage: val,
+  });
 };
 onMounted(() => {
-  getAllQuestion();
-  getSubjectList().then((res) => {
-    subjectIDList.value = res.data;
-  });
+  if (!clickSearch.value) {
+    getAllQuestion();
+    getSubjectList().then((res) => {
+      subjectIDList.value = res.data;
+    });
+    return;
+  }
 });
 watchEffect(() => {
-  if (isClickSearch === 'true' && store.state.searchHistory) {
+  if (
+    isClickSearch === 'true' &&
+    store.state.searchHistory &&
+    !searchPaginationClick.value
+  ) {
     clickSearch.value = true;
+    searchPaginationClick.value = false;
     const searchHistory = store.state.searchHistory;
     form.keyword = searchHistory.keyword;
     form.questionType = searchHistory.questionType;
     form.difficulty = searchHistory.difficulty;
-    searchQuestion(searchHistory).then((res) => {
-      searchData.value = res.data;
+    currentSearchPage.value = searchHistory.currentPage;
+    searchQuestion({
+      ...searchHistory,
+      currentPage: searchHistory.currentPage,
+      pageSize: 10,
+    }).then((res) => {
+      searchData.value = res.data?.result;
+      searchTotal.value = res.data?.total;
+      clickSearch.value = true;
+      currentSearchPage.value = searchHistory.currentPage;
+      loading.value = false;
     });
     return;
   }
@@ -229,6 +256,17 @@ watch(
   () => getAllQuestionParams.subjectID,
   () => {
     getAllQuestion();
+  },
+);
+watch(
+  () => clickSearch.value,
+  () => {
+    if (!clickSearch.value) {
+      getAllQuestion();
+      getSubjectList().then((res) => {
+        subjectIDList.value = res.data;
+      });
+    }
   },
 );
 </script>

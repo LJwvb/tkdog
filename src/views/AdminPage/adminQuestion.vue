@@ -1,6 +1,6 @@
 <template>
   <div class="hello" style="width: 100%">
-    <div class="search">
+    <div class="search" v-if="activeName === 'chk'">
       <el-form :model="form" ref="from">
         <el-form-item label="搜索">
           <el-input
@@ -42,7 +42,7 @@
             <div v-for="item in NoChkQuestions" :key="item?.id">
               <QuestionCard
                 :question="item"
-                type="admin"
+                type="nochk"
                 :deleteQuestion="deleteQuestion"
                 :check="check"
                 :uncheck="uncheck"
@@ -70,7 +70,7 @@
             <div v-for="item in ChkQuestions" :key="item?.id">
               <QuestionCard
                 :question="item"
-                type="admin"
+                type="chk"
                 :deleteQuestion="deleteQuestion"
                 activeName="chk"
               />
@@ -131,7 +131,7 @@
 </template>
 <script setup lang="ts">
 import QuestionCard from '@/components/QuestionCard/index.vue';
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import queryString from 'query-string';
 import { ElMessage } from 'element-plus';
 
@@ -252,11 +252,8 @@ const handleSearchCurrentChange = (val: number) => {
   getSearchData();
 };
 onMounted(() => {
-  if (index === 'nochk' || !index) {
-    getNoChkQuestion();
-  } else {
-    getAllChkQuestion();
-  }
+  getNoChkQuestion();
+  getAllChkQuestion();
   loading.value = false;
 });
 

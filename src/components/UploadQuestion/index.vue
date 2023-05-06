@@ -251,7 +251,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
       const quesDetail =
         ruleForm.questionType === '3' || ruleForm.questionType === '4'
           ? ruleForm.questionDetail
-          : ruleForm.questionType === '1'
+          : ruleForm.questionType === '0'
           ? JSON.stringify(singleChoice)
           : JSON.stringify(judgeChoice);
       const params = {

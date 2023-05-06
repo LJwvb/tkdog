@@ -32,7 +32,7 @@ dd
         <el-empty v-else :image-size="200" description="暂无题目" />
       </el-tab-pane>
     </div>
-    <div v-else-if="type === 'userInfo'">
+    <div v-else-if="type === 'userQuestions'">
       <el-tab-pane
         v-for="(typeItem, index) in questionList"
         :key="typeItem.id"

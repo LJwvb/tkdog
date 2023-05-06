@@ -8,7 +8,7 @@
       :questionList="questionList"
       :currentPage="currentPage"
       :total="total"
-      type="userInfo"
+      type="userQuestions"
       @tabClick="tabClick"
       @handleCurrentChange="handleCurrentChange"
     />
