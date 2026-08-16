@@ -280,7 +280,6 @@ onMounted(() => {
   height: 100%;
   margin-left: 20px;
 }
-
 .operation {
   display: flex;
   flex-direction: row;

@@ -1,21 +1,25 @@
-const setWatermark = (str1: string, str2: string) => {
-  const id = '1.23452384164.123412415';
-  if (document.getElementById(id) !== null) {
-    document.body.removeChild(document.getElementById(id) as HTMLElement);
+const WATERMARK_ID = '1.23452384164.123412415';
+
+const createWatermarkDom = (str1: string, str2: string): string => {
+  if (document.getElementById(WATERMARK_ID) !== null) {
+    document.body.removeChild(
+      document.getElementById(WATERMARK_ID) as HTMLElement,
+    );
   }
-  const can: any = document.createElement('canvas');
+  const can: HTMLCanvasElement = document.createElement('canvas');
   can.width = 250;
   can.height = 250;
   const cans = can.getContext('2d');
+  if (!cans) return WATERMARK_ID;
   cans.rotate((-20 * Math.PI) / 180);
   cans.font = '16px Vedana';
   cans.fillStyle = '#666666';
   cans.textAlign = 'center';
-  cans.textBaseline = 'Middle';
+  cans.textBaseline = 'middle';
   cans.fillText(str1, can.width / 2, can.height);
   cans.fillText(str2, can.width / 2, can.height + 22);
   const div = document.createElement('div');
-  div.id = id;
+  div.id = WATERMARK_ID;
   div.style.pointerEvents = 'none';
   div.style.top = '40px';
   div.style.left = '0px';
@@ -27,19 +31,22 @@ const setWatermark = (str1: string, str2: string) => {
   div.style.background =
     'url(' + can.toDataURL('image/png') + ') left top repeat';
   document.body.appendChild(div);
-  return id;
+  return WATERMARK_ID;
 };
+
 // 添加水印方法
 export const setWaterMark = (str1: string, str2: string) => {
-  let id = setWatermark(str1, str2);
+  let id = createWatermarkDom(str1, str2);
   if (document.getElementById(id) === null) {
-    id = setWatermark(str1, str2);
+    id = createWatermarkDom(str1, str2);
   }
 };
+
 // 移除水印方法
 export const removeWatermark = () => {
-  const id = '1.23452384164.123412415';
-  if (document.getElementById(id) !== null) {
-    document.body.removeChild(document.getElementById(id) as HTMLElement);
+  if (document.getElementById(WATERMARK_ID) !== null) {
+    document.body.removeChild(
+      document.getElementById(WATERMARK_ID) as HTMLElement,
+    );
   }
 };

@@ -64,18 +64,26 @@ const validEvents = [
   'onVisualAid',
 ];
 
-const isValidKey = (key) => validEvents.indexOf(key) !== -1;
+const isValidKey = (key: string) => validEvents.indexOf(key) !== -1;
 
-export const bindHandlers = (initEvent, listeners, editor) => {
-  Object.keys(listeners)
+type EventHandler = (event: unknown, editor: unknown) => void;
+
+export const bindHandlers = (
+  initEvent: unknown,
+  listeners: Record<string, unknown> | undefined,
+  editor: { on: (event: string, cb: (e: unknown) => void) => void } | null,
+) => {
+  if (!editor) return;
+  Object.keys(listeners ?? {})
     .filter(isValidKey)
     .forEach((key) => {
-      const handler = listeners[key];
+      const handler = listeners?.[key];
       if (typeof handler === 'function') {
+        const fn = handler as EventHandler;
         if (key === 'onInit') {
-          handler(initEvent, editor);
+          fn(initEvent, editor);
         } else {
-          editor.on(key.substring(2), (e) => handler(e, editor));
+          editor.on(key.substring(2), (e: unknown) => fn(e, editor));
         }
       }
     });

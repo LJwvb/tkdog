@@ -9,6 +9,9 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any --
+ * tinymce 的 Editor / init 事件对象类型来自第三方 .d.ts，结构复杂且版本间不稳定，
+ * 这里对编辑器实例保留 any 以兼容插件与事件回调。 */
 import tinymce from 'tinymce/tinymce';
 import 'tinymce/themes/silver';
 import 'tinymce/icons/default/icons';
@@ -54,7 +57,10 @@ import {
   defineEmits,
   getCurrentInstance,
 } from 'vue';
-import { toolbar, plugins } from './tinymce';
+import {
+  toolbar as defaultToolbar,
+  plugins as defaultPlugins,
+} from './tinymce';
 import { buildShortUUID, onMountedOrActivated, isNumber } from '@/utils';
 import { bindHandlers } from './helper';
 
@@ -69,11 +75,11 @@ const props = defineProps({
 
   toolbar: {
     type: Array,
-    default: toolbar,
+    default: defaultToolbar,
   },
   plugins: {
     type: Array,
-    default: plugins,
+    default: defaultPlugins,
   },
   modelValue: {
     type: String,
@@ -171,7 +177,10 @@ onDeactivated(() => {
 
 function destory() {
   if (tinymce !== null) {
-    // tinymce?.remove?.(unref(initOptions).selector!);
+    const editor = unref(editorRef) as any;
+    if (editor) {
+      editor.destroy();
+    }
   }
 }
 

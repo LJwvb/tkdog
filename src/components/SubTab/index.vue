@@ -1,4 +1,3 @@
-dd
 <template>
   <el-tabs v-model="active" class="tabs" @tab-click="tabClick">
     <div v-if="type === 'home'">
@@ -33,14 +32,9 @@ dd
       </el-tab-pane>
     </div>
     <div v-else-if="type === 'userQuestions'">
-      <el-tab-pane
-        v-for="(typeItem, index) in questionList"
-        :key="typeItem.id"
-        :label="typeItem.type"
-        :name="index"
-      >
-        <div v-if="typeItem.result.length > 0">
-          <div v-for="item in typeItem.result" :key="item?.id">
+      <el-tab-pane label="我的题目" name="0">
+        <div v-if="questionList?.length > 0">
+          <div v-for="item in questionList" :key="item?.id">
             <QuestionCard :question="item" :type="type" />
           </div>
         </div>
@@ -56,23 +50,25 @@ dd
     :total="total"
     prev-text="上一页"
     next-text="下一页"
-    hide-on-single-page="true"
+    :hide-on-single-page="true"
     @current-change="handleCurrentChange"
   >
     <template #default> 共 {{ total }} 条 </template>
   </el-pagination>
 </template>
 <script lang="ts" setup>
-import { defineProps, watchEffect, ref } from 'vue';
+import { watchEffect, ref } from 'vue';
+import type { PropType } from 'vue';
 
 import QuestionCard from '@/components/QuestionCard/index.vue';
 import { isNaN } from '@/utils';
 import router from '@/router';
+import type { IQuestion, ISubject } from '@/types';
 
 // 接收父组件传递的数据
 const props = defineProps({
   questionList: {
-    type: Array as any,
+    type: Array as PropType<IQuestion[]>,
     default: () => [],
   },
   catalogID: {
@@ -100,16 +96,18 @@ const props = defineProps({
     default: 0,
   },
   catalogIDList: {
-    type: Array as any,
+    type: Array as PropType<
+      Array<{ catalogID?: number; catalogName?: string }>
+    >,
     default: () => [],
   },
   subjectIDList: {
-    type: Array as any,
+    type: Array as PropType<ISubject[]>,
     default: () => [],
   },
 });
 // 默认选中的子标签
-const active = ref<any>(0);
+const active = ref<string | number>(0);
 const currentPage = ref(props.currentPage);
 watchEffect(() => {
   if (props.type === 'all') {
@@ -131,7 +129,7 @@ const goQuestion = () => {
 };
 const emit = defineEmits(['tabClick', 'handleCurrentChange']);
 
-const tabClick = (tab: any) => {
+const tabClick = (tab: { props: { name?: string | number } }) => {
   currentPage.value = 1;
   // 将index传递给父组件
   emit('tabClick', tab.props.name);

@@ -99,28 +99,22 @@ watchEffect(() => {
   border: 1px solid var(--el-card-border-color);
   min-height: 400px;
 }
-
 .index-left {
   width: 100%;
 }
-
 :deep(.el-tabs__content) {
   overflow: visible !important;
 }
-
 :deep(.el-tabs--card > .el-tabs__header) {
   border-bottom: none !important;
 }
-
 :deep(.el-tabs--card > .el-tabs__header .el-tabs__nav) {
   border-radius: 5px !important;
 }
-
 :deep(.el-tabs--card > .el-tabs__header .el-tabs__item.is-active) {
   border: 1px solid var(--el-color-primary) !important;
   border-radius: 5px;
 }
-
 :deep(.el-tabs--card > .el-tabs__header .el-tabs__item) {
   border-bottom: 1px solid var(--el-border-color-light) !important;
 }

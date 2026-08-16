@@ -276,7 +276,6 @@ const uncheck = (params: IChkPapers) => {
   display: flex;
   flex-wrap: wrap;
 }
-
 .tab-pane-nochk {
   width: 100%;
   height: 100%;
@@ -312,14 +311,14 @@ const uncheck = (params: IChkPapers) => {
 .grid-content {
   border-radius: 4px;
   min-height: 36px;
-  border: 1px solid #fff;
+  border: 1px solid #ffffff;
 }
 
 .biaoqian1 {
-  padding: 0 12px;
+  padding: 0px 12px;
   font-size: 12px;
   background-color: #f5f5f5;
-  color: #000;
+  color: #000000;
   height: 25px;
   line-height: 25px;
   border-radius: 2px;
@@ -328,9 +327,9 @@ const uncheck = (params: IChkPapers) => {
 }
 
 .jiandaee {
-  color: rgb(170 170 170 / 100%);
+  color: rgba(170, 170, 170, 1);
   font-size: 13px;
-  margin: 15px 0;
+  margin: 15px 0px;
   margin-left: 20px;
 }
 
@@ -344,7 +343,7 @@ const uncheck = (params: IChkPapers) => {
   width: 1px;
   height: 15px;
   background-color: #e6e6e6;
-  margin: 0 20px;
+  margin: 0px 20px;
 }
 
 .el-col-3 {

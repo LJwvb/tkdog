@@ -25,27 +25,35 @@
     </el-card>
     <div v-if="store.state.userData.isAdmin">
       <el-button
+        v-if="activeNames === 'deleted'"
+        type="success"
+        class="btn1"
+        @click="() => emit('restore', props.paper?.paper_id)"
+        >恢复</el-button
+      >
+      <el-button
+        v-if="activeNames !== 'deleted'"
         type="danger"
         class="btn2"
         @click="
           () => {
-            deletePaper(props.paper?.paper_id, activeNames);
+            emit('delete', props.paper?.paper_id, activeNames);
           }
         "
         >删除</el-button
       >
       <el-button
+        v-if="activeNames === 'nochk'"
         type="primary"
         class="btn1"
-        v-if="activeNames === 'nochk'"
-        @click="() => check(checkParams, activeNames)"
+        @click="() => emit('check', checkParams, activeNames)"
         >审核通过</el-button
       >
       <el-button
+        v-if="activeNames === 'nochk'"
         type="info"
         class="btn3"
-        v-if="activeNames === 'nochk'"
-        @click="() => uncheck(unCheckParams, activeNames)"
+        @click="() => emit('uncheck', unCheckParams, activeNames)"
         >审核不通过</el-button
       >
     </div>
@@ -53,33 +61,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue';
+import { computed } from 'vue';
+import type { PropType } from 'vue';
 import { transitionTime } from '@/utils';
 import router from '@/router';
 import { useStore } from 'vuex';
+import { ChkState, type IPaperCard } from '@/types';
+import { Timer, User } from '@element-plus/icons-vue';
 
 const store = useStore();
 
 const props = defineProps({
   paper: {
-    type: Object as any,
-    default: () => {},
+    type: Object as PropType<IPaperCard>,
+    default: () => ({}),
   },
   name: {
     type: String,
     default: '',
-  },
-  deletePaper: {
-    type: Function,
-    default: () => {},
-  },
-  check: {
-    type: Function,
-    default: () => {},
-  },
-  uncheck: {
-    type: Function,
-    default: () => {},
   },
   activeNames: {
     type: String,
@@ -87,13 +86,22 @@ const props = defineProps({
   },
 });
 
+/* eslint-disable @typescript-eslint/no-explicit-any --
+ * 审核/删除事件参数的具体契约由调用方（管理端页面）决定，这里用 any 保持签名兼容。 */
+const emit = defineEmits<{
+  (e: 'delete', paperId: any, activeNames: string): void;
+  (e: 'check', params: any, activeNames: string): void;
+  (e: 'uncheck', params: any, activeNames: string): void;
+  (e: 'restore', paperId: any): void;
+}>();
+
 const checkParams = {
   paperId: props.paper?.paper_id,
-  chkState: 1,
+  chkState: ChkState.Approved,
 };
 const unCheckParams = {
   paperId: props.paper?.paper_id,
-  chkState: 2,
+  chkState: ChkState.Rejected,
 };
 const tags = computed(() => {
   if (Array.isArray(props.paper?.paper_tags)) {
@@ -158,16 +166,15 @@ const goPaperDetail = () => {
 
 .watermark {
   position: absolute;
-  top: -20px;
-  right: -20px;
-  transform: rotate(-45deg);
-  color: #ccc;
-  width: 100px;
-  height: 100px;
-  line-height: 100px;
-  text-align: center;
-  border-radius: 50%;
-  border: 1px solid #ccc;
+  top: 8px;
+  right: 8px;
+  color: #b0b6bd;
+  font-size: 12px;
+  line-height: 1;
+  padding: 4px 8px;
+  border: 1px solid #e4e7ed;
+  border-radius: 10px;
+  background-color: #fafafa;
 }
 
 .btn1 {

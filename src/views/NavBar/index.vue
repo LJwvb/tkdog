@@ -477,7 +477,7 @@ const toTag = () => {
   justify-content: space-between;
   height: 60px;
   background-color: #fff;
-  box-shadow: 0 2px 4px rgb(0 0 0 / 12%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
   padding: 0 20px;
 }
 
@@ -513,13 +513,12 @@ const toTag = () => {
 .upload {
   margin-right: 20px;
 }
-
 .msg-badge {
   margin-right: 16px;
 }
 
 /* 移动端导航栏精简 */
-@media (width <= 768px) {
+@media (max-width: 768px) {
   .nav-container {
     flex-wrap: nowrap;
   }
@@ -555,7 +554,6 @@ const toTag = () => {
     margin-right: 8px;
   }
 }
-
 .menu-badge {
   margin-left: 6px;
 }

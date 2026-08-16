@@ -10,26 +10,21 @@
       />
     </el-steps>
     <div class="step-content">
-      <OneStep v-if="active === 0" :clickNext="next" />
+      <OneStep v-if="active === 0" @next="next" />
       <!-- <TwoStep v-if="active === 1" :clickNext="next" :clickPre="prev" /> -->
-      <ThreeStep
-        v-if="active === 1"
-        :done="done"
-        :clickPre="prev"
-        :clickNext="next"
-      />
+      <ThreeStep v-if="active === 1" @done="done" @prev="prev" @next="next" />
       <FourStep
         v-if="active === 2"
-        :clickPre="prev"
         :error="error"
-        :goTestPaper="goTestPaper"
+        @prev="prev"
+        @goTestPaper="goTestPaper"
       />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import queryString from 'query-string';
 import { useStore } from 'vuex';
@@ -39,17 +34,21 @@ import ThreeStep from './PaperStep/threeStep.vue';
 import FourStep from './PaperStep/fourStep.vue';
 import { getPaperQuestion } from '@/services';
 import { ElMessage } from 'element-plus';
+import { PaperPurview, type IQuestion } from '@/types';
 
 const { step } = queryString.parse(window?.location?.href?.split('?')[1] || '');
 
 const router = useRouter();
 const store = useStore();
-let timer: any = null;
+let timer: ReturnType<typeof setInterval> | undefined;
 
 const active = ref(step ? Number(step) : 0);
 const error = ref();
 const paperInfo = ref(store.state.paperInfo);
-const questionList = ref(store.state.selectedTopic);
+// 题目列表实时同步 store（含智能抽题新增的题目）
+const questionList = computed<IQuestion[]>(
+  () => store.state.selectedTopic as IQuestion[],
+);
 watch(
   () => store.state.paperInfo,
   (val) => {
@@ -78,17 +77,19 @@ const goTestPaper = () => {
 };
 const done = () => {
   getPaperQuestion({
-    ids: questionList.value?.map((item: any) => item.id)?.join(','),
+    ids: questionList.value?.map((item) => item.id)?.join(','),
     paperTitle: paperInfo.value?.name,
     paperTags: paperInfo.value?.dynamicTags?.join(','),
-    purview: store.state.userData?.isAdmin ? -1 : paperInfo.value?.auth,
+    purview: store.state.userData?.isAdmin
+      ? PaperPurview.Official
+      : paperInfo.value?.auth,
     author: store.state.userData.username,
-  }).then((res) => {
-    if (res.code === 200) {
+  })
+    .then(() => {
       store.commit('setPaperInfo', {});
       store.commit('addSelectedTopic', []);
       ElMessage({
-        message: res.message,
+        message: '试卷创建成功',
         type: 'success',
         duration: 1000,
       });
@@ -112,15 +113,10 @@ const done = () => {
         });
         count--;
       }, 1000);
-    } else {
-      ElMessage({
-        message: res.message,
-        type: 'error',
-        duration: 3000,
-      });
-      error.value = res;
-    }
-  });
+    })
+    .catch(() => {
+      error.value = true;
+    });
 };
 </script>
 
@@ -131,26 +127,21 @@ const done = () => {
   height: 100%;
   width: 100%;
 }
-
 .steps {
   width: 100%;
 }
-
 .step-content {
   position: relative;
   top: 10px;
   width: 100%;
 }
-
 .next-step {
   position: absolute;
 }
-
-::v-deep .el-step__head.is-success .el-step__icon-inner.is-status {
+:deep(.el-step__head.is-success .el-step__icon-inner.is-status) {
   color: var(--el-color-success);
 }
-
-::v-deep .el-step__head.is-error .el-step__icon-inner.is-status {
+:deep(.el-step__head.is-error .el-step__icon-inner.is-status) {
   color: var(--el-color-danger);
 }
 </style>

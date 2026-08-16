@@ -62,9 +62,9 @@
             ref="InputRef"
             v-model="inputValue"
             size="small"
+            style="width: auto"
             @keyup.enter="handleInputConfirm"
             @blur="handleInputConfirm"
-            style="width: auto"
           />
           <el-button v-if="showAddTag" size="small" @click="showInput">
             +新标签
@@ -72,11 +72,47 @@
         </el-form-item>
 
         <el-form-item
+          v-if="ruleForm.questionType"
           label="题目详情"
-          prop="questionDetail"
-          v-if="ruleForm.questionType != '3'"
+          class="ques-detail"
         >
-          <Tinymce v-model="ruleForm.questionDetail" width="100%" />
+          <Tinymce
+            v-if="
+              ruleForm.questionType === '3' || ruleForm.questionType === '4'
+            "
+            v-model="ruleForm.questionDetail"
+            width="100%"
+          />
+          <div
+            v-else-if="
+              ruleForm.questionType === '0' || ruleForm.questionType === '1'
+            "
+            style="width: 100%"
+          >
+            <div
+              v-for="(option, index) in choiceOptions"
+              :key="index"
+              style="margin: 0 20px 10px 0"
+            >
+              <el-input v-model="option.value">
+                <template #prepend>{{ option.code }}</template></el-input
+              >
+            </div>
+            <el-button type="primary" @click="addChoiceOption"
+              >添加选项</el-button
+            >
+          </div>
+          <div v-else-if="ruleForm.questionType === '2'" style="width: 100%">
+            <div
+              v-for="(option, index) in judgeChoice"
+              :key="index"
+              style="margin: 0 20px 10px 0"
+            >
+              <el-input v-model="option.value">
+                <template #prepend>{{ option.code }}</template></el-input
+              >
+            </div>
+          </div>
         </el-form-item>
         <el-form-item label="题目答案与解析" prop="answer">
           <Tinymce v-model="ruleForm.answer" width="100%" />
@@ -110,16 +146,21 @@ import {
   ref,
   toRefs,
   computed,
-  onMounted,
-  defineProps,
   nextTick,
+  watchEffect,
+  defineAsyncComponent,
 } from 'vue';
-import Tinymce from '@/components/Tinymce/Tinymce.vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import { useStore } from 'vuex';
-import { uploadQuestion } from '@/services';
+import { uploadQuestion, getSubjectList } from '@/services';
 import type { FormInstance, FormRules } from 'element-plus';
-const formSize = ref('default');
+import type { ISubject } from '@/types';
+
+const Tinymce = defineAsyncComponent(
+  () => import('@/components/Tinymce/Tinymce.vue'),
+);
+
+const formSize = ref<'' | 'default' | 'small' | 'large'>('default');
 const ruleFormRef = ref<FormInstance>();
 const store = useStore();
 
@@ -132,64 +173,29 @@ const ruleForm = reactive({
   answer: '',
 });
 
-const questionType = reactive([
-  {
-    content: 'javaScript',
-    subjectID: 0,
-  },
-  {
-    content: 'CSS',
-    subjectID: 1,
-  },
-  {
-    content: 'HTML',
-    subjectID: 2,
-  },
-  {
-    content: 'ES6',
-    subjectID: 3,
-  },
-  {
-    content: 'React',
-    subjectID: 4,
-  },
-  {
-    content: 'Vue',
-    subjectID: 5,
-  },
-  {
-    content: 'Node',
-    subjectID: 6,
-  },
-  {
-    content: 'Webpack',
-    subjectID: 7,
-  },
-  {
-    content: 'TypeScript',
-    subjectID: 8,
-  },
-  {
-    content: '编程题',
-    subjectID: 9,
-  },
-  {
-    content: '计算机基础',
-    subjectID: 10,
-  },
-  {
-    content: '计算机网络',
-    subjectID: 11,
-  },
-  {
-    content: '浏览器',
-    subjectID: 12,
-  },
-  {
-    content: '其他',
-    subjectID: 13,
-  },
+// 选择题选项（单选和多选共用）
+const choiceOptions = reactive([
+  { code: 'A', value: '' },
+  { code: 'B', value: '' },
+  { code: 'C', value: '' },
 ]);
+
+// 判断题选项
+const judgeChoice = reactive([
+  { code: '正确', value: '' },
+  { code: '错误', value: '' },
+]);
+
+// 添加选择题选项
+const addChoiceOption = () => {
+  const nextCode = String.fromCharCode(choiceOptions.length + 65);
+  choiceOptions.push({
+    code: nextCode,
+    value: '',
+  });
+};
+
+const questionType = ref<ISubject[]>([]);
 
 const rules = reactive<FormRules>({
   question: [{ required: true, message: '请输入题目', trigger: 'blur' }],
@@ -223,8 +229,9 @@ const rules = reactive<FormRules>({
   ],
   answer: [{ required: true, message: '请输入该题答案', trigger: 'blur' }],
 });
+
 const inputValue = ref('');
-const dynamicTags: any = ref([]);
+const dynamicTags = ref<string[]>([]);
 const inputVisible = ref(false);
 const InputRef = ref();
 
@@ -232,6 +239,7 @@ const showAddTag = computed(() => {
   if (inputVisible.value) return false;
   return dynamicTags.value.length < 5;
 });
+
 const handleCloseTag = (tag: string) => {
   dynamicTags.value.splice(dynamicTags.value.indexOf(tag), 1);
 };
@@ -239,7 +247,7 @@ const handleCloseTag = (tag: string) => {
 const showInput = () => {
   inputVisible.value = true;
   nextTick(() => {
-    InputRef.value!.input!.focus();
+    InputRef.value?.input?.focus();
   });
 };
 
@@ -253,20 +261,36 @@ const handleInputConfirm = () => {
 
 const submitForm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return;
-  await formEl.validate((valid, fields) => {
+  await formEl.validate((valid: boolean) => {
     if (valid) {
+      const quesDetail =
+        ruleForm.questionType === '3' || ruleForm.questionType === '4'
+          ? ruleForm.questionDetail
+          : ruleForm.questionType === '0' || ruleForm.questionType === '1'
+          ? JSON.stringify(choiceOptions)
+          : JSON.stringify(judgeChoice);
       const params = {
         ...ruleForm,
-        tags: dynamicTags.value.join(','), // 标签
-        creator: store.state.userData?.username || store.state.userData?.name, // 创建者
+        questionDetail: quesDetail,
+        tags: dynamicTags.value.join(','),
+        creator: store.state.userData.username || store.state.userData.name,
+        userId: store.state.userData.userId as number,
       };
-      uploadQuestion(params).then((res: any) => {
+
+      uploadQuestion(params).then(() => {
         emit('update:dialogVisible', false);
-        ElMessage.success(res.message);
+        ElMessage.success('上传成功,请等待审核');
         resetForm(formEl);
+        dynamicTags.value = [];
+        choiceOptions.forEach((item) => {
+          item.value = '';
+        });
+        judgeChoice.forEach((item) => {
+          item.value = '';
+        });
       });
     } else {
-      return false;
+      return;
     }
   });
 };
@@ -274,6 +298,12 @@ const submitForm = async (formEl: FormInstance | undefined) => {
 const resetForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return;
   formEl.resetFields();
+  choiceOptions.forEach((item) => {
+    item.value = '';
+  });
+  judgeChoice.forEach((item) => {
+    item.value = '';
+  });
 };
 
 const props = defineProps({
@@ -292,21 +322,29 @@ const handleClose = (done: () => void) => {
       emit('update:dialogVisible', false);
     })
     .catch(() => {
-      // catch error
+      // 用户取消关闭
     });
 };
+
+watchEffect(async () => {
+  if (dialogVisible.value) {
+    const res = await getSubjectList();
+    questionType.value = res;
+  }
+});
 </script>
 
 <style scoped>
-::v-deep .el-input__validateIcon {
+:deep(.el-input__validateIcon) {
   color: var(--el-color-success);
 }
-
-::v-deep .el-form-item__label {
+:deep(.el-form-item__label) {
   white-space: nowrap;
 }
-
 .tag {
   margin-right: 5px;
+}
+.ques-detail :deep(.el-form-item__content) {
+  align-items: normal;
 }
 </style>

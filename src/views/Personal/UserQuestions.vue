@@ -1,59 +1,79 @@
-<template>
+﻿<template>
   <div
-    class="user-info-container"
     v-loading="loading"
-    element-loading-text="Loading..."
+    class="user-info-container"
+    element-loading-text="加载中..."
   >
-    <SubTab
-      :questionList="questionList"
-      :currentPage="currentPage"
-      :total="total"
-      type="userQuestions"
-      @tabClick="tabClick"
-      @handleCurrentChange="handleCurrentChange"
-    />
+    <el-tabs v-model="activeChkState" @tab-change="handleTabChange">
+      <el-tab-pane label="未审核" :name="String(ChkState.Pending)" />
+      <el-tab-pane label="已审核" :name="String(ChkState.Approved)" />
+      <el-tab-pane label="不通过" :name="String(ChkState.Rejected)" />
+    </el-tabs>
+
+    <el-card style="min-height: 500px">
+      <div v-if="questionList.length > 0">
+        <div v-for="item in questionList" :key="item.id">
+          <QuestionCard :question="item" type="userQuestions" />
+        </div>
+      </div>
+      <el-empty v-else :image-size="200" description="没有上传题目" />
+
+      <el-pagination
+        v-model:current-page="currentPage"
+        background
+        layout="slot, prev, pager, next"
+        :total="total"
+        prev-text="上一页"
+        next-text="下一页"
+        :hide-on-single-page="true"
+        @current-change="handleCurrentChange"
+      >
+        <template #default> 共 {{ total }} 条 </template>
+      </el-pagination>
+    </el-card>
   </div>
 </template>
+
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
 import { useStore } from 'vuex';
 
 import { getUserUploadQues } from '@/services';
-import SubTab from '@/components/SubTab/index.vue';
-const store = useStore();
+import QuestionCard from '@/components/QuestionCard/index.vue';
+import { ChkState, type IQuestion } from '@/types';
 
-const questionList = ref<any>([]);
+const store = useStore();
+const questionList = ref<IQuestion[]>([]);
 const currentPage = ref(1);
 const total = ref(0);
 const loading = ref(true);
+const activeChkState = ref(String(ChkState.Pending));
 
 const getUserUploadQuesParams = reactive({
-  username: store?.state?.userData?.username,
-  currentPage: 1,
+  userId: store?.state?.userData?.userId as number,
   pageSize: 10,
-  chkState: 0,
+  chkState: ChkState.Pending,
 });
-const getUserUploadQuesData = async (val?: { currentPage: number }) => {
+
+const getUserUploadQuesData = async () => {
+  loading.value = true;
   const res = await getUserUploadQues({
     ...getUserUploadQuesParams,
-    ...val,
+    currentPage: currentPage.value,
   });
-  console.log(res?.data?.[0]);
+  questionList.value = res?.data ?? [];
+  total.value = res?.total ?? 0;
   loading.value = false;
-  questionList.value = res?.data;
-  total.value = res?.total;
 };
-const handleCurrentChange = (val: number) => {
-  getUserUploadQuesParams.currentPage = val;
-  // 滚到顶部
-  document.documentElement.scrollTop = 0;
-  loading.value = true;
-  getUserUploadQuesData({ currentPage: val });
-};
-const tabClick = (type: number) => {
-  getUserUploadQuesParams.chkState = type;
-  getUserUploadQuesParams.currentPage = 1;
+
+const handleTabChange = (name: string | number) => {
+  getUserUploadQuesParams.chkState = Number(name);
   currentPage.value = 1;
+  getUserUploadQuesData();
+};
+
+const handleCurrentChange = (page: number) => {
+  currentPage.value = page;
   getUserUploadQuesData();
 };
 
@@ -61,6 +81,7 @@ onMounted(() => {
   getUserUploadQuesData();
 });
 </script>
+
 <style scoped>
 .user-info-container {
   width: 100%;

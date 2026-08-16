@@ -259,24 +259,20 @@ watch(
   height: 100%;
   margin-left: 20px;
 }
-
 .main-info {
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: row;
 }
-
 .intro {
   margin-top: 30px;
 }
-
 .name-box {
   display: flex;
   flex-direction: column;
   margin-left: 20px;
 }
-
 .name {
   display: flex;
   flex-direction: row;
@@ -289,51 +285,42 @@ watch(
   border-radius: 50%;
   object-fit: cover;
 }
-
 .edit-btn {
   position: absolute;
-  top: 0;
+  top: 0px;
   right: 20px;
 }
-
 .checkin-btn {
   margin-top: 16px;
 }
-
 .question-info {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
-
 .question-info > div {
   margin-top: 20px;
   font-size: 18px;
 }
-
 .integral {
   display: flex;
   align-items: center;
   flex-direction: row;
 }
-
 .medals {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 6px;
 }
-
 .medal-tag {
   margin-top: 0;
 }
-
 .daily-goal {
   display: flex;
   align-items: center;
   gap: 6px;
 }
-
 .goal-progress {
   margin-top: 6px;
   max-width: 320px;

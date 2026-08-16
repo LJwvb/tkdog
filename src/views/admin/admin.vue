@@ -17,16 +17,16 @@
         <!-- prop要跟model中的属性和rules中的属性，保持一致 -->
         <el-form-item prop="name">
           <el-input
+            v-model="ruleForm.name"
             prefix-icon="user"
             placeholder="请输入账号"
-            v-model="ruleForm.name"
           ></el-input>
         </el-form-item>
         <el-form-item prop="password">
           <el-input
+            v-model="ruleForm.password"
             prefix-icon="lock"
             placeholder="请输入密码"
-            v-model="ruleForm.password"
             show-password
           ></el-input>
         </el-form-item>
@@ -50,15 +50,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, unref, watch } from 'vue';
+import { ref, reactive, unref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { adminLogin } from '@/services';
-import { ElMessage } from 'element-plus';
+import { ElMessage, type FormInstance } from 'element-plus';
+
 const store = useStore();
 
 // 表单的ref
-const ruleFormRef = ref();
+const ruleFormRef = ref<FormInstance>();
 
 // 路由对象
 const router = useRouter();
@@ -68,70 +69,33 @@ const ruleForm = reactive({
   password: '', // 密码
 });
 
-// 校验规则
-const rules = ref({
-  name: [
-    {
-      validator: (rule: Function, value: string, callback: Function) => {
-        // rule 规则，没什么价值
-        // value 就是输入或是选择的值
-        // callback 决定校验是成功还是失败，如果失败了 callback(new Error('提示信息'))，如果成功了则直接调用callback
-        // 注意：无论成功与否，都要调用callback，否则下一个异步操作无法执行
-        if (!value) {
-          // 这个return 就是阻断代码执行
-          return callback(new Error('账号不能为空'));
-        }
-
-        // 可定校验通过的
-        callback();
-      },
-      trigger: 'blur',
-    },
-  ],
-  password: [
-    { required: true, message: '密码不能为空', trigger: 'blur' },
-    { min: 6, max: 16, message: '密码必须在6-16位之间', trigger: 'blur' },
-  ],
-  // checked: [
-  //   {
-  //     validator: (rule: Function, value: string, callback: Function) => {
-  //       value ? callback() : callback(new Error('必须勾选用户协议'));
-  //     },
-  //     trigger: 'change',
-  //   },
-  // ],
-});
-// const onClickLeft(){
-//   router.go("-1");
-// }
 // 登录
 const toLogin = async () => {
-  const form: any = unref(ruleFormRef);
-
+  const form = unref(ruleFormRef);
   if (!form) return;
-  try {
-    adminLogin(ruleForm).then(async (res) => {
-      form.validate();
 
-      if (res.code === 200) {
-        store.commit('setUserData', {
-          ...res.data,
-          phone: 'admin',
-          username: res?.data?.name,
-        });
-        store.commit('setBrowseTopicsId', []);
-        ElMessage.success({
-          message: '登录成功~',
-          type: 'success',
-        });
-        localStorage.setItem('uid', ruleForm.name);
-        router.push('/adminHome');
-      } else {
-        ElMessage.error(res.message);
-      }
+  try {
+    adminLogin(ruleForm).then(async (result) => {
+      await form.validate();
+
+      store.commit('setUserData', {
+        ...result,
+        phone: 'admin',
+        username: result?.name ?? 'admin',
+        isAdmin: true,
+      });
+      store.commit('setBrowseTopicsId', []);
+      ElMessage.success({
+        message: '登录成功~',
+        type: 'success',
+      });
+      localStorage.setItem('uid', String(ruleForm.name));
+      router.push('/adminHome');
     });
   } catch (error) {
-    //
+    ElMessage.error('登录失败，请稍后重试');
+    // eslint-disable-next-line no-console
+    console.error('Admin login error:', error);
   }
 };
 const toPersonLogin = () => {
@@ -144,12 +108,13 @@ const toPersonLogin = () => {
   width: 100%;
   height: 100%;
   position: fixed;
+  background-size: 100% 100%;
+
   display: flex;
   align-items: center;
   justify-content: space-around;
-
   /* background: linear-gradient(225deg, #1493fa, #01c6fa); */
-  background: url("../../assets/bg.jpg") no-repeat;
+  background: url(../../assets/bg.jpg) no-repeat;
   background-size: 100% 100%;
 }
 
@@ -188,7 +153,7 @@ const toPersonLogin = () => {
 }
 
 .loginBox {
-  padding: 35px 35px 15px;
+  padding: 35px 35px 15px 35px;
   background: #f5f5f5;
 }
 

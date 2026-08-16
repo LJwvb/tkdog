@@ -2,15 +2,15 @@
   <div class="title-small">
     <div class="test-basket">
       <el-badge :value="badgeValue" :max="10" class="badge">
-        <div @click="drawerClick" class="basket-btn">试题篮</div>
+        <div class="basket-btn" @click="drawerClick">试题篮</div>
       </el-badge>
     </div>
 
     <el-drawer
       v-model="drawer"
+      v-model:visible="drawer"
       title="试题篮"
       size="50%"
-      v-model:visible="drawer"
     >
       <el-table :data="basketTableData" style="width: 100%">
         <el-table-column label="试题">
@@ -18,17 +18,17 @@
             <div>{{ scope.row.question }}</div>
           </template>
         </el-table-column>
-        <el-table-column label="类型" width="80">
+        <el-table-column label="类型" width="70">
           <template #default="scope">
             <div>{{ questionType(Number(scope.row.questionType)) }}</div>
           </template>
         </el-table-column>
-        <el-table-column label="难度" width="80">
+        <el-table-column label="难度" width="70">
           <template #default="scope">
             <div>{{ difficulty(Number(scope.row.difficulty)) }}</div>
           </template>
         </el-table-column>
-        <el-table-column label="添加时间" width="180">
+        <el-table-column label="添加时间" min-width="120">
           <template #default="scope">
             <div style="display: flex; align-items: center">
               <el-icon><timer /></el-icon>
@@ -41,17 +41,17 @@
             <el-button
               size="small"
               type="danger"
-              @click="handleDelete(scope.row)"
+              @click="handleDelete(scope.$index)"
               >删除</el-button
             >
           </template>
         </el-table-column>
       </el-table>
       <div v-if="store.state.selectedTopic.length">
-        <el-button @click="getPaper" type="primary" class="btn">
+        <el-button type="primary" class="btn" @click="getPaper">
           组卷
         </el-button>
-        <el-button @click="clearAll" type="primary" class="btn">
+        <el-button type="primary" class="btn" @click="clearAll">
           清空
         </el-button>
       </div>
@@ -60,10 +60,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watchEffect } from 'vue';
+import { ref, watchEffect } from 'vue';
 import { useStore } from 'vuex';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { questionType, difficulty } from '@/utils';
+import type { IQuestion } from '@/types';
 
 import router from '@/router';
 const store = useStore();
@@ -84,12 +85,12 @@ const drawerClick = () => {
   drawer.value = true;
 };
 
-const handleDelete = (row: any) => {
-  // 获取之前选中的题目
-  const selectedTopic = store.state.selectedTopic;
-  // 删除当前选中的题目
-  selectedTopic.splice(row, 1);
-  store.commit('addSelectedTopic', selectedTopic);
+const handleDelete = (index: number) => {
+  const selectedTopic = store.state.selectedTopic as IQuestion[];
+  // 拷贝后删除，避免直接 mutate store state
+  const next = [...selectedTopic];
+  next.splice(index, 1);
+  store.commit('addSelectedTopic', next);
 };
 const getPaper = () => {
   router.push('/addPaper');
@@ -114,7 +115,7 @@ const clearAll = () => {
   width: 25px;
 }
 
-::v-deep .el-badge__content.is-fixed {
+:deep(.el-badge__content.is-fixed) {
   transform: translateY(-50%) translateX(-50%);
 }
 .basket-btn {
@@ -127,5 +128,23 @@ const clearAll = () => {
 }
 .btn {
   margin-top: 50px;
+}
+
+/* 移动端：抽屉占满更多宽度，浮动按钮更贴边 */
+@media (max-width: 768px) {
+  :deep(.el-drawer) {
+    width: 90% !important;
+  }
+
+  .test-basket {
+    bottom: 120px;
+    right: 0;
+  }
+
+  .basket-btn {
+    width: 22px;
+    padding: 12px 4px 12px 2px;
+    font-size: 12px;
+  }
 }
 </style>

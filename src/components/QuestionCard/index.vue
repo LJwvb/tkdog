@@ -10,7 +10,7 @@
         </el-tag>
       </div>
       <div class="info">
-        <span>{{ type }}</span>
+        <span>{{ typeName }}</span>
         <div class="line" />
         <span>{{ degreeDifficulty }}</span>
         <div class="line" />
@@ -38,75 +38,92 @@
       </div>
     </div>
     <el-button
-      type="primary"
-      class="btn0"
-      @click="selectedTopic"
       v-if="
         props.type === '' || props.type === 'checked' || props.type === 'all'
       "
+      type="primary"
+      class="btn0"
       :disabled="isChecked"
+      @click="selectedTopic"
       >{{ isChecked ? '已选题' : '选题' }}</el-button
     >
     <div v-if="store.state.userData.isAdmin">
       <el-button
+        v-if="activeName === 'deleted'"
+        type="success"
+        class="btn1"
+        @click="() => emit('restore', question.id)"
+        >恢复</el-button
+      >
+      <el-button
+        v-if="activeName !== 'deleted'"
         type="danger"
         class="btn2"
         @click="
           () => {
-            deleteQuestion(question.id, activeName);
+            emit('delete', question.id, activeName);
           }
         "
         >删除</el-button
       >
       <el-button
+        v-if="activeName === 'nochk'"
         type="primary"
         class="btn1"
-        v-if="activeName === 'nochk'"
-        @click="() => check(checkParams, activeName)"
+        @click="() => emit('check', checkParams, activeName)"
         >审核通过</el-button
       >
       <el-button
+        v-if="activeName === 'nochk'"
         type="info"
         class="btn3"
-        v-if="activeName === 'nochk'"
-        @click="() => uncheck(unCheckParams, activeName)"
+        @click="() => emit('uncheck', unCheckParams, activeName)"
         >审核不通过</el-button
       >
       <el-button
+        v-if="activeName === 'chk'"
         type="primary"
         class="btn1"
-        @click="selectedTopic"
         :disabled="isChecked"
-        v-if="activeName === 'chk'"
+        @click="selectedTopic"
       >
         {{ isChecked ? '已选题' : '选题' }}</el-button
       >
+      <el-button
+        v-if="activeName === 'chk'"
+        type="warning"
+        class="btn-edit"
+        @click="() => emit('edit', question)"
+        >编辑</el-button
+      >
     </div>
     <el-button
+      v-if="props.type === 'paper'"
       type="danger"
       class="btn0"
       @click="deleteTopic"
-      v-if="props.type === 'paper'"
       >删除</el-button
     >
   </div>
 </template>
 
 <script setup lang="ts">
-import { defineProps, ref, computed, watchEffect, watch } from 'vue';
+import { ref, computed, watchEffect } from 'vue';
+import type { PropType } from 'vue';
 import { useStore } from 'vuex';
 import { ElMessage } from 'element-plus';
 
 import router from '@/router';
-import type { IQuestion } from '@/types';
-import { browseQuestion, deleteQuestions, getQuestionList } from '@/services';
+import { ChkState, type IQuestion } from '@/types';
+import { browseQuestion } from '@/services';
 import { questionType, difficulty, transitionTime } from '@/utils';
+import { View, Star, User } from '@element-plus/icons-vue';
 const store = useStore();
 const isChecked = ref(false);
 const props = defineProps({
   question: {
-    type: Array as unknown as () => IQuestion,
-    default: () => [],
+    type: Object as PropType<IQuestion>,
+    default: () => ({}),
   },
   type: {
     type: String,
@@ -120,34 +137,32 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
-  deleteQuestion: {
-    type: Function,
-    default: () => {},
-  },
-  check: {
-    type: Function,
-    default: () => {},
-  },
-  uncheck: {
-    type: Function,
-    default: () => {},
-  },
   activeName: {
     type: String,
     default: '',
   },
 });
+
+/* eslint-disable @typescript-eslint/no-explicit-any --
+ * 审核/删除事件参数的具体契约由调用方（管理端页面）决定，这里用 any 保持签名兼容。 */
+const emit = defineEmits<{
+  (e: 'delete', id: number, activeName: string): void;
+  (e: 'check', params: any, activeName: string): void;
+  (e: 'uncheck', params: any, activeName: string): void;
+  (e: 'edit', question: IQuestion): void;
+  (e: 'restore', id: number): void;
+}>();
 const question = props.question as IQuestion;
 const checkParams = {
   id: question.id,
-  chkState: 1,
+  chkState: ChkState.Approved,
   chkUser: store.state.userData.name,
   chkRemarks: '审核通过',
   creator: question.creator,
 };
 const unCheckParams = {
   id: question.id,
-  chkState: -1,
+  chkState: ChkState.Rejected,
   chkUser: store.state.userData.name,
   chkRemarks: '审核不通过',
   creator: question.creator,
@@ -158,7 +173,7 @@ const tags = Array.isArray(question?.tags)
   : question?.tags?.split(',').filter((item: string) => item !== '');
 
 const id = question?.id;
-const type = computed(() => {
+const typeName = computed(() => {
   return questionType(Number(question?.questionType));
 });
 const degreeDifficulty = computed(() => {
@@ -178,6 +193,8 @@ const toProblemInfo = () => {
       catalogID: props?.catalogID,
     },
   });
+  // 未审核 / 审核不通过的题目不产生浏览记录
+  if (Number(question?.chkState) !== 1) return;
   const setBrowseTopicsId = store.state.browseTopicsId;
   const setBrowseTopicsIds = setBrowseTopicsId.map((item: string) => item);
   if (!setBrowseTopicsIds.includes(id)) {
@@ -208,8 +225,12 @@ const deleteTopic = () => {
   const selectedTopic = store.state.selectedTopic;
   const selectedTopicIds = selectedTopic.map((item: IQuestion) => item.id);
   const index = selectedTopicIds.indexOf(id);
-  selectedTopic.splice(index, 1);
-  store.commit('setSelectedTopic', selectedTopic);
+  if (index !== -1) {
+    // 拷贝后删除，避免直接 mutate store state
+    const next = [...selectedTopic];
+    next.splice(index, 1);
+    store.commit('setSelectedTopic', next);
+  }
   isChecked.value = false;
   ElMessage.success('删除成功');
 };
@@ -323,5 +344,10 @@ watchEffect(() => {
   position: absolute;
   right: 10px;
   bottom: 95px;
+}
+.btn-edit {
+  position: absolute;
+  right: 10px;
+  top: 50px;
 }
 </style>

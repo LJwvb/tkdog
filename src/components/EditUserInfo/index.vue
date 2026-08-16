@@ -33,7 +33,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="个人介绍" prop="introduction">
-          <el-input type="textarea" v-model="ruleForm.personalIntroduction" />
+          <el-input v-model="ruleForm.personalIntroduction" type="textarea" />
         </el-form-item>
       </el-form>
     </div>
@@ -58,12 +58,12 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, toRefs, defineProps } from 'vue';
+import { reactive, ref, toRefs } from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import { useStore } from 'vuex';
 import { editUserInfo } from '@/services';
 import type { FormInstance, FormRules } from 'element-plus';
-const formSize = ref('default');
+const formSize = ref<'' | 'default' | 'small' | 'large'>('default');
 const ruleFormRef = ref<FormInstance>();
 const store = useStore();
 const phone = store.state.userData.phone;
@@ -97,25 +97,23 @@ const rules = reactive<FormRules>({
 
 const submitForm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return;
-  await formEl.validate((valid, fields) => {
+  await formEl.validate((valid) => {
     if (valid) {
       const params = {
         ...ruleForm,
         phone: phone,
       };
 
-      editUserInfo(params).then((res) => {
-        if (res.code === 200) {
-          ElMessage.success('修改成功');
-          emit('update:dialogVisible', false);
-          store.commit('setUserData', {
-            ...store.state.userData,
-            ...params,
-          });
-        }
+      editUserInfo(params).then(() => {
+        ElMessage.success('修改成功');
+        emit('update:dialogVisible', false);
+        store.commit('setUserData', {
+          ...store.state.userData,
+          ...params,
+        });
       });
     } else {
-      return false;
+      return;
     }
   });
 };
@@ -145,10 +143,10 @@ const handleClose = (done: () => void) => {
 </script>
 
 <style scoped>
-::v-deep .el-input__validateIcon {
+:deep(.el-input__validateIcon) {
   color: var(--el-color-success);
 }
-::v-deep .el-form-item__label {
+:deep(.el-form-item__label) {
   white-space: nowrap;
 }
 .tag {

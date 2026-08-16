@@ -79,23 +79,19 @@ onMounted(load);
   width: 100%;
   padding: 20px;
 }
-
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-
 .tip {
   font-size: 12px;
   color: #909399;
 }
-
 .answer-text {
   white-space: pre-wrap;
   word-break: break-word;
 }
-
 .ref-answer {
   word-break: break-word;
 }

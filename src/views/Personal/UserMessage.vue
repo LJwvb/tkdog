@@ -126,24 +126,20 @@ onMounted(() => {
   width: 100%;
   margin-left: 20px;
 }
-
 .msg-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-
 .msg-tools {
   display: flex;
   align-items: center;
   gap: 12px;
 }
-
 .msg-list {
   display: flex;
   flex-direction: column;
 }
-
 .msg-item {
   display: flex;
   justify-content: space-between;
@@ -152,27 +148,22 @@ onMounted(() => {
   border-bottom: 1px solid #f0f0f0;
   cursor: pointer;
 }
-
 .msg-item:hover {
   background-color: #fafafa;
 }
-
 .msg-item.unread {
   background-color: #f5f9ff;
 }
-
 .msg-main {
   flex: 1;
   margin-right: 20px;
 }
-
 .msg-title {
   display: flex;
   align-items: center;
   font-weight: 600;
   color: #303133;
 }
-
 .dot {
   width: 8px;
   height: 8px;
@@ -181,21 +172,18 @@ onMounted(() => {
   margin-right: 6px;
   flex-shrink: 0;
 }
-
 .go-link {
   margin-left: 8px;
   font-size: 12px;
   font-weight: normal;
   color: #409eff;
 }
-
 .msg-content {
   margin-top: 6px;
   font-size: 14px;
   color: #606266;
   line-height: 22px;
 }
-
 .msg-time {
   font-size: 12px;
   color: #c0c4cc;

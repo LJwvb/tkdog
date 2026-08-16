@@ -1,13 +1,17 @@
 <template>
   <el-result :icon="icon" :title="title" :sub-title="subTitle"> </el-result>
   <el-button
-    class="prev-step"
-    @click="prevStep"
-    type="primary"
     v-if="props.error"
+    class="prev-step"
+    type="primary"
+    @click="prevStep"
     >上一步</el-button
   >
-  <el-button class="prev-step" @click="props.goTestPaper" type="primary" v-else
+  <el-button
+    v-else
+    class="prev-step"
+    type="primary"
+    @click="emit('goTestPaper')"
     >返回题目列表</el-button
   >
 </template>
@@ -16,16 +20,13 @@
 import { computed } from 'vue';
 
 const props = defineProps({
-  clickPre: {
-    type: Function,
-    required: true,
-  },
-  goTestPaper: {
-    type: Function,
-    required: true,
-  },
   error: Object,
 });
+
+const emit = defineEmits<{
+  (e: 'prev'): void;
+  (e: 'goTestPaper'): void;
+}>();
 const icon = computed(() => {
   if (props.error) {
     return 'error';
@@ -49,7 +50,7 @@ const subTitle = computed(() => {
 });
 
 const prevStep = () => {
-  props.clickPre();
+  emit('prev');
 };
 </script>
 

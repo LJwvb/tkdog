@@ -35,7 +35,6 @@ import {
   align-items: center;
   justify-content: center;
 }
-
 .space {
   display: flex;
   margin-right: 20px;
