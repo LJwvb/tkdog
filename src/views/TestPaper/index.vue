@@ -48,13 +48,16 @@ onMounted(async () => {
   width: 100%;
   height: 100%;
 }
+
 .tab-pane {
   width: 100%;
   height: 100%;
   display: flex;
   flex-wrap: wrap;
+
   /* justify-content: space-evenly; */
 }
+
 .test-card {
   width: 400px;
   height: 200px;

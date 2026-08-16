@@ -76,10 +76,11 @@ const name = computed(() => {
   width: 70%;
   position: relative;
 }
+
 .watermark {
   position: absolute;
-  top: 0px;
-  right: 0px;
+  top: 0;
+  right: 0;
   transform: rotate(-45deg);
   color: #ccc;
   width: 100px;
@@ -89,39 +90,47 @@ const name = computed(() => {
   border-radius: 50%;
   border: 1px solid #ccc;
 }
+
 .question-title {
   font-size: 20px;
   font-weight: 600;
   margin-bottom: 10px;
 }
+
 .question-answer {
   margin-bottom: 20px;
 }
+
 .slide-container {
   width: 30%;
   margin-left: 20px;
 }
+
 .paper-info {
   height: 300px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
+
 .creator {
   display: flex;
   flex-direction: row;
   align-items: center;
 }
+
 .creator-info {
   display: flex;
   flex-direction: row;
   align-items: center;
 }
+
 .tags {
   display: flex;
   align-items: center;
   justify-content: flex-start;
 }
+
 .tag-item {
   margin-right: 10px;
 }

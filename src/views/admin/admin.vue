@@ -144,13 +144,12 @@ const toPersonLogin = () => {
   width: 100%;
   height: 100%;
   position: fixed;
-  background-size: 100% 100%;
-
   display: flex;
   align-items: center;
   justify-content: space-around;
+
   /* background: linear-gradient(225deg, #1493fa, #01c6fa); */
-  background: url(../../assets/bg.jpg) no-repeat;
+  background: url("../../assets/bg.jpg") no-repeat;
   background-size: 100% 100%;
 }
 
@@ -189,7 +188,7 @@ const toPersonLogin = () => {
 }
 
 .loginBox {
-  padding: 35px 35px 15px 35px;
+  padding: 35px 35px 15px;
   background: #f5f5f5;
 }
 

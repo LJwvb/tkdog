@@ -31,12 +31,14 @@ onMounted(() => {
   height: 100%;
   margin-left: 20px;
 }
+
 .user-info-paper > ::v-deep .el-card__body {
   display: flex;
   flex-direction: row;
   flex-flow: wrap;
   justify-content: space-between;
 }
+
 .test-card {
   width: 400px;
   height: 200px;

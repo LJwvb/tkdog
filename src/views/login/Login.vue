@@ -224,20 +224,21 @@ const toAdmin = () => {
   width: 100%;
   height: 100%;
   position: fixed;
-  background-size: 100% 100%;
-
   display: flex;
   align-items: center;
   justify-content: space-around;
+
   /* background: linear-gradient(225deg, #1493fa, #01c6fa); */
-  background: url(../../assets/bg.jpg) no-repeat;
+  background: url("../../assets/bg.jpg") no-repeat;
   background-size: 100% 100%;
 }
+
 .logo {
   width: 35px;
   height: 35px;
   margin-right: 10px;
 }
+
 .left {
   width: 478px;
   height: 550px;
@@ -267,7 +268,8 @@ const toAdmin = () => {
 }
 
 .loginBox {
-  padding: 35px 35px 15px 35px;
+  padding: 35px 35px 15px;
+
   /* width: 350px; */
   background: #f5f5f5;
 }

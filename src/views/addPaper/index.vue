@@ -131,20 +131,25 @@ const done = () => {
   height: 100%;
   width: 100%;
 }
+
 .steps {
   width: 100%;
 }
+
 .step-content {
   position: relative;
   top: 10px;
   width: 100%;
 }
+
 .next-step {
   position: absolute;
 }
+
 ::v-deep .el-step__head.is-success .el-step__icon-inner.is-status {
   color: var(--el-color-success);
 }
+
 ::v-deep .el-step__head.is-error .el-step__icon-inner.is-status {
   color: var(--el-color-danger);
 }

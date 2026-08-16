@@ -150,9 +150,11 @@ const goDaily = () => {
   display: flex;
   align-items: center;
 }
+
 .text {
   margin-left: 10px;
 }
+
 .question {
   width: 90%;
   word-wrap: break-word;
@@ -170,33 +172,39 @@ const goDaily = () => {
   text-indent: 2em;
   height: 65px;
 }
+
 .button {
   position: absolute;
-  bottom: 0px;
+  bottom: 0;
   right: 10px;
 }
+
 .avatar {
   width: 30px;
   height: 30px;
   border-radius: 50%;
   object-fit: cover;
 }
+
 .row {
   display: flex;
   align-items: center;
   flex-direction: row;
   padding: 10px 0;
 }
+
 .rank {
   font-size: large;
   margin-right: 10px;
   font-weight: bold;
 }
+
 .level {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
+
 .authority {
   display: flex;
   align-items: center;

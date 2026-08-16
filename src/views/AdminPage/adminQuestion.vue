@@ -314,14 +314,14 @@ const uncheck = (params: IChkQuestion) => {
 .grid-content {
   border-radius: 4px;
   min-height: 36px;
-  border: 1px solid #ffffff;
+  border: 1px solid #fff;
 }
 
 .biaoqian1 {
-  padding: 0px 12px;
+  padding: 0 12px;
   font-size: 12px;
   background-color: #f5f5f5;
-  color: #000000;
+  color: #000;
   height: 25px;
   line-height: 25px;
   border-radius: 2px;
@@ -330,9 +330,9 @@ const uncheck = (params: IChkQuestion) => {
 }
 
 .jiandaee {
-  color: rgba(170, 170, 170, 1);
+  color: rgb(170 170 170 / 100%);
   font-size: 13px;
-  margin: 15px 0px;
+  margin: 15px 0;
   margin-left: 20px;
 }
 
@@ -340,7 +340,7 @@ const uncheck = (params: IChkQuestion) => {
   width: 1px;
   height: 15px;
   background-color: #e6e6e6;
-  margin: 0px 20px;
+  margin: 0 20px;
 }
 
 .el-col-3 {
@@ -352,10 +352,12 @@ const uncheck = (params: IChkQuestion) => {
   display: flex;
   flex-wrap: wrap;
 }
+
 .search {
   display: flex;
   flex-direction: row;
 }
+
 ::v-deep .el-loading-mask {
   z-index: 9;
 }

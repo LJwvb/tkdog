@@ -1,5 +1,5 @@
 <template>
-  <div class="nav-container" v-if="!store.state.userData.isAdmin">
+  <div v-if="!store.state.userData.isAdmin" class="nav-container">
     <div class="logo">
       <img src="../../assets/tkdog.png" width="50" />
       <div class="title">
@@ -38,6 +38,22 @@
       </el-menu-item>
     </el-menu>
     <div class="left">
+      <el-button circle @click="toggleTheme">
+        <el-icon>
+          <Moon v-if="!isDark" />
+          <Sunny v-else />
+        </el-icon>
+      </el-button>
+      <el-badge
+        :value="unreadCount"
+        :hidden="unreadCount === 0"
+        :max="99"
+        class="msg-badge"
+      >
+        <el-button circle @click="toMessage">
+          <el-icon><Bell /></el-icon>
+        </el-button>
+      </el-badge>
       <el-button type="primary" class="upload" @click="toAddSubject">
         上传
       </el-button>
@@ -96,7 +112,7 @@
       </template>
     </el-dialog>
   </div>
-  <div class="nav-container" v-else-if="store.state.userData.isAdmin">
+  <div v-else-if="store.state.userData.isAdmin" class="nav-container">
     <div class="logo">
       <img src="../../assets/tkdog.png" width="50" />
       <div class="title">
@@ -137,6 +153,32 @@
         <el-icon><ChatLineSquare /></el-icon>
         <span>评论管理</span>
       </el-menu-item>
+      <el-menu-item index="6" @click="toSensitiveWord">
+        <el-icon><Warning /></el-icon>
+        <span>违禁词管理</span>
+      </el-menu-item>
+      <el-menu-item index="7" @click="toFeedback">
+        <el-icon><ChatDotRound /></el-icon>
+        <span>纠错反馈</span>
+        <el-badge
+          v-if="feedbackCount > 0"
+          :value="feedbackCount"
+          :max="99"
+          class="menu-badge"
+        />
+      </el-menu-item>
+      <el-menu-item index="8" @click="toAnnouncement">
+        <el-icon><Bell /></el-icon>
+        <span>公告管理</span>
+      </el-menu-item>
+      <el-menu-item index="9" @click="toReview">
+        <el-icon><View /></el-icon>
+        <span>主观题复核</span>
+      </el-menu-item>
+      <el-menu-item index="10" @click="toTag">
+        <el-icon><Collection /></el-icon>
+        <span>标签管理</span>
+      </el-menu-item>
     </el-menu>
     <!-- <el-input placeholder="请输入搜索的内容" size="large" class="search">
       <template #append>
@@ -172,17 +214,76 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watchEffect, reactive } from 'vue';
+import { ref, computed, watchEffect, reactive, onMounted } from 'vue';
 import router from '../../router';
 import { useStore } from 'vuex';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { ElMessage } from 'element-plus';
 import type { FormInstance, FormRules } from 'element-plus';
-import { editUserInfo } from '@/services';
+import {
+  editUserInfo,
+  logout,
+  getUnreadCount,
+  getUnresolvedFeedbackCount,
+} from '@/services';
 import UploadQuestion from '@/components/UploadQuestion/index.vue';
+import {
+  HomeFilled,
+  Notebook,
+  List,
+  User,
+  Avatar,
+  Edit,
+  SwitchButton,
+  ChatLineSquare,
+  Bell,
+  Warning,
+  ChatDotRound,
+  Moon,
+  Sunny,
+  View,
+  Collection,
+} from '@element-plus/icons-vue';
 
 const dialogVisible = ref(false);
 const dialogVisibleEditPassword = ref(false);
 const store = useStore();
+// 暗色模式切换
+const isDark = ref(document.documentElement.classList.contains('dark'));
+const toggleTheme = () => {
+  isDark.value = !isDark.value;
+  document.documentElement.classList.toggle('dark', isDark.value);
+  localStorage.setItem('theme', isDark.value ? 'dark' : 'light');
+};
+// 未读数放入 store，UserMessage 标记已读后实时同步到角标
+const unreadCount = computed(() => store.state.unreadCount);
+const feedbackCount = ref(0);
+
+const loadUnread = async () => {
+  if (store.state.userData.isAdmin) return;
+  try {
+    const res = await getUnreadCount();
+    store.commit('setUnreadCount', res?.count ?? 0);
+  } catch {
+    // 忽略未读角标拉取失败
+  }
+};
+const loadFeedbackCount = async () => {
+  if (!store.state.userData.isAdmin) return;
+  try {
+    const res = await getUnresolvedFeedbackCount();
+    feedbackCount.value = res?.count ?? 0;
+  } catch {
+    // 忽略
+  }
+};
+const toMessage = () => {
+  store.commit('setActiveMenuIndex', '4');
+  router.push({ path: '/user/UserMessage' });
+};
+onMounted(() => {
+  loadUnread();
+  loadFeedbackCount();
+});
 const ruleFormRef = ref<FormInstance>();
 const ruleForm = reactive({
   password: '',
@@ -274,7 +375,7 @@ const resetForm = (formEl: FormInstance | undefined) => {
 
 const submitForm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return;
-  await formEl.validate((valid, fields) => {
+  await formEl.validate((valid) => {
     if (valid) {
       const params = {
         password: ruleForm.password,
@@ -292,11 +393,13 @@ const submitForm = async (formEl: FormInstance | undefined) => {
         router.go(-router.currentRoute.value.meta.index!);
       });
     } else {
-      return false;
+      return;
     }
   });
 };
 const toLogin = () => {
+  // 清除后端 session，防止退出后 session 残留
+  logout();
   // 回退到最初的路由
   if (store.state.userData.isAdmin) {
     router
@@ -341,6 +444,31 @@ const toCommentAdmin = () => {
     path: '/adminComment',
   });
 };
+const toSensitiveWord = () => {
+  router.push({
+    path: '/adminSensitiveWord',
+  });
+};
+const toFeedback = () => {
+  router.push({
+    path: '/adminFeedback',
+  });
+};
+const toAnnouncement = () => {
+  router.push({
+    path: '/adminAnnouncement',
+  });
+};
+const toReview = () => {
+  router.push({
+    path: '/adminReview',
+  });
+};
+const toTag = () => {
+  router.push({
+    path: '/adminTag',
+  });
+};
 </script>
 <style scoped>
 .nav-container {
@@ -349,7 +477,7 @@ const toCommentAdmin = () => {
   justify-content: space-between;
   height: 60px;
   background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 12%);
   padding: 0 20px;
 }
 
@@ -384,5 +512,51 @@ const toCommentAdmin = () => {
 
 .upload {
   margin-right: 20px;
+}
+
+.msg-badge {
+  margin-right: 16px;
+}
+
+/* 移动端导航栏精简 */
+@media (width <= 768px) {
+  .nav-container {
+    flex-wrap: nowrap;
+  }
+
+  .logo img {
+    width: 34px;
+  }
+
+  .title {
+    font-size: 15px;
+  }
+
+  .nav {
+    margin-left: 8px;
+    min-width: 0;
+  }
+
+  .nav :deep(.el-menu-item) {
+    padding: 0 12px;
+  }
+
+  .left {
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .upload {
+    margin-right: 8px;
+    padding: 8px 12px;
+  }
+
+  .msg-badge {
+    margin-right: 8px;
+  }
+}
+
+.menu-badge {
+  margin-left: 6px;
 }
 </style>

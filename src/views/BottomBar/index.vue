@@ -21,12 +21,21 @@
   </div>
 </template>
 
+<script setup lang="ts">
+import {
+  Avatar,
+  Promotion,
+  LocationInformation,
+} from '@element-plus/icons-vue';
+</script>
+
 <style scoped>
 .connection {
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
 .space {
   display: flex;
   margin-right: 20px;

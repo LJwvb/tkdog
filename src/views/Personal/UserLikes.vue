@@ -1,8 +1,8 @@
-<template>
+﻿<template>
   <div
-    class="user-info-container"
     v-loading="loading"
-    element-loading-text="Loading..."
+    class="user-info-container"
+    element-loading-text="加载中..."
   >
     <el-card v-if="ids !== ''" style="min-height: 500px">
       <div v-for="item in questionList" :key="item.id">
@@ -15,7 +15,7 @@
         :total="total"
         prev-text="上一页"
         next-text="下一页"
-        hide-on-single-page="true"
+        :hide-on-single-page="true"
         @current-change="handleCurrentChange"
       >
         <template #default> 共 {{ total }} 条 </template>
@@ -27,7 +27,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, reactive, onMounted, handleError } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import QuestionCard from '@/components/QuestionCard/index.vue';
 
@@ -42,7 +42,7 @@ const ids = store.state.userData?.likeTopicsId;
 
 const idsStr = Array.isArray(ids)
   ? ids?.slice(1).join(',')
-  : ids?.replace(/(^\,*)/g, '');
+  : ids?.replace(/(^,*)/g, '');
 const likeTopicsIdParams = reactive({
   type: 'user',
   ids: idsStr,

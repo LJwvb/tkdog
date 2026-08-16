@@ -1,9 +1,9 @@
-<template>
+﻿<template>
   <div class="index">
     <div
-      class="index-left"
       v-loading="loading"
-      element-loading-text="Loading..."
+      class="index-left"
+      element-loading-text="加载中..."
     >
       <el-tabs
         v-model="currentTab"
@@ -25,8 +25,8 @@
             :itemSubjectID="Number(item?.subjectID)"
             :currentPage="currentPage"
             :total="total"
-            @tabClick="tabClick"
             type="home"
+            @tabClick="tabClick"
           />
         </el-tab-pane>
       </el-tabs>
@@ -38,15 +38,20 @@ import { ref, watchEffect } from 'vue';
 import SubTab from '@/components/SubTab/index.vue';
 import { getQuestionList } from '@/services';
 import queryString from 'query-string';
+import type { IQuestion, IGetQuestionsParams } from '@/types';
 
 const { subjectID, catalogID } = queryString.parse(
   window?.location?.href?.split('?')[1] || '',
 );
 const loading = ref(true);
 
-const questionList = ref<any[]>();
-const subjectIDList = ref<any[]>([]);
-const catalogIDList = ref<any[]>([]);
+const questionList = ref<IQuestion[]>();
+const subjectIDList = ref<Array<{ subjectID?: number; subjectName?: string }>>(
+  [],
+);
+const catalogIDList = ref<Array<{ catalogID?: number; catalogName?: string }>>(
+  [],
+);
 const currentPage = ref(1);
 const total = ref(0);
 
@@ -55,15 +60,17 @@ const currentTab = ref<number>(Number(subjectID) || 0);
 // 选中的子标签页
 const currentSubTab = ref<number>(Number(catalogID) || 0);
 // 获取题目列表
-const getQuestionListData = async (params: any) => {
+const getQuestionListData = async (params: IGetQuestionsParams) => {
   const res = await getQuestionList(params);
   questionList.value = res.result;
-  subjectIDList.value = res.subjectNameList;
-  catalogIDList.value = res.catalogNameList;
+  subjectIDList.value =
+    res.subjectNameList as unknown as typeof subjectIDList.value;
+  catalogIDList.value =
+    res.catalogNameList as unknown as typeof catalogIDList.value;
   loading.value = false;
 };
-const handleClick = (tab: any) => {
-  currentTab.value = tab.props.name;
+const handleClick = (tab: { props: { name?: string | number } }) => {
+  currentTab.value = Number(tab.props.name) || 0;
   currentSubTab.value = 0;
 };
 
@@ -92,23 +99,29 @@ watchEffect(() => {
   border: 1px solid var(--el-card-border-color);
   min-height: 400px;
 }
+
 .index-left {
   width: 100%;
 }
-::v-deep.el-tabs__content {
+
+:deep(.el-tabs__content) {
   overflow: visible !important;
 }
-::v-deep.el-tabs--card > .el-tabs__header {
+
+:deep(.el-tabs--card > .el-tabs__header) {
   border-bottom: none !important;
 }
-::v-deep.el-tabs--card > .el-tabs__header .el-tabs__nav {
+
+:deep(.el-tabs--card > .el-tabs__header .el-tabs__nav) {
   border-radius: 5px !important;
 }
-::v-deep.el-tabs--card > .el-tabs__header .el-tabs__item.is-active {
+
+:deep(.el-tabs--card > .el-tabs__header .el-tabs__item.is-active) {
   border: 1px solid var(--el-color-primary) !important;
   border-radius: 5px;
 }
-::v-deep .el-tabs--card > .el-tabs__header .el-tabs__item {
+
+:deep(.el-tabs--card > .el-tabs__header .el-tabs__item) {
   border-bottom: 1px solid var(--el-border-color-light) !important;
 }
 </style>
