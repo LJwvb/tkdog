@@ -77,12 +77,6 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/AdminPage/adminAnnouncement.vue'),
   },
   {
-    path: '/adminReview',
-    name: 'adminReview',
-    meta: { requireAuth: true, isAdmin: true },
-    component: () => import('@/views/AdminPage/adminReview.vue'),
-  },
-  {
     path: '/adminTag',
     name: 'adminTag',
     meta: { requireAuth: true, isAdmin: true },
@@ -144,11 +138,6 @@ const routes: RouteRecordRaw[] = [
         path: 'UserFavorite',
         name: 'userFavorite',
         component: () => import('@/views/Personal/UserFavorite.vue'),
-      },
-      {
-        path: 'UserPrivateMessage',
-        name: 'userPrivateMessage',
-        component: () => import('@/views/Personal/UserPrivateMessage.vue'),
       },
       {
         path: 'UserQuestions',

@@ -35,6 +35,7 @@ import type {
   IAdminInfo,
   ISubmitPaperParams,
   ISubmitPaperResult,
+  IAiJudgeResult,
   IPaperRecord,
   IAnswerStats,
   IWrongQuestionsResult,
@@ -45,11 +46,8 @@ import type {
   IQuestionFeedback,
   IAdminStatistics,
   IAnnouncement,
-  ISubjectiveReview,
   ITagStat,
   IFollowUser,
-  IPrivateMessage,
-  IConversation,
   IPublicProfile,
 } from '@/types';
 
@@ -206,37 +204,35 @@ export function getFollowCounts(): Promise<{
   );
 }
 
-// 发送私信
-export function sendMessage(params: {
-  toUserId: number;
-  content: string;
-}): Promise<void> {
-  return request<void>('POST', '/sendMessage', { data: params });
-}
+// 上传图片（multipart），返回图片 URL；channel 为上传渠道（comment/avatar/...）
+// 前端先做类型/大小校验，快速反馈，后端仍会二次校验兜底
+export async function uploadImage(
+  file: File,
+  channel = 'common',
+): Promise<string> {
+  const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+  const ALLOWED_EXT = [ 'jpg', 'jpeg', 'png', 'gif', 'webp' ];
+  const ALLOWED_MIME = [
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+  ];
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  if (!ALLOWED_EXT.includes(ext)) {
+    throw new Error('仅支持 jpg/png/gif/webp 格式的图片');
+  }
+  // 浏览器能识别 MIME 时，再按 MIME 校验一道
+  if (file.type && !ALLOWED_MIME.includes(file.type)) {
+    throw new Error('仅支持 jpg/png/gif/webp 格式的图片');
+  }
+  if (file.size > MAX_SIZE) {
+    throw new Error('图片大小不能超过 5MB');
+  }
 
-// 会话列表
-export function getConversations(): Promise<IConversation[]> {
-  return request<IConversation[]>('POST', '/getConversations', { data: {} });
-}
-
-// 与某用户的聊天记录
-export function getMessages(params: {
-  withUserId: number;
-}): Promise<IPrivateMessage[]> {
-  return request<IPrivateMessage[]>('POST', '/getMessages', { data: params });
-}
-
-// 标记会话已读
-export function markMessagesRead(params: {
-  withUserId: number;
-}): Promise<void> {
-  return request<void>('POST', '/markMessagesRead', { data: params });
-}
-
-// 上传图片（multipart），返回图片 URL
-export async function uploadImage(file: File): Promise<string> {
   const form = new FormData();
   form.append('file', file);
+  form.append('channel', channel);
   const res = await fetch('/api/uploadImage', {
     method: 'POST',
     body: form,
@@ -535,6 +531,18 @@ export function submitPaper(
   return request<ISubmitPaperResult>('POST', '/submitPaper', { data: params });
 }
 
+// AI 批改简答题（大模型响应慢，单独放宽超时；recordId 用于落库并重算成绩）
+export function aiJudgeAnswer(params: {
+  questionId: number;
+  userAnswer: string;
+  recordId?: number;
+}): Promise<IAiJudgeResult> {
+  return request<IAiJudgeResult>('POST', '/aiJudgeAnswer', {
+    data: params,
+    timeout: 90_000,
+  });
+}
+
 // 我的答题记录
 export function getMyPaperRecords(): Promise<IPaperRecord[]> {
   return request<IPaperRecord[]>('POST', '/getMyPaperRecords');
@@ -557,21 +565,6 @@ export function getWrongQuestions(
 // 一键清空错题
 export function clearWrongQuestions(): Promise<void> {
   return request<void>('POST', '/clearWrongQuestions', { data: {} });
-}
-
-// 主观题待复核列表（管理员）
-export function getSubjectiveReviews(): Promise<ISubjectiveReview[]> {
-  return request<ISubjectiveReview[]>('POST', '/getSubjectiveReviews', {
-    data: {},
-  });
-}
-
-// 人工复核主观题（管理员）
-export function reviewSubjective(params: {
-  id: number;
-  correct: boolean;
-}): Promise<void> {
-  return request<void>('POST', '/reviewSubjective', { data: params });
 }
 
 // 消息通知列表

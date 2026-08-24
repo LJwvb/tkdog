@@ -15,6 +15,10 @@
         <span>{{ degreeDifficulty }}</span>
         <div class="line" />
         <span>{{ addDate }}</span>
+        <template v-if="updateInfo">
+          <div class="line" />
+          <span class="update-info">{{ updateInfo }}</span>
+        </template>
       </div>
       <div class="nums">
         <div class="num-item">
@@ -70,14 +74,14 @@
         v-if="activeName === 'nochk'"
         type="primary"
         class="btn1"
-        @click="() => emit('check', checkParams, activeName)"
+        @click="openReview('check')"
         >审核通过</el-button
       >
       <el-button
         v-if="activeName === 'nochk'"
         type="info"
         class="btn3"
-        @click="() => emit('uncheck', unCheckParams, activeName)"
+        @click="openReview('uncheck')"
         >审核不通过</el-button
       >
       <el-button
@@ -105,6 +109,35 @@
       >删除</el-button
     >
   </div>
+
+  <!-- 审核弹窗：可自定义审核建议，默认「审核通过 / 审核不通过」 -->
+  <el-dialog
+    v-model="reviewDialogVisible"
+    :title="reviewAction === 'check' ? '审核通过' : '审核不通过'"
+    width="480px"
+    append-to-body
+  >
+    <el-form label-position="top">
+      <el-form-item label="审核建议（将通知给上传用户）">
+        <el-input
+          v-model="reviewRemark"
+          type="textarea"
+          :rows="4"
+          maxlength="200"
+          show-word-limit
+          placeholder="可填写审核建议，留空则使用默认文案"
+        />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="reviewDialogVisible = false">取消</el-button>
+      <el-button
+        :type="reviewAction === 'check' ? 'primary' : 'info'"
+        @click="confirmReview"
+        >确认</el-button
+      >
+    </template>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
@@ -156,16 +189,35 @@ const question = props.question as IQuestion;
 const checkParams = {
   id: question.id,
   chkState: ChkState.Approved,
-  chkUser: store.state.userData.name,
   chkRemarks: '审核通过',
-  creator: question.creator,
 };
 const unCheckParams = {
   id: question.id,
   chkState: ChkState.Rejected,
-  chkUser: store.state.userData.name,
   chkRemarks: '审核不通过',
-  creator: question.creator,
+};
+
+// 审核弹窗：可自定义审核建议，默认「审核通过 / 审核不通过」
+const reviewDialogVisible = ref(false);
+const reviewAction = ref<'check' | 'uncheck'>('check');
+const reviewRemark = ref('');
+const openReview = (action: 'check' | 'uncheck') => {
+  reviewAction.value = action;
+  reviewRemark.value = action === 'check' ? '审核通过' : '审核不通过';
+  reviewDialogVisible.value = true;
+};
+const confirmReview = () => {
+  const base = reviewAction.value === 'check' ? checkParams : unCheckParams;
+  const params = {
+    ...base,
+    chkRemarks: reviewRemark.value.trim() || base.chkRemarks,
+  };
+  if (reviewAction.value === 'check') {
+    emit('check', params, props.activeName);
+  } else {
+    emit('uncheck', params, props.activeName);
+  }
+  reviewDialogVisible.value = false;
 };
 
 const tags = Array.isArray(question?.tags)
@@ -181,6 +233,11 @@ const degreeDifficulty = computed(() => {
 });
 const addDate = computed(() => {
   return transitionTime(question?.addDate);
+});
+const updateInfo = computed(() => {
+  if (!question?.updateTime) return '';
+  const t = transitionTime(question.updateTime);
+  return question.updateUser ? `${question.updateUser} 修改于 ${t}` : `修改于 ${t}`;
 });
 
 const toProblemInfo = () => {
@@ -299,6 +356,10 @@ watchEffect(() => {
   height: 10px;
   background-color: #ccc;
   margin: 0px 20px;
+}
+
+.update-info {
+  color: #e6a23c;
 }
 
 .nums {

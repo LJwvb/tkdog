@@ -34,6 +34,11 @@ export default defineConfig({
         target: 'http://127.0.0.1:7001',
         changeOrigin: true,
       },
+      // 上传的图片等静态资源也代理到后端（app/public）
+      '/public': {
+        target: 'http://127.0.0.1:7001',
+        changeOrigin: true,
+      },
     },
   },
   build: {

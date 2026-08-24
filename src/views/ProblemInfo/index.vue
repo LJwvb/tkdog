@@ -8,13 +8,7 @@
     <el-card class="container">
       <div class="grid-content">
         <div class="title-box">
-          <div
-            class="question-catalog"
-            :style="{ backgroundColor: catalogID.color }"
-          >
-            {{ catalogID.name }}
-          </div>
-          <div class="degreeDifficulty">
+          <div :class="difficultyClass(questionDetail.difficulty)">
             {{ degreeDifficulty }}
           </div>
           <div class="question-type">{{ type }}</div>
@@ -179,6 +173,10 @@
           </div>
           <div class="allline"></div>
         </div>
+        <div v-if="questionDetail.updateTime">
+          最近修改：{{ questionDetail.updateUser || '未知' }} 于
+          {{ updateTimeText }}
+        </div>
         <div>
           题目获赞数：
           <span style="color: #f7ba2a">{{
@@ -213,13 +211,7 @@
           class="similar-question"
         >
           <div class="similar-question-info">
-            <div
-              class="question-catalog"
-              :style="{ backgroundColor: item?.color }"
-            >
-              {{ item.name }}
-            </div>
-            <div class="degreeDifficulty">
+            <div :class="difficultyClass(item.difficulty)">
               {{ difficulty(Number(item.difficulty)) }}
             </div>
             <div class="question-type">
@@ -354,7 +346,6 @@ import {
 import {
   questionType,
   difficulty,
-  catalogIDType,
   transitionTime,
   firstQueryValue,
   formatAnswerWithValues,
@@ -397,12 +388,8 @@ const likeTopicsId = Array.isArray(userData?.likeTopicsId)
   : userData?.likeTopicsId?.split(',') || [];
 // 获取题目详情
 const questionDetail = ref({} as IQuestion);
-// 相似题目（附带 UI 展示字段）
-const similarQuestions = ref<
-  Array<
-    IQuestion & { name?: string; color?: string; degreeDifficulty?: string }
-  >
->([]);
+// 相似题目
+const similarQuestions = ref<IQuestion[]>([]);
 // 是否点击了喜欢
 const isClickLike = ref(false);
 const isChecked = ref(false);
@@ -434,9 +421,13 @@ const type = computed(() => {
 const degreeDifficulty = computed(() => {
   return difficulty(Number(questionDetail.value.difficulty));
 });
-const catalogID = computed(() => {
-  return catalogIDType(Number(questionDetail.value.catalogID));
-});
+// 难度标签配色：简单绿、中等橙、困难红（与答题页保持一致）
+const difficultyClass = (difficulty: number | string) => {
+  const d = Number(difficulty);
+  if (d === 2) return 'degreeDifficulty hard';
+  if (d === 1) return 'degreeDifficulty medium';
+  return 'degreeDifficulty easy';
+};
 // 题型展示分类：主观/富文本（3、4）与客观选项（0 单选、1 多选、2 判断）
 const qt = computed(() => String(questionDetail.value.questionType));
 const isDetailType = computed(() => ['3', '4'].includes(qt.value));
@@ -454,6 +445,11 @@ const questionOptions = computed(() => {
 
 const addDate = computed(() => {
   return transitionTime(questionDetail.value.addDate);
+});
+const updateTimeText = computed(() => {
+  return questionDetail.value.updateTime
+    ? transitionTime(questionDetail.value.updateTime)
+    : '';
 });
 // 获取题目详情
 const getDailyQuestion = async (value?: number) => {
@@ -476,19 +472,6 @@ const getSimilarQuestions = async (value?: number) => {
   const res = await getSimilarQuestion({
     id: value || Number(id),
   });
-  res?.forEach(
-    (
-      item: IQuestion & {
-        name?: string;
-        color?: string;
-        degreeDifficulty?: string;
-      },
-    ) => {
-      item.name = catalogIDType(Number(item.catalogID)).name;
-      item.color = catalogIDType(Number(item.catalogID)).color;
-      item.degreeDifficulty = difficulty(Number(item.difficulty));
-    },
-  );
   similarQuestions.value = res;
 };
 // 点赞
@@ -671,7 +654,7 @@ const onPickCommentImage = async (e: Event) => {
   const file = input.files?.[0];
   if (!file) return;
   try {
-    const url = await uploadImage(file);
+    const url = await uploadImage(file, 'comment');
     commentImages.value = [...commentImages.value, url];
   } catch (err) {
     ElMessage.error((err as Error)?.message || '图片上传失败');
@@ -911,22 +894,23 @@ watchEffect(() => {
 .degreeDifficulty {
   padding: 0px 12px;
   font-size: 16px;
-  background-color: #909399;
   color: #fff;
   height: 25px;
   text-align: center;
   border-radius: 5px;
-  margin-left: 20px;
   line-height: 25px;
 }
-.question-catalog {
-  width: 50px;
-  height: 25px;
-  color: #fff;
-  text-align: center;
-  line-height: 25px;
-  border-radius: 5px;
-  font-size: 14px;
+
+.degreeDifficulty.easy {
+  background-color: #67c23a;
+}
+
+.degreeDifficulty.medium {
+  background-color: #e6a23c;
+}
+
+.degreeDifficulty.hard {
+  background-color: #f56c6c;
 }
 .tag-item {
   margin-right: 5px;

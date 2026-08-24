@@ -35,16 +35,16 @@
         </el-select>
       </el-form-item>
       <el-form-item label="单选">
-        <el-input-number v-model="pickForm.single" :min="0" :max="20" />
+        <el-input-number v-model="pickForm.single" :min="0" :max="50" />
       </el-form-item>
       <el-form-item label="多选">
-        <el-input-number v-model="pickForm.multiple" :min="0" :max="20" />
+        <el-input-number v-model="pickForm.multiple" :min="0" :max="50" />
       </el-form-item>
       <el-form-item label="判断">
-        <el-input-number v-model="pickForm.judge" :min="0" :max="20" />
+        <el-input-number v-model="pickForm.judge" :min="0" :max="50" />
       </el-form-item>
       <el-form-item label="简答">
-        <el-input-number v-model="pickForm.essay" :min="0" :max="20" />
+        <el-input-number v-model="pickForm.essay" :min="0" :max="50" />
       </el-form-item>
       <el-form-item>
         <el-button type="success" :loading="picking" @click="doPick">

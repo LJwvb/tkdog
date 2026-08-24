@@ -84,18 +84,13 @@ export interface IQuestion {
   addDate: string; // 添加时间
   tags: string | string[]; // 标签
   questionType: string; // 题目类型 0: '单选题' 1: '多选题' 2: '判断题' 3: '填空题'4: '简答题'
-  remarks?: string; // 备注
   number?: number; // 试题编号
-  direction: string; // 题目方向
   difficulty: number; // 难度 0:'简单'1:'中等'2:'困难'
-  isChoice?: number; // 是否精选 0:否 1:是
-  publishState?: number; // 发布状态 0:未发布 1:已发布 2:已下架
-  publishDate?: string; // 发布时间
   chkState?: number; // 审核状态 0:未审核 1:审核通过 2:审核不通过
-  chkUser?: string; // 审核人
   chkRemarks?: string; // 审核备注
-  chkDate?: string; // 审核时间
   creator: string; // 创建人(作者)
+  updateTime?: string; // 修改时间
+  updateUser?: string; // 修改人
   likes_num: number; // 点赞数
   browses_num: number; // 浏览数
 }
@@ -384,26 +379,6 @@ export interface IFollowUser {
   create_time?: string;
 }
 
-// 站内私信
-export interface IPrivateMessage {
-  id: number;
-  from_user_id: number;
-  to_user_id: number;
-  content: string;
-  is_read: number;
-  ctime?: string;
-}
-
-// 私信会话
-export interface IConversation {
-  userId: number;
-  username?: string;
-  avatar?: string;
-  last_content?: string;
-  last_time?: string;
-  unread?: number;
-}
-
 // 公开主页信息
 export interface IPublicProfile {
   userId: number;
@@ -453,7 +428,9 @@ export interface IAnswerDetail {
   questionDetail: string;
   correctAnswer: string;
   userAnswer: string;
-  isCorrect: boolean | null;
+  isCorrect: number | null;
+  score?: number | null; // 该题得分
+  maxScore?: number; // 该题满分（整数）
 }
 
 // 交卷结果
@@ -465,6 +442,22 @@ export interface ISubmitPaperResult {
   wrongNum: number;
   subjectiveNum: number;
   detail: IAnswerDetail[];
+}
+
+// AI 批改简答题结果（available=false 表示 AI 不可用，需自行复核）
+export interface IAiJudgeResult {
+  available: boolean;
+  score?: number;
+  comment?: string;
+  isCorrect?: boolean;
+  message?: string;
+  // 判分落库后重算的整卷统计（仅传了 recordId 时返回）
+  stats?: {
+    correctNum: number;
+    wrongNum: number;
+    subjectiveNum: number;
+    score: number;
+  };
 }
 
 // 答题记录（一次整卷作答）
@@ -482,22 +475,6 @@ export interface IPaperRecord {
   paper_tags?: string | string[];
 }
 
-// 主观题待复核项（管理端）
-export interface ISubjectiveReview {
-  id: number;
-  record_id: number;
-  user_id: number;
-  paper_id: number;
-  question_id: number;
-  user_answer?: string;
-  is_correct: number | null;
-  ctime?: string;
-  username?: string;
-  question?: string;
-  correct_answer?: string;
-  paper_title?: string;
-}
-
 // 答题统计
 export interface IAnswerStats {
   attempt_num: number;
@@ -505,7 +482,6 @@ export interface IAnswerStats {
   correct_num: number;
   wrong_num: number;
   subjective_num: number;
-  total_score: number;
   avg_score: number;
   correct_rate: number;
   subjectStats?: Array<{

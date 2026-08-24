@@ -171,11 +171,7 @@
         <el-icon><Bell /></el-icon>
         <span>公告管理</span>
       </el-menu-item>
-      <el-menu-item index="9" @click="toReview">
-        <el-icon><View /></el-icon>
-        <span>主观题复核</span>
-      </el-menu-item>
-      <el-menu-item index="10" @click="toTag">
+      <el-menu-item index="9" @click="toTag">
         <el-icon><Collection /></el-icon>
         <span>标签管理</span>
       </el-menu-item>
@@ -240,7 +236,6 @@ import {
   ChatDotRound,
   Moon,
   Sunny,
-  View,
   Collection,
 } from '@element-plus/icons-vue';
 
@@ -457,11 +452,6 @@ const toFeedback = () => {
 const toAnnouncement = () => {
   router.push({
     path: '/adminAnnouncement',
-  });
-};
-const toReview = () => {
-  router.push({
-    path: '/adminReview',
   });
 };
 const toTag = () => {

@@ -62,12 +62,6 @@
           </el-icon>
           我的反馈
         </el-menu-item>
-        <el-menu-item index="10">
-          <el-icon>
-            <ChatLineRound />
-          </el-icon>
-          私信
-        </el-menu-item>
       </el-menu>
     </div>
     <div class="user-content">
@@ -93,7 +87,6 @@ import {
   DataLine,
   Bell,
   ChatDotRound,
-  ChatLineRound,
 } from '@element-plus/icons-vue';
 
 const paths = ref([
@@ -107,7 +100,6 @@ const paths = ref([
   '/user/UserRecord',
   '/user/UserMessage',
   '/user/UserFeedback',
-  '/user/UserPrivateMessage',
 ]);
 const router = useRouter();
 const activeIndex = ref('0');
@@ -150,9 +142,6 @@ watchEffect(() => {
       break;
     case '/user/UserFeedback':
       activeIndex.value = '9';
-      break;
-    case '/user/UserPrivateMessage':
-      activeIndex.value = '10';
       break;
     default:
       activeIndex.value = '0';
