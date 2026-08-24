@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div v-loading="loading" class="user-record" element-loading-text="加载中...">
     <!-- 答题统计 -->
     <div class="stats">
@@ -57,7 +57,7 @@
         <div class="record-header">
           <span>答题记录</span>
           <span v-if="records.length" class="record-tip">
-            客观题得分 = 答对题数，简答题不计分
+            满分 100，按题数动态计分（简答题由 AI 批改后计入）
           </span>
         </div>
       </template>
@@ -67,7 +67,13 @@
             {{ row.paper_title || `试卷 #${row.paper_id}` }}
           </template>
         </el-table-column>
-        <el-table-column prop="score" label="得分" width="90" align="center" />
+        <el-table-column label="得分" width="110" align="center">
+          <template #default="{ row }">
+            <span :class="Number(row.score) >= 60 ? 'c-ok' : 'c-bad'">
+              {{ formatScore(row.score) }} 分
+            </span>
+          </template>
+        </el-table-column>
         <el-table-column label="对 / 错 / 主观" width="160" align="center">
           <template #default="{ row }">
             <span class="c-ok">{{ row.correct_num }}</span>
@@ -127,7 +133,6 @@ const stats = ref<IAnswerStats>({
   correct_num: 0,
   wrong_num: 0,
   subjective_num: 0,
-  total_score: 0,
   avg_score: 0,
   correct_rate: 0,
 });
@@ -138,11 +143,10 @@ let trendInstance: ReturnType<typeof init> | null = null;
 const statCards = computed(() => [
   { label: '答题次数', value: stats.value.attempt_num, color: '#409eff' },
   {
-    label: '客观题正确率',
+    label: '答题正确率',
     value: `${stats.value.correct_rate}%`,
     color: '#67c23a',
   },
-  { label: '累计得分', value: stats.value.total_score, color: '#e6a23c' },
   { label: '平均得分', value: stats.value.avg_score, color: '#f56c6c' },
 ]);
 
@@ -151,6 +155,13 @@ const rowRate = (row: unknown): string => {
   const objective = Number(r.correct_num) + Number(r.wrong_num);
   if (objective <= 0) return '-';
   return `${Math.round((Number(r.correct_num) / objective) * 100)}%`;
+};
+
+// 得分显示：整数不带小数，非整数保留 1 位
+const formatScore = (v: unknown): string => {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return '0';
+  return Number.isInteger(n) ? String(n) : n.toFixed(1);
 };
 
 // 最近得分折线图

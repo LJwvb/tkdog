@@ -284,9 +284,7 @@ import {
 interface IChkQuestion {
   id: number;
   chkState: number;
-  chkUser: string;
   chkRemarks?: string;
-  creator: string;
   activeName: string;
 }
 const { index } = queryString.parse(

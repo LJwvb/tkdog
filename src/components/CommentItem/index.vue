@@ -233,7 +233,7 @@ const onPickImage = async (e: Event) => {
   const file = input.files?.[0];
   if (!file) return;
   try {
-    const url = await uploadImage(file);
+    const url = await uploadImage(file, 'comment');
     replyImages.value = [...replyImages.value, url];
   } catch (err) {
     ElMessage.error((err as Error)?.message || '图片上传失败');

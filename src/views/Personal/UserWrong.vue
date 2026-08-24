@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div
     v-loading="loading"
     class="user-info-container"
@@ -135,16 +135,16 @@ const handleCurrentChange = (val: number) => {
 };
 
 const startRework = async () => {
-  // 取全部错题（练习卷最多 20 道）
+  // 取全部错题（练习卷最多 50 道）
   const res = await getWrongQuestions({ currentPage: 1, pageSize: 999 });
   const wrongs = res?.data ?? [];
   if (!wrongs.length) {
     ElMessage.warning('没有错题可重练');
     return;
   }
-  const list = wrongs.slice(0, 20);
-  if (wrongs.length > 20) {
-    ElMessage.warning('错题超过 20 道，仅重练前 20 道');
+  const list = wrongs.slice(0, 50);
+  if (wrongs.length > 50) {
+    ElMessage.warning('错题超过 50 道，仅重练前 50 道');
   }
   const ids = list.map((q) => q.id).join(',');
   const paper = await getPaperQuestion({

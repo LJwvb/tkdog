@@ -16,6 +16,24 @@
         :size="formSize"
         status-icon
       >
+        <el-form-item label="头像">
+          <div class="avatar-uploader">
+            <el-avatar :size="80" :src="avatarPreview" class="avatar-preview" />
+            <div class="avatar-actions">
+              <el-button size="small" type="primary" plain @click="pickAvatar">
+                更换头像
+              </el-button>
+              <div class="avatar-tip">支持 jpg/png/gif/webp，≤5MB</div>
+            </div>
+            <input
+              ref="avatarInput"
+              type="file"
+              accept="image/*"
+              style="display: none"
+              @change="onPickAvatar"
+            />
+          </div>
+        </el-form-item>
         <el-form-item label="手机号">
           <el-input disabled :placeholder="phone" />
         </el-form-item>
@@ -61,13 +79,32 @@
 import { reactive, ref, toRefs } from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import { useStore } from 'vuex';
-import { editUserInfo } from '@/services';
+import { editUserInfo, uploadImage } from '@/services';
 import type { FormInstance, FormRules } from 'element-plus';
 const formSize = ref<'' | 'default' | 'small' | 'large'>('default');
 const ruleFormRef = ref<FormInstance>();
 const store = useStore();
 const phone = store.state.userData.phone;
 const username = store.state.userData.username;
+// 头像预览（初始为当前头像，可更换）
+const avatarPreview = ref(store.state.userData.avatar || '');
+const avatarInput = ref<HTMLInputElement>();
+const pickAvatar = () => {
+  avatarInput.value?.click();
+};
+const onPickAvatar = async (e: Event) => {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+  try {
+    const url = await uploadImage(file, 'avatar');
+    avatarPreview.value = url;
+  } catch (err) {
+    ElMessage.error((err as Error)?.message || '头像上传失败');
+  } finally {
+    input.value = '';
+  }
+};
 const props = defineProps({
   dialogVisible: Boolean,
   userInfo: {
@@ -102,6 +139,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
       const params = {
         ...ruleForm,
         phone: phone,
+        avatar: avatarPreview.value,
       };
 
       editUserInfo(params).then(() => {
@@ -151,5 +189,22 @@ const handleClose = (done: () => void) => {
 }
 .tag {
   margin-right: 5px;
+}
+.avatar-uploader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.avatar-preview {
+  flex-shrink: 0;
+}
+.avatar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.avatar-tip {
+  font-size: 12px;
+  color: #909399;
 }
 </style>
