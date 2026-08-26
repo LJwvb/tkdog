@@ -97,35 +97,102 @@
           </div>
           <template v-else>
             <div class="comment-input">
-              <el-input
-                v-model="commentContent"
-                type="textarea"
-                :rows="3"
-                maxlength="200"
-                show-word-limit
-                placeholder="说说你对这道题的看法..."
-              />
-              <div v-if="commentImages.length" class="comment-images">
-                <el-image
-                  v-for="img in commentImages"
-                  :key="img"
-                  :src="img"
-                  fit="cover"
-                  class="comment-image"
+              <div
+                class="comment-editor"
+                @paste="onPasteCommentImages"
+                @drop.prevent="onDropCommentImages"
+                @dragover.prevent
+              >
+                <el-input
+                  ref="commentTextareaRef"
+                  v-model="commentContent"
+                  type="textarea"
+                  :rows="3"
+                  maxlength="200"
+                  show-word-limit
+                  placeholder="说说你对这道题的看法...（支持直接粘贴或拖拽图片）"
                 />
-              </div>
-              <div class="comment-input-actions">
-                <el-button type="primary" @click="submitComment"
-                  >发表评论</el-button
+                <div
+                  v-if="commentImages.length || commentPending > 0"
+                  class="comment-images"
                 >
-                <el-button @click="pickCommentImage">图片</el-button>
-                <input
-                  ref="commentFileRef"
-                  type="file"
-                  accept="image/*"
-                  style="display: none"
-                  @change="onPickCommentImage"
-                />
+                  <div
+                    v-for="(img, idx) in commentImages"
+                    :key="img"
+                    class="comment-image-item"
+                  >
+                    <el-image
+                      :src="img"
+                      fit="cover"
+                      class="comment-image"
+                    />
+                    <el-icon
+                      class="comment-image-remove"
+                      @click="removeCommentImage(idx)"
+                    >
+                      <CircleCloseFilled />
+                    </el-icon>
+                  </div>
+                  <div
+                    v-if="commentPending > 0"
+                    class="comment-image-item comment-image-pending"
+                  >
+                    <el-icon class="is-loading">
+                      <Loading />
+                    </el-icon>
+                  </div>
+                </div>
+                <div class="comment-toolbar">
+                  <div class="comment-toolbar-left">
+                    <el-tooltip content="添加图片">
+                      <el-button text circle @click="pickCommentImage">
+                        <el-icon size="18"><Picture /></el-icon>
+                      </el-button>
+                    </el-tooltip>
+                    <el-popover
+                      trigger="click"
+                      :width="300"
+                      placement="top-start"
+                    >
+                      <template #reference>
+                        <el-button
+                          text
+                          circle
+                          class="emoji-btn"
+                          aria-label="插入表情"
+                        >
+                          😊
+                        </el-button>
+                      </template>
+                      <div class="emoji-panel">
+                        <button
+                          v-for="e in EMOJIS"
+                          :key="e"
+                          type="button"
+                          class="emoji-item"
+                          @click="insertEmoji(e)"
+                        >
+                          {{ e }}
+                        </button>
+                      </div>
+                    </el-popover>
+                  </div>
+                  <el-button
+                    type="primary"
+                    size="small"
+                    :disabled="commentPending > 0"
+                    @click="submitComment"
+                    >发表评论</el-button
+                  >
+                  <input
+                    ref="commentFileRef"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    style="display: none"
+                    @change="onPickCommentImage"
+                  />
+                </div>
               </div>
             </div>
             <div v-if="commentTree.length" class="comment-list">
@@ -181,6 +248,12 @@
           题目获赞数：
           <span style="color: #f7ba2a">{{
             questionDetail.likes_num ?? 0
+          }}</span>
+        </div>
+        <div>
+          题目收藏数：
+          <span style="color: #67c23a">{{
+            questionDetail.favorite_num ?? 0
           }}</span>
         </div>
         <div>
@@ -326,6 +399,9 @@ import {
   ArrowUpBold,
   ArrowDownBold,
   Collection,
+  Picture,
+  CircleCloseFilled,
+  Loading,
 } from '@element-plus/icons-vue';
 import { useStore } from 'vuex';
 import {
@@ -403,6 +479,11 @@ const toggleFavorite = () => {
     : favoriteQuestion({ questionId: qid });
   fn.then(() => {
     isFavorite.value = !isFavorite.value;
+    // 同步更新详情页收藏数
+    const fav = Number(questionDetail.value.favorite_num) || 0;
+    questionDetail.value.favorite_num = isFavorite.value
+      ? fav + 1
+      : Math.max(fav - 1, 0);
     ElMessage.success(isFavorite.value ? '收藏成功' : '已取消收藏');
   });
 };
@@ -451,6 +532,17 @@ const updateTimeText = computed(() => {
     ? transitionTime(questionDetail.value.updateTime)
     : '';
 });
+// 记录浏览：仅审核通过的题目且本次会话未浏览过才 +1，并同步更新详情页展示
+const recordBrowse = (qid: number) => {
+  const detail = questionDetail.value;
+  if (!detail || Number(detail.chkState) !== 1) return;
+  const browsed = store.state.browseTopicsId;
+  if (browsed.includes(qid)) return;
+  store.commit('setBrowseTopicsId', [...browsed, qid]);
+  browseQuestion({ id: qid, username: store.state.userData.username });
+  detail.browses_num = (Number(detail.browses_num) || 0) + 1;
+};
+
 // 获取题目详情
 const getDailyQuestion = async (value?: number) => {
   // 判断喜欢的题目中是否包含当前题目id
@@ -462,6 +554,8 @@ const getDailyQuestion = async (value?: number) => {
   getQuestionDetail({ id: value ?? Number(id) })
     .then((res) => {
       questionDetail.value = res;
+      // 浏览记录统一在详情加载完成后处理，避免与详情接口并发导致浏览数少算
+      recordBrowse(value ?? Number(id));
     })
     .finally(() => {
       loading.value = false;
@@ -488,6 +582,11 @@ const like = () => {
         type: 'warning',
       });
       isClickLike.value = false;
+      // 同步更新详情页获赞数
+      questionDetail.value.likes_num = Math.max(
+        (Number(questionDetail.value.likes_num) || 0) - 1,
+        0,
+      );
       // 删除喜欢的题目id
       likeTopicsId.splice(
         likeTopicsId.indexOf(String(questionDetail.value.id)),
@@ -510,6 +609,9 @@ const like = () => {
         type: 'success',
       });
       isClickLike.value = true;
+      // 同步更新详情页获赞数
+      questionDetail.value.likes_num =
+        (Number(questionDetail.value.likes_num) || 0) + 1;
       // 添加喜欢的题目id
       likeTopicsId.push(String(questionDetail.value.id));
       store.commit('setUserData', {
@@ -547,12 +649,6 @@ const goSimilarQuestion = (id: number) => {
   getComments(id);
   commentContent.value = '';
   highlightCommentId.value = null;
-  const setBrowseTopicsId = store.state.browseTopicsId;
-  const setBrowseTopicsIds = setBrowseTopicsId.map((item: string) => item);
-  if (!setBrowseTopicsIds.includes(id)) {
-    store.commit('setBrowseTopicsId', [...store.state.browseTopicsId, id]);
-    browseQuestion({ id, username: store.state.userData.username });
-  }
   const stateSelectedTopic = store.state.selectedTopic;
   // 获取之前选中的题目id
   const selectedTopicIds = stateSelectedTopic.map((item: IQuestion) => item.id);
@@ -640,7 +736,9 @@ const returnToBefore = () => {
 const commentTree = ref<IComment[]>([]);
 const commentContent = ref('');
 const commentImages = ref<string[]>([]);
+const commentPending = ref(0);
 const commentFileRef = ref<HTMLInputElement>();
+const commentTextareaRef = ref();
 const commentPage = ref(1);
 const commentTotal = ref(0);
 const commentPageSize = 10;
@@ -649,17 +747,86 @@ const pickCommentImage = () => {
   commentFileRef.value?.click();
 };
 
+// 单条评论最多 9 张图（后端同样校验，前端提前提示）
+const MAX_COMMENT_IMAGES = 9;
+const isImageFile = (f: File) => {
+  if (f.type && f.type.startsWith('image/')) return true;
+  const ext = (f.name.split('.').pop() || '').toLowerCase();
+  return [ 'jpg', 'jpeg', 'png', 'gif', 'webp' ].includes(ext);
+};
+const addCommentImages = async (files: File[]) => {
+  const imgs = files.filter(isImageFile);
+  if (!imgs.length) return;
+  const remain = MAX_COMMENT_IMAGES - commentImages.value.length;
+  if (remain <= 0) {
+    ElMessage.warning('每条评论最多上传 9 张图片');
+    return;
+  }
+  if (imgs.length > remain) {
+    ElMessage.warning(`最多还能上传 ${remain} 张图片`);
+  }
+  for (const file of imgs.slice(0, remain)) {
+    commentPending.value += 1;
+    try {
+      const url = await uploadImage(file, 'comment');
+      commentImages.value = [...commentImages.value, url];
+    } catch (err) {
+      ElMessage.error((err as Error)?.message || '图片上传失败');
+    } finally {
+      commentPending.value -= 1;
+    }
+  }
+};
 const onPickCommentImage = async (e: Event) => {
   const input = e.target as HTMLInputElement;
-  const file = input.files?.[0];
-  if (!file) return;
-  try {
-    const url = await uploadImage(file, 'comment');
-    commentImages.value = [...commentImages.value, url];
-  } catch (err) {
-    ElMessage.error((err as Error)?.message || '图片上传失败');
-  } finally {
-    input.value = '';
+  const files = input.files ? Array.from(input.files) : [];
+  await addCommentImages(files);
+  input.value = '';
+};
+// 直接粘贴截图/图片（知乎/微博/飞书等主流评论框均支持）
+const onPasteCommentImages = (e: ClipboardEvent) => {
+  const files = Array.from(e.clipboardData?.files || []);
+  if (files.length) {
+    e.preventDefault();
+    addCommentImages(files);
+  }
+};
+// 拖拽图片到输入框上传
+const onDropCommentImages = (e: DragEvent) => {
+  const files = Array.from(e.dataTransfer?.files || []);
+  if (files.length) {
+    addCommentImages(files);
+  }
+};
+const removeCommentImage = (idx: number) => {
+  const next = [...commentImages.value];
+  next.splice(idx, 1);
+  commentImages.value = next;
+};
+
+// 常用表情（点击插入到光标处）
+const EMOJIS = [
+  '😀', '😁', '😂', '🤣', '😊', '😍', '😘', '😜',
+  '🤔', '😅', '😭', '😤', '😴', '🥳', '🤯', '👀',
+  '👍', '👎', '👏', '🙏', '❤️', '💔', '🔥', '🎉',
+  '✨', '💯', '🐶', '🌹', '☕', '🍉',
+];
+const insertEmoji = (emoji: string) => {
+  const textarea = commentTextareaRef.value?.$el?.querySelector?.(
+    'textarea',
+  ) as HTMLTextAreaElement | null;
+  if (textarea && typeof textarea.selectionStart === 'number') {
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = commentContent.value;
+    commentContent.value = text.slice(0, start) + emoji + text.slice(end);
+    nextTick(() => {
+      textarea.focus();
+      const pos = start + emoji.length;
+      textarea.setSelectionRange(pos, pos);
+    });
+  } else {
+    commentContent.value += emoji;
   }
 };
 
@@ -791,6 +958,7 @@ const saveEdit = async () => {
 };
 // 加载当前题目的收藏状态
 const loadFavoriteStatus = async () => {
+  if (!store.state.userData?.phone) return; // 未登录跳过收藏状态
   try {
     const favs = await getMyFavorites();
     isFavorite.value = (favs || []).some((q) => Number(q.id) === Number(id));
@@ -1036,16 +1204,65 @@ watchEffect(() => {
   gap: 8px;
   margin-top: 10px;
 }
+.comment-image-item {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
 .comment-image {
   width: 80px;
   height: 80px;
   border-radius: 6px;
 }
-.comment-input-actions {
+.comment-image-remove {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  font-size: 18px;
+  color: #f56c6c;
+  background: #fff;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.comment-toolbar {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 10px;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+.comment-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.emoji-btn {
+  font-size: 18px;
+}
+.emoji-panel {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+}
+.emoji-item {
+  background: none;
+  border: none;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+.emoji-item:hover {
+  background: #f5f7fa;
+}
+.comment-image-pending {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #dcdfe6;
+  border-radius: 6px;
+  color: #909399;
+  font-size: 22px;
 }
 .reply-tip {
   margin-bottom: 10px;

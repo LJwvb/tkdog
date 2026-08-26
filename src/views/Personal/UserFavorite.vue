@@ -2,7 +2,11 @@
   <div v-loading="loading" class="user-info-container">
     <el-card v-if="favorites.length > 0" style="min-height: 500px">
       <div v-for="item in favorites" :key="item.id">
-        <QuestionCard :question="item" type="userFavorites" />
+        <QuestionCard
+          :question="item"
+          type="userFavorites"
+          :card-tip="reviewingCardTip(item, store.state.userData.username)"
+        />
       </div>
     </el-card>
     <el-card v-else>
@@ -13,10 +17,13 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useStore } from 'vuex';
 import QuestionCard from '@/components/QuestionCard/index.vue';
 import { getMyFavorites } from '@/services';
 import type { IQuestion } from '@/types';
+import { reviewingCardTip } from '@/utils';
 
+const store = useStore();
 const favorites = ref<IQuestion[]>([]);
 const loading = ref(true);
 

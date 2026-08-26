@@ -35,6 +35,12 @@
         </div>
         <div class="num-item">
           <el-icon style="width: 15px; height: 15px">
+            <Collection />
+          </el-icon>
+          <span class="num-text">{{ question?.favorite_num ?? 0 }}</span>
+        </div>
+        <div class="num-item">
+          <el-icon style="width: 15px; height: 15px">
             <User />
           </el-icon>
           <span class="num-text">{{ question?.creator }}</span>
@@ -102,6 +108,13 @@
       >
     </div>
     <el-button
+      v-if="props.type === 'userQuestions'"
+      type="warning"
+      class="btn-edit"
+      @click="() => emit('edit', question)"
+      >编辑</el-button
+    >
+    <el-button
       v-if="props.type === 'paper'"
       type="danger"
       class="btn0"
@@ -148,9 +161,8 @@ import { ElMessage } from 'element-plus';
 
 import router from '@/router';
 import { ChkState, type IQuestion } from '@/types';
-import { browseQuestion } from '@/services';
 import { questionType, difficulty, transitionTime } from '@/utils';
-import { View, Star, User } from '@element-plus/icons-vue';
+import { View, Star, Collection, User } from '@element-plus/icons-vue';
 const store = useStore();
 const isChecked = ref(false);
 const props = defineProps({
@@ -171,6 +183,11 @@ const props = defineProps({
     default: 0,
   },
   activeName: {
+    type: String,
+    default: '',
+  },
+  // 点击卡片时的提示文案：设置后点击不再跳详情，改为弹出提示
+  cardTip: {
     type: String,
     default: '',
   },
@@ -241,6 +258,11 @@ const updateInfo = computed(() => {
 });
 
 const toProblemInfo = () => {
+  // 设置了提示文案时不跳详情，改为弹出提示
+  if (props.cardTip) {
+    ElMessage.info(props.cardTip);
+    return;
+  }
   router.push({
     path: `/problemInfo`,
     query: {
@@ -250,14 +272,6 @@ const toProblemInfo = () => {
       catalogID: props?.catalogID,
     },
   });
-  // 未审核 / 审核不通过的题目不产生浏览记录
-  if (Number(question?.chkState) !== 1) return;
-  const setBrowseTopicsId = store.state.browseTopicsId;
-  const setBrowseTopicsIds = setBrowseTopicsId.map((item: string) => item);
-  if (!setBrowseTopicsIds.includes(id)) {
-    store.commit('setBrowseTopicsId', [...store.state.browseTopicsId, id]);
-    browseQuestion({ id, username: store.state.userData.username });
-  }
 };
 const selectedTopic = () => {
   // 获取之前选中的题目A
@@ -366,7 +380,7 @@ watchEffect(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 300px;
+  width: 400px;
   font-size: 13px;
   position: absolute;
   bottom: 10px;

@@ -89,6 +89,7 @@
                       >通过</el-button
                     >
                     <el-button
+                      v-if="!scope.row.parent_id"
                       size="small"
                       :type="scope.row.is_pinned ? 'warning' : 'info'"
                       @click="handlePin(scope.row)"

@@ -30,7 +30,11 @@
         </el-icon>
         <span>试卷</span>
       </el-menu-item>
-      <el-menu-item index="4" @click="toUser">
+      <el-menu-item
+        v-if="store.state.userData?.phone"
+        index="4"
+        @click="toUser"
+      >
         <el-icon>
           <User />
         </el-icon>
@@ -54,10 +58,15 @@
           <el-icon><Bell /></el-icon>
         </el-button>
       </el-badge>
-      <el-button type="primary" class="upload" @click="toAddSubject">
+      <el-button
+        v-if="store.state.userData?.phone"
+        type="primary"
+        class="upload"
+        @click="toAddSubject"
+      >
         上传
       </el-button>
-      <el-dropdown>
+      <el-dropdown v-if="store.state.userData?.phone">
         <el-avatar
           :size="50"
           :src="store.state.userData?.avatar"
@@ -86,6 +95,12 @@
           </el-dropdown-menu>
         </template>
       </el-dropdown>
+      <el-avatar
+        v-else
+        :size="50"
+        style="width: 50px; height: 50px; cursor: pointer"
+        @click="goLogin"
+      />
     </div>
     <UploadQuestion v-model:dialogVisible="dialogVisible" />
     <el-dialog
@@ -136,12 +151,24 @@
           <Notebook />
         </el-icon>
         <span>题目管理</span>
+        <el-badge
+          v-if="pendingQuestions > 0"
+          :value="pendingQuestions"
+          :max="99"
+          class="menu-badge"
+        />
       </el-menu-item>
       <el-menu-item index="3" @click="toTestAdmin">
         <el-icon>
           <List />
         </el-icon>
         <span>试卷管理</span>
+        <el-badge
+          v-if="pendingPapers > 0"
+          :value="pendingPapers"
+          :max="99"
+          class="menu-badge"
+        />
       </el-menu-item>
       <el-menu-item index="4" @click="toUserAdmin">
         <el-icon>
@@ -152,6 +179,12 @@
       <el-menu-item index="5" @click="toCommentAdmin">
         <el-icon><ChatLineSquare /></el-icon>
         <span>评论管理</span>
+        <el-badge
+          v-if="pendingComments > 0"
+          :value="pendingComments"
+          :max="99"
+          class="menu-badge"
+        />
       </el-menu-item>
       <el-menu-item index="6" @click="toSensitiveWord">
         <el-icon><Warning /></el-icon>
@@ -210,7 +243,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watchEffect, reactive, onMounted } from 'vue';
+import {
+  ref,
+  computed,
+  watchEffect,
+  reactive,
+  onMounted,
+  watch,
+  onBeforeUnmount,
+} from 'vue';
 import router from '../../router';
 import { useStore } from 'vuex';
 import { ElMessage } from 'element-plus';
@@ -219,7 +260,7 @@ import {
   editUserInfo,
   logout,
   getUnreadCount,
-  getUnresolvedFeedbackCount,
+  getAdminPendingCounts,
 } from '@/services';
 import UploadQuestion from '@/components/UploadQuestion/index.vue';
 import {
@@ -251,10 +292,18 @@ const toggleTheme = () => {
 };
 // 未读数放入 store，UserMessage 标记已读后实时同步到角标
 const unreadCount = computed(() => store.state.unreadCount);
+// 管理端未审核数量（导航栏红点）
 const feedbackCount = ref(0);
+const pendingQuestions = ref(0);
+const pendingPapers = ref(0);
+const pendingComments = ref(0);
+// 红点轮询定时器
+let pendingTimer: ReturnType<typeof setInterval> | null = null;
 
 const loadUnread = async () => {
+  // 管理员或无登录态时不拉取用户未读数
   if (store.state.userData.isAdmin) return;
+  if (!store.state.userData?.phone) return;
   try {
     const res = await getUnreadCount();
     store.commit('setUnreadCount', res?.count ?? 0);
@@ -262,11 +311,14 @@ const loadUnread = async () => {
     // 忽略未读角标拉取失败
   }
 };
-const loadFeedbackCount = async () => {
+const loadPendingCounts = async () => {
   if (!store.state.userData.isAdmin) return;
   try {
-    const res = await getUnresolvedFeedbackCount();
-    feedbackCount.value = res?.count ?? 0;
+    const res = await getAdminPendingCounts();
+    pendingQuestions.value = res?.pendingQuestions ?? 0;
+    pendingPapers.value = res?.pendingPapers ?? 0;
+    pendingComments.value = res?.pendingComments ?? 0;
+    feedbackCount.value = res?.unresolvedFeedback ?? 0;
   } catch {
     // 忽略
   }
@@ -277,8 +329,28 @@ const toMessage = () => {
 };
 onMounted(() => {
   loadUnread();
-  loadFeedbackCount();
+  loadPendingCounts();
+  // 管理端红点定时刷新：NavBar 跨路由常驻，只有刷新页面才会重新挂载，
+  // 这里用轮询保证审核/反馈数量在停留页面时也能及时更新
+  pendingTimer = setInterval(() => {
+    loadUnread();
+    loadPendingCounts();
+  }, 10000);
 });
+onBeforeUnmount(() => {
+  if (pendingTimer) {
+    clearInterval(pendingTimer);
+    pendingTimer = null;
+  }
+});
+// 路由切换后立即刷新红点/未读数（无需等下一次轮询）
+watch(
+  () => router.currentRoute.value.path,
+  () => {
+    loadUnread();
+    loadPendingCounts();
+  },
+);
 const ruleFormRef = ref<FormInstance>();
 const ruleForm = reactive({
   password: '',
@@ -357,6 +429,11 @@ const toInfo = () => {
   });
 };
 
+// 未登录时点击头像直接跳登录页
+const goLogin = () => {
+  router.push({ path: '/Login' });
+};
+
 const editPassword = () => {
   dialogVisibleEditPassword.value = true;
 };
@@ -411,6 +488,8 @@ const toLogin = () => {
   store.commit('setActiveMenuIndex', '1');
   store.commit('setBrowseTopicsId', []);
   store.commit('addSelectedTopic', []);
+  // 清空未读角标，避免退出后右上角红点残留
+  store.commit('setUnreadCount', 0);
 };
 
 //管理员

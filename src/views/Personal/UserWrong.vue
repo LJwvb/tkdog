@@ -49,7 +49,11 @@
 
       <div v-if="questionList.length > 0" style="min-height: 400px">
         <div v-for="item in questionList" :key="item.id">
-          <QuestionCard :question="item" type="userWrong" />
+          <QuestionCard
+            :question="item"
+            type="userWrong"
+            :card-tip="reviewingCardTip(item, store.state.userData.username)"
+          />
         </div>
       </div>
       <el-empty v-else :image-size="200" description="暂无错题，继续保持！" />
@@ -83,6 +87,7 @@ import {
   clearWrongQuestions,
 } from '@/services';
 import { PaperPurview, type IWrongQuestion } from '@/types';
+import { reviewingCardTip } from '@/utils';
 
 const router = useRouter();
 const store = useStore();

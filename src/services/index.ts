@@ -338,6 +338,14 @@ export function updatePaperPurview(params: {
   return request<void>('POST', '/updatePaperPurview', { data: params });
 }
 
+// 编辑自己的试卷题目（增删题目；公开试卷需重新审核）
+export function updatePaperQuestions(params: {
+  paperId: number | string;
+  ids: string;
+}): Promise<void> {
+  return request<void>('POST', '/updatePaperQuestions', { data: params });
+}
+
 // 获取试卷详情接口（forTest 为 true 时后端不返回答案）
 export function getPaperDetail(params: {
   paperId: number | string;
@@ -449,6 +457,16 @@ export function getUserList(
 // 管理端首页统计
 export function getAdminStatistics(): Promise<IAdminStatistics> {
   return request<IAdminStatistics>('POST', '/getAdminStatistics', { data: {} });
+}
+
+// 管理端未审核数量统计（导航栏红点）
+export function getAdminPendingCounts(): Promise<{
+  pendingQuestions: number;
+  pendingPapers: number;
+  pendingComments: number;
+  unresolvedFeedback: number;
+}> {
+  return request('POST', '/getAdminPendingCounts', { data: {} });
 }
 
 // 删除用户

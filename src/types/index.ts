@@ -93,6 +93,7 @@ export interface IQuestion {
   updateUser?: string; // 修改人
   likes_num: number; // 点赞数
   browses_num: number; // 浏览数
+  favorite_num: number; // 收藏数
 }
 // 获取题目详情接口
 export interface IGetQuestionDetailParams {

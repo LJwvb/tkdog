@@ -80,6 +80,27 @@ export const transitionTime = (addDate: string | undefined) => {
   const second = date.getSeconds().toString().padStart(2, '0');
   return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
 };
+// 审核中（二次编辑后重新审核）题目的点击提示；返回空串表示可正常跳详情
+// 只有「非本人上传」的审核中题目才拦截，本人可正常查看自己的题
+export const reviewingCardTip = (
+  q: {
+    chkState?: number;
+    updateTime?: string;
+    updateUser?: string;
+    creator?: string;
+  },
+  currentUsername?: string,
+): string => {
+  if (
+    Number(q.chkState) === 0 &&
+    q.updateTime &&
+    q.creator !== currentUsername
+  ) {
+    const who = q.updateUser || '用户';
+    return `${who} 已于 ${transitionTime(q.updateTime)} 二次编辑了题目，还在审核中`;
+  }
+  return '';
+};
 export const transitionSex = (sex: unknown) => {
   const sexVal = Number(sex);
   if (sexVal === 0) {

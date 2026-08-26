@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div
     v-loading="loading"
     class="user-info-container"
@@ -6,7 +6,11 @@
   >
     <el-card v-if="ids !== ''" style="min-height: 500px">
       <div v-for="item in questionList" :key="item.id">
-        <QuestionCard :question="item" type="userLikes" />
+        <QuestionCard
+          :question="item"
+          type="userLikes"
+          :card-tip="reviewingCardTip(item, store.state.userData.username)"
+        />
       </div>
       <el-pagination
         v-model:current-page="currentPage"
@@ -32,6 +36,7 @@ import { useStore } from 'vuex';
 import QuestionCard from '@/components/QuestionCard/index.vue';
 
 import { getQuestionList } from '@/services';
+import { reviewingCardTip } from '@/utils';
 const store = useStore();
 const questionList = ref();
 const loading = ref(true);

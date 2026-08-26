@@ -25,7 +25,6 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'home',
-    meta: { requireAuth: true },
     component: () => import('@/views/Home/index.vue'),
   },
   {
@@ -91,19 +90,16 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/questionPage',
     name: 'questionPage',
-    meta: { requireAuth: true },
     component: () => import('@/views/QuestionPage/index.vue'),
   },
   {
     path: '/testPaper',
     name: 'testPaper',
-    meta: { requireAuth: true },
     component: () => import('@/views/TestPaper/index.vue'),
   },
   {
     path: '/testPaper/paperDetail',
     name: 'paperDetail',
-    meta: { requireAuth: true },
     component: () => import('@/views/TestPaper/paperDetail.vue'),
   },
   {
@@ -185,7 +181,6 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/problemInfo',
     name: 'problemInfo',
-    meta: { requireAuth: true },
     component: () => import('@/views/ProblemInfo/index.vue'),
   },
   {

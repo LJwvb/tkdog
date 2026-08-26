@@ -12,9 +12,12 @@
       <el-avatar :size="isChild ? 28 : 32" :src="comment.avatar" />
       <div class="comment-body">
         <div class="comment-meta">
-          <span class="comment-user" @click="goProfile">{{
-            comment.username
-          }}</span>
+          <div class="comment-meta-left">
+            <span class="comment-user" @click="goProfile">{{
+              comment.username
+            }}</span>
+            <span v-if="comment.is_pinned === 1" class="pin-badge">置顶</span>
+          </div>
           <span class="comment-time">{{
             transitionTime(comment.create_time)
           }}</span>
@@ -59,40 +62,95 @@
 
     <!-- 当前位置的内联回复输入框 -->
     <div v-if="showReplyInput" class="reply-input">
-      <el-input
-        v-model="replyInput"
-        type="textarea"
-        :rows="2"
-        maxlength="200"
-        show-word-limit
-        :placeholder="`回复 @${comment.username}...`"
-      />
-      <div v-if="replyImages.length" class="reply-images">
-        <el-image
-          v-for="img in replyImages"
-          :key="img"
-          :src="img"
-          fit="cover"
-          class="reply-image"
+      <div
+        class="reply-editor"
+        @paste="onPasteImages"
+        @drop.prevent="onDropImages"
+        @dragover.prevent
+      >
+        <el-input
+          ref="replyTextareaRef"
+          v-model="replyInput"
+          type="textarea"
+          :rows="2"
+          maxlength="200"
+          show-word-limit
+          :placeholder="`回复 @${comment.username}...（支持粘贴/拖拽图片）`"
         />
-      </div>
-      <div class="reply-input-actions">
-        <el-button
-          type="primary"
-          size="small"
-          :disabled="!replyInput.trim() && replyImages.length === 0"
-          @click="submitReply"
-          >回复</el-button
-        >
-        <el-button size="small" @click="pickImage">图片</el-button>
-        <el-button size="small" @click="cancelReply">取消</el-button>
-        <input
-          ref="fileInputRef"
-          type="file"
-          accept="image/*"
-          style="display: none"
-          @change="onPickImage"
-        />
+        <div v-if="replyImages.length || replyPending > 0" class="reply-images">
+          <div
+            v-for="(img, idx) in replyImages"
+            :key="img"
+            class="reply-image-item"
+          >
+            <el-image :src="img" fit="cover" class="reply-image" />
+            <el-icon class="reply-image-remove" @click="removeImage(idx)">
+              <CircleCloseFilled />
+            </el-icon>
+          </div>
+          <div
+            v-if="replyPending > 0"
+            class="reply-image-item reply-image-pending"
+          >
+            <el-icon class="is-loading">
+              <Loading />
+            </el-icon>
+          </div>
+        </div>
+        <div class="reply-input-actions">
+          <div class="reply-toolbar-left">
+            <el-tooltip content="添加图片">
+              <el-button text circle size="small" @click="pickImage">
+                <el-icon size="16"><Picture /></el-icon>
+              </el-button>
+            </el-tooltip>
+            <el-popover trigger="click" :width="260" placement="top-start">
+              <template #reference>
+                <el-button
+                  text
+                  circle
+                  size="small"
+                  class="emoji-btn"
+                  aria-label="插入表情"
+                >
+                  😊
+                </el-button>
+              </template>
+              <div class="emoji-panel">
+                <button
+                  v-for="e in EMOJIS"
+                  :key="e"
+                  type="button"
+                  class="emoji-item"
+                  @click="insertEmoji(e)"
+                >
+                  {{ e }}
+                </button>
+              </div>
+            </el-popover>
+          </div>
+          <div class="reply-actions-right">
+            <el-button
+              type="primary"
+              size="small"
+              :disabled="
+                (!replyInput.trim() && replyImages.length === 0) ||
+                replyPending > 0
+              "
+              @click="submitReply"
+              >回复</el-button
+            >
+            <el-button size="small" @click="cancelReply">取消</el-button>
+          </div>
+          <input
+            ref="fileInputRef"
+            type="file"
+            accept="image/*"
+            multiple
+            style="display: none"
+            @change="onPickImage"
+          />
+        </div>
       </div>
     </div>
 
@@ -136,8 +194,13 @@ export default { name: 'CommentItem' };
 </script>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, nextTick } from 'vue';
 import { ElMessage } from 'element-plus';
+import {
+  Picture,
+  CircleCloseFilled,
+  Loading,
+} from '@element-plus/icons-vue';
 import { transitionTime } from '@/utils';
 import {
   addComment,
@@ -214,7 +277,9 @@ const locateParent = () => {
 const showReplyInput = ref(false);
 const replyInput = ref('');
 const replyImages = ref<string[]>([]);
+const replyPending = ref(0);
 const fileInputRef = ref<HTMLInputElement>();
+const replyTextareaRef = ref();
 
 const toggleReply = () => {
   showReplyInput.value = !showReplyInput.value;
@@ -228,17 +293,86 @@ const pickImage = () => {
   fileInputRef.value?.click();
 };
 
+// 单条评论最多 9 张图（后端同样校验，前端提前提示）
+const MAX_REPLY_IMAGES = 9;
+const isImageFile = (f: File) => {
+  if (f.type && f.type.startsWith('image/')) return true;
+  const ext = (f.name.split('.').pop() || '').toLowerCase();
+  return [ 'jpg', 'jpeg', 'png', 'gif', 'webp' ].includes(ext);
+};
+const addReplyImages = async (files: File[]) => {
+  const imgs = files.filter(isImageFile);
+  if (!imgs.length) return;
+  const remain = MAX_REPLY_IMAGES - replyImages.value.length;
+  if (remain <= 0) {
+    ElMessage.warning('每条评论最多上传 9 张图片');
+    return;
+  }
+  if (imgs.length > remain) {
+    ElMessage.warning(`最多还能上传 ${remain} 张图片`);
+  }
+  for (const file of imgs.slice(0, remain)) {
+    replyPending.value += 1;
+    try {
+      const url = await uploadImage(file, 'comment');
+      replyImages.value = [...replyImages.value, url];
+    } catch (err) {
+      ElMessage.error((err as Error)?.message || '图片上传失败');
+    } finally {
+      replyPending.value -= 1;
+    }
+  }
+};
 const onPickImage = async (e: Event) => {
   const input = e.target as HTMLInputElement;
-  const file = input.files?.[0];
-  if (!file) return;
-  try {
-    const url = await uploadImage(file, 'comment');
-    replyImages.value = [...replyImages.value, url];
-  } catch (err) {
-    ElMessage.error((err as Error)?.message || '图片上传失败');
-  } finally {
-    input.value = '';
+  const files = input.files ? Array.from(input.files) : [];
+  await addReplyImages(files);
+  input.value = '';
+};
+// 直接粘贴截图/图片
+const onPasteImages = (e: ClipboardEvent) => {
+  const files = Array.from(e.clipboardData?.files || []);
+  if (files.length) {
+    e.preventDefault();
+    addReplyImages(files);
+  }
+};
+// 拖拽图片到输入框上传
+const onDropImages = (e: DragEvent) => {
+  const files = Array.from(e.dataTransfer?.files || []);
+  if (files.length) {
+    addReplyImages(files);
+  }
+};
+const removeImage = (idx: number) => {
+  const next = [...replyImages.value];
+  next.splice(idx, 1);
+  replyImages.value = next;
+};
+
+// 常用表情（点击插入到光标处）
+const EMOJIS = [
+  '😀', '😁', '😂', '🤣', '😊', '😍', '😘', '😜',
+  '🤔', '😅', '😭', '😤', '😴', '🥳', '🤯', '👀',
+  '👍', '👎', '👏', '🙏', '❤️', '💔', '🔥', '🎉',
+  '✨', '💯', '🐶', '🌹', '☕', '🍉',
+];
+const insertEmoji = (emoji: string) => {
+  const textarea = replyTextareaRef.value?.$el?.querySelector?.(
+    'textarea',
+  ) as HTMLTextAreaElement | null;
+  if (textarea && typeof textarea.selectionStart === 'number') {
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = replyInput.value;
+    replyInput.value = text.slice(0, start) + emoji + text.slice(end);
+    nextTick(() => {
+      textarea.focus();
+      const pos = start + emoji.length;
+      textarea.setSelectionRange(pos, pos);
+    });
+  } else {
+    replyInput.value += emoji;
   }
 };
 
@@ -340,6 +474,12 @@ const cancelReply = () => {
 .reply-input-actions {
   margin-top: 8px;
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.reply-actions-right {
+  display: flex;
   gap: 8px;
 }
 .reply-images {
@@ -348,10 +488,59 @@ const cancelReply = () => {
   gap: 8px;
   margin-top: 8px;
 }
+.reply-image-item {
+  position: relative;
+  width: 70px;
+  height: 70px;
+}
 .reply-image {
   width: 70px;
   height: 70px;
   border-radius: 6px;
+}
+.reply-image-remove {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  font-size: 16px;
+  color: #f56c6c;
+  background: #fff;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.reply-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.emoji-btn {
+  font-size: 16px;
+}
+.emoji-panel {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+}
+.emoji-item {
+  background: none;
+  border: none;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+.emoji-item:hover {
+  background: #f5f7fa;
+}
+.reply-image-pending {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #dcdfe6;
+  border-radius: 6px;
+  color: #909399;
+  font-size: 20px;
 }
 
 .children-container {
@@ -373,6 +562,21 @@ const cancelReply = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.comment-meta-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pin-badge {
+  font-size: 12px;
+  line-height: 1;
+  color: #fff;
+  background-color: #f56c6c;
+  padding: 3px 6px;
+  border-radius: 4px;
 }
 
 .comment-user {
