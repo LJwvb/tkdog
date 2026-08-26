@@ -1,131 +1,225 @@
-// import { Menu } from '@element-plus/icons-vue/dist/types';
-import { createRouter, createWebHashHistory } from 'vue-router';
-import Home from '../views/Home.vue';
-import NavBar from '../components/NavBar/NavBar.vue';
-import Tabs from '../components/Index/Tabs.vue';
-import Subject from '../components/subject.vue';
-import label from '../components/subject/label.vue';
-import subject_bytype from '../components/subject/subject_bytype.vue';
-import test_paper from '../components/Home/test_paper.vue';
-import me_info from '../views/me/me_info.vue';
-import me_collection from '../views/me/me_collection.vue';
-import subject_me from '../views/me/subject_me.vue';
-import me_history from '../views/me/me_history.vue';
-import me_news from '../views/me/me_news.vue';
-import add_subject from '../components/add_subject.vue';
-import addPaper from '../views/addPaper.vue';
-import addPaperone from '../views/addPaper/one.vue';
-import addPapertwo from '../views/addPaper/two.vue';
-import addPaperthree from '../views/addPaper/three.vue';
-import addPaperfour from '../views/addPaper/four.vue';
-import problem_info from '../views/problem_info.vue';
-import me_test_paper from '../views/me/me_test_paper.vue';
-import user from '../components/user.vue';
-import volume from '../components/volume.vue';
-import Login from '../views/login/Login.vue';
+import {
+  createRouter,
+  createWebHashHistory,
+  type RouteRecordRaw,
+} from 'vue-router';
+import store from '@/store';
 
-const routes: any = [
+declare module 'vue-router' {
+  interface RouteMeta {
+    /** 是否需要登录才能访问（鉴权统一在导航守卫处理） */
+    requireAuth?: boolean;
+    /** 是否为管理端路由，用于导航守卫做权限判断 */
+    isAdmin?: boolean;
+    /** 路由层级，用于 router.go 回退到最初的路由 */
+    index?: number;
+  }
+}
+
+const routes: RouteRecordRaw[] = [
+  {
+    path: '/404',
+    name: '404',
+    component: () => import('@/components/ErrorPage/index.vue'),
+  },
   {
     path: '/',
     name: 'home',
-    component: Home,
+    component: () => import('@/views/Home/index.vue'),
   },
   {
-    path: '/subject',
-    name: 'subject',
-    component: Subject,
-    children: [
-      {
-        path: 'subject_bytype',
-        name: 'subject_bytype',
-        component: subject_bytype,
-      },
-    ],
+    // 管理员登录页：对所有人开放
+    path: '/admin',
+    name: 'admin',
+    component: () => import('@/views/admin/admin.vue'),
   },
   {
-    path: '/test_paper',
-    name: 'test_paper',
-    component: test_paper,
+    path: '/adminHome',
+    name: 'adminHome',
+    meta: { requireAuth: true, isAdmin: true },
+    component: () => import('@/views/AdminPage/adminHome.vue'),
+  },
+  {
+    path: '/adminQuestion',
+    name: 'adminQuestion',
+    meta: { requireAuth: true, isAdmin: true },
+    component: () => import('@/views/AdminPage/adminQuestion.vue'),
+  },
+  {
+    path: '/adminTestPaper',
+    name: 'adminTestPaper',
+    meta: { requireAuth: true, isAdmin: true },
+    component: () => import('@/views/AdminPage/adminTestPaper.vue'),
+  },
+  {
+    path: '/adminUser',
+    name: 'adminUser',
+    meta: { requireAuth: true, isAdmin: true },
+    component: () => import('@/views/AdminPage/adminUser.vue'),
+  },
+  {
+    path: '/adminComment',
+    name: 'adminComment',
+    meta: { requireAuth: true, isAdmin: true },
+    component: () => import('@/views/AdminPage/adminComment.vue'),
+  },
+  {
+    path: '/adminSensitiveWord',
+    name: 'adminSensitiveWord',
+    meta: { requireAuth: true, isAdmin: true },
+    component: () => import('@/views/AdminPage/adminSensitiveWord.vue'),
+  },
+  {
+    path: '/adminAnnouncement',
+    name: 'adminAnnouncement',
+    meta: { requireAuth: true, isAdmin: true },
+    component: () => import('@/views/AdminPage/adminAnnouncement.vue'),
+  },
+  {
+    path: '/adminTag',
+    name: 'adminTag',
+    meta: { requireAuth: true, isAdmin: true },
+    component: () => import('@/views/AdminPage/adminTag.vue'),
+  },
+  {
+    path: '/adminFeedback',
+    name: 'adminFeedback',
+    meta: { requireAuth: true, isAdmin: true },
+    component: () => import('@/views/AdminPage/adminFeedback.vue'),
+  },
+  {
+    path: '/questionPage',
+    name: 'questionPage',
+    component: () => import('@/views/QuestionPage/index.vue'),
+  },
+  {
+    path: '/testPaper',
+    name: 'testPaper',
+    component: () => import('@/views/TestPaper/index.vue'),
+  },
+  {
+    path: '/testPaper/paperDetail',
+    name: 'paperDetail',
+    component: () => import('@/views/TestPaper/paperDetail.vue'),
+  },
+  {
+    path: '/testPaper/doPaper',
+    name: 'doPaper',
+    meta: { requireAuth: true },
+    component: () => import('@/views/TestPaper/doPaper.vue'),
+  },
+  {
+    path: '/userProfile',
+    name: 'userProfile',
+    meta: { requireAuth: true },
+    component: () => import('@/views/Personal/UserProfile.vue'),
   },
   {
     path: '/user',
     name: 'user',
-    component: user,
+    meta: { requireAuth: true },
+    component: () => import('@/views/Personal/user.vue'),
     children: [
       {
-        path: 'me_info',
-        component: me_info,
+        path: 'UserInfo',
+        name: 'userInfo',
+        component: () => import('@/views/Personal/UserInfo.vue'),
       },
       {
-        path: 'me_collection',
-        component: me_collection,
+        path: 'UserLikes',
+        name: 'userLikes',
+        component: () => import('@/views/Personal/UserLikes.vue'),
       },
       {
-        path: 'subject_me',
-        component: subject_me,
+        path: 'UserFavorite',
+        name: 'userFavorite',
+        component: () => import('@/views/Personal/UserFavorite.vue'),
       },
       {
-        path: 'me_history',
-        component: me_history,
+        path: 'UserQuestions',
+        name: 'userQuestions',
+        component: () => import('@/views/Personal/UserQuestions.vue'),
       },
       {
-        path: 'me_test_paper',
-        component: me_test_paper,
+        path: 'UserHistory',
+        name: 'userHistory',
+        component: () => import('@/views/Personal/UserHistory.vue'),
       },
       {
-        path: 'me_news',
-        component: me_news,
+        path: 'UserTestPaper',
+        name: 'userTestPaper',
+        component: () => import('@/views/Personal/UserTestPaper.vue'),
+      },
+      {
+        path: 'UserWrong',
+        name: 'userWrong',
+        component: () => import('@/views/Personal/UserWrong.vue'),
+      },
+      {
+        path: 'UserRecord',
+        name: 'userRecord',
+        component: () => import('@/views/Personal/UserRecord.vue'),
+      },
+      {
+        path: 'UserMessage',
+        name: 'userMessage',
+        component: () => import('@/views/Personal/UserMessage.vue'),
+      },
+      {
+        path: 'UserFeedback',
+        name: 'userFeedback',
+        component: () => import('@/views/Personal/UserFeedback.vue'),
       },
     ],
-  },
-  {
-    path: '/add_subject',
-    name: 'add_subject',
-    component: add_subject,
   },
   {
     path: '/addPaper',
     name: 'addPaper',
-    component: addPaper,
-    children: [
-      {
-        path: 'addPaperone',
-        component: addPaperone,
-      },
-      {
-        path: 'addPapertwo',
-        component: addPapertwo,
-      },
-      {
-        path: 'addPaperthree',
-        component: addPaperthree,
-      },
-      {
-        path: 'addPaperfour',
-        component: addPaperfour,
-      },
-    ],
+    meta: { requireAuth: true },
+    component: () => import('@/views/addPaper/index.vue'),
   },
   {
-    path: '/problem_info',
-    name: 'problem_info',
-    component: problem_info,
+    path: '/problemInfo',
+    name: 'problemInfo',
+    component: () => import('@/views/ProblemInfo/index.vue'),
   },
   {
-    path: '/volume',
-    name: 'volume',
-    component: volume,
-  },
-  {
+    // 用户登录页：对所有人开放
     path: '/Login',
     name: 'Login',
-    component: Login,
+    component: () => import('@/views/login/Login.vue'),
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/404',
   },
 ];
 
 const router = createRouter({
   history: createWebHashHistory(),
   routes,
+});
+
+router.beforeEach((to, _from, next) => {
+  // 开发期绕过登录开关：仅本地调试用，生产 .env 务必置空
+  const bypassLogin = import.meta.env.VITE_BYPASS_LOGIN === 'true';
+  const userData = store.state.userData;
+  const isLoggedIn = bypassLogin || Boolean(userData?.phone);
+  const isAdmin = Boolean(userData?.isAdmin);
+
+  // 需要登录的路由：未登录重定向到登录页
+  if (to.meta?.requireAuth && !isLoggedIn) {
+    next({ path: '/Login', replace: true });
+    return;
+  }
+
+  // 管理端路由：非管理员重定向到 404
+  if (to.meta?.isAdmin && !isAdmin) {
+    next({ path: '/404', replace: true });
+    return;
+  }
+
+  next();
 });
 
 export default router;
