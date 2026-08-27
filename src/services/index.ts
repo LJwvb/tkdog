@@ -254,6 +254,7 @@ export function login(params: ILoginParams): Promise<ILoginData> {
 export function resetPassword(params: {
   phone: string;
   password: string;
+  code: string; // 图形验证码（服务端校验）
 }): Promise<void> {
   return request<void>('POST', '/resetPassword', { data: params });
 }

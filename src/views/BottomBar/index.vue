@@ -2,31 +2,27 @@
   <div class="connection">
     <div class="space">
       <el-icon>
-        <Avatar />
+        <School />
       </el-icon>
-      <span>杨绵绵</span>
+      <span>面试狗 · 在线面试刷题平台</span>
     </div>
     <div class="space">
       <el-icon>
         <Promotion />
       </el-icon>
-      <span>21计算机3班</span>
+      <span>精选真题 · AI 判分 · 高效备战</span>
     </div>
     <div class="space">
       <el-icon>
-        <LocationInformation />
+        <Stamp />
       </el-icon>
-      <span>浙江外国语学院</span>
+      <span>© 2026 面试狗</span>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import {
-  Avatar,
-  Promotion,
-  LocationInformation,
-} from '@element-plus/icons-vue';
+import { School, Promotion, Stamp } from '@element-plus/icons-vue';
 </script>
 
 <style scoped>

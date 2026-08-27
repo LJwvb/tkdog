@@ -71,9 +71,7 @@
         </el-form-item>
         <el-form-item>
           <div class="forgot-row">
-            <el-link type="primary" @click="forgotVisible = true"
-              >忘记密码？</el-link
-            >
+            <el-link type="primary" @click="openForgot">忘记密码？</el-link>
           </div>
         </el-form-item>
       </el-form>
@@ -100,6 +98,25 @@
             placeholder="请输入 6-16 位新密码"
           />
         </el-form-item>
+        <el-form-item label="验证码">
+          <el-row :gutter="8">
+            <el-col :span="14">
+              <el-input
+                v-model="forgotForm.code"
+                placeholder="请输入验证码"
+              />
+            </el-col>
+            <el-col :span="10">
+              <!-- eslint-disable vue/no-v-html -->
+              <div
+                style="cursor: pointer"
+                @click="changeForgotCaptcha"
+                v-html="forgotCaptcha"
+              ></div>
+              <!-- eslint-enable vue/no-v-html -->
+            </el-col>
+          </el-row>
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="forgotVisible = false">取消</el-button>
@@ -117,7 +134,6 @@ import { login, getCaptcha, resetPassword } from '@/services';
 import { ElMessage, type FormInstance } from 'element-plus';
 import type { ICaptcha } from '@/types';
 import Register from '@/views/login/register.vue';
-import md5 from 'md5';
 const store = useStore();
 
 // 表单的ref
@@ -128,12 +144,13 @@ const registerRef = ref<InstanceType<typeof Register>>();
 const router = useRouter();
 
 const loginCaptcha = ref<string>('');
-const CaptchaPassword = ref<string>('');
+const forgotCaptcha = ref<string>('');
 // 忘记密码
 const forgotVisible = ref(false);
 const forgotForm = reactive({
   phone: '',
   password: '',
+  code: '',
 });
 const submitForgot = async () => {
   const reg = /^1[3456789][0-9]{9}$/;
@@ -145,14 +162,21 @@ const submitForgot = async () => {
     ElMessage.error('密码长度需在6-16位之间');
     return;
   }
+  if (!forgotForm.code) {
+    ElMessage.error('请输入验证码');
+    return;
+  }
+  // 验证码随请求提交，由服务端校验
   await resetPassword({
     phone: forgotForm.phone,
     password: forgotForm.password,
+    code: forgotForm.code,
   });
   ElMessage.success('密码重置成功，请重新登录');
   forgotVisible.value = false;
   forgotForm.phone = '';
   forgotForm.password = '';
+  forgotForm.code = '';
 };
 
 //传验证参
@@ -160,18 +184,24 @@ const params: ICaptcha = {
   width: 120,
   height: 30,
 };
-// 获取验证码列表
+// 获取验证码（答案由服务端校验，前端只展示图片）
 const Captcha = async () => {
   const res = await getCaptcha(params);
   loginCaptcha.value = res.data;
-  CaptchaPassword.value = res.text;
 };
 Captcha();
 
 const changeLoginCaptcha = async () => {
   const res = await getCaptcha(params);
   loginCaptcha.value = res.data;
-  CaptchaPassword.value = res.text;
+};
+const changeForgotCaptcha = async () => {
+  const res = await getCaptcha(params);
+  forgotCaptcha.value = res.data;
+};
+const openForgot = () => {
+  forgotVisible.value = true;
+  changeForgotCaptcha();
 };
 const ruleForm = reactive({
   phone: '', // 手机号
@@ -210,32 +240,26 @@ const rules = ref({
   code: [{ required: true, message: '验证码不能为空', trigger: 'blur' }],
 });
 
-// 登录
+// 登录（验证码由服务端校验，前端不再做 md5 对比）
 const toLogin = async () => {
   const form = unref(ruleFormRef);
 
   if (!form) return;
   try {
-    if (md5(ruleForm.code) === CaptchaPassword.value) {
-      if (ruleForm.checked) {
-        login(ruleForm).then(async (data) => {
-          await form.validate();
-
-          store.commit('setUserData', { ...data, phone: ruleForm.phone });
-          ElMessage.success({
-            message: '登录成功~',
-            type: 'success',
-          });
-          localStorage.setItem('uid', ruleForm.phone);
-          router.push('/');
-        });
-      } else {
-        ElMessage.error('请勾选用户协议');
-      }
-    } else {
-      ElMessage.error('验证码错误');
-      changeLoginCaptcha();
+    if (!ruleForm.checked) {
+      ElMessage.error('请勾选用户协议');
+      return;
     }
+    await form.validate();
+    const data = await login(ruleForm);
+    // 后端返回完整用户信息（含本人手机号），直接写入登录态
+    store.commit('setUserData', data);
+    ElMessage.success({
+      message: '登录成功~',
+      type: 'success',
+    });
+    localStorage.setItem('uid', ruleForm.phone);
+    router.push('/');
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Login error:', error);
