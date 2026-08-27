@@ -201,10 +201,9 @@ const router = createRouter({
 });
 
 router.beforeEach((to, _from, next) => {
-  // 开发期绕过登录开关：仅本地调试用，生产 .env 务必置空
-  const bypassLogin = import.meta.env.VITE_BYPASS_LOGIN === 'true';
+  // 登录态以后端 session 为准，前端只做 UI 拦截
   const userData = store.state.userData;
-  const isLoggedIn = bypassLogin || Boolean(userData?.phone);
+  const isLoggedIn = Boolean(userData?.phone);
   const isAdmin = Boolean(userData?.isAdmin);
 
   // 需要登录的路由：未登录重定向到登录页

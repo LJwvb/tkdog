@@ -69,7 +69,6 @@ declare module 'vue' {
     SubTab: typeof import('./components/SubTab/index.vue')['default']
     TestBasket: typeof import('./components/TestBasket/index.vue')['default']
     TestCard: typeof import('./components/TestCard/index.vue')['default']
-    Tinymce: typeof import('./components/Tinymce/Tinymce.vue')['default']
     UploadQuestion: typeof import('./components/UploadQuestion/index.vue')['default']
   }
   export interface GlobalDirectives {
@@ -136,6 +135,5 @@ declare global {
   const SubTab: typeof import('./components/SubTab/index.vue')['default']
   const TestBasket: typeof import('./components/TestBasket/index.vue')['default']
   const TestCard: typeof import('./components/TestCard/index.vue')['default']
-  const Tinymce: typeof import('./components/Tinymce/Tinymce.vue')['default']
   const UploadQuestion: typeof import('./components/UploadQuestion/index.vue')['default']
 }

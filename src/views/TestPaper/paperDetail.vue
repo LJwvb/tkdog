@@ -30,18 +30,22 @@
             </el-icon>
           </div>
           <!-- eslint-disable vue/no-v-html -->
-          <div
-            v-show="answerOpen[item.id]"
-            class="question-answer"
-            v-html="
-              formatAnswerWithValues(
-                item.questionType,
-                item.answer,
-                item.questionDetail,
-              )
-            "
-          ></div>
-          <!-- eslint-enable vue/no-v-html -->
+          <div v-show="answerOpen[item.id]" class="question-answer">
+            <div
+              v-if="item.answer"
+              v-html="
+                formatAnswerWithValues(
+                  item.questionType,
+                  item.answer,
+                  item.questionDetail,
+                )
+              "
+            ></div>
+            <!-- eslint-enable vue/no-v-html -->
+            <div v-else class="answer-tip">
+              该试卷答案仅作者本人或管理员可见
+            </div>
+          </div>
         </div>
       </div>
       <div class="watermark">{{ name }}</div>
@@ -83,6 +87,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useStore } from 'vuex';
+import { ElMessage } from 'element-plus';
 import { getPaperDetail } from '@/services';
 import queryString from 'query-string';
 import {
@@ -113,7 +119,14 @@ const paperInfo = ref<IPaperDetailInfo>({});
 // 答案展开状态（默认全部收起）
 const answerOpen = ref<Record<number, boolean>>({});
 
+// 游客（未登录）展开答案时给出说明：后端对未登录强制隐藏答案
+const store = useStore();
 const toggleAnswer = (id: number) => {
+  const isLoggedIn = Boolean(store.state.userData?.phone);
+  if (!isLoggedIn) {
+    ElMessage.warning('登录后可查看答案，请先登录');
+    return;
+  }
   answerOpen.value = { ...answerOpen.value, [id]: !answerOpen.value[id] };
 };
 
@@ -219,6 +232,11 @@ const exportWord = () => {
   background-color: #f5f7fa;
   border-radius: 4px;
   color: #606266;
+}
+
+.answer-tip {
+  color: #909399;
+  font-size: 13px;
 }
 
 .slide-container {

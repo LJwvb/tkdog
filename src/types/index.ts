@@ -117,6 +117,7 @@ export interface ICancelLikeQuestionParams {
 export interface ILoginParams {
   phone: string | number;
   password: string | number;
+  code?: string; // 图形验证码（服务端校验）
 }
 export interface ILoginReturn {
   code: number;
@@ -145,6 +146,7 @@ export interface IRegisterParams {
   password: string;
   username: string;
   sex: string;
+  code: string; // 图形验证码（服务端校验）
 }
 //验证码接口（请求参数）
 export interface ICaptcha {
@@ -153,8 +155,7 @@ export interface ICaptcha {
 }
 //验证码接口（响应中的业务数据）
 export interface ICaptchaResult {
-  data: string; // 验证码 SVG 图形
-  text: string; // 验证码文本，用于前端比对
+  data: string; // 验证码 SVG 图形（答案由服务端校验，不再下发 text）
 }
 // 题目浏览接口
 export interface IBrowseQuestion {

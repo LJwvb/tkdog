@@ -440,6 +440,12 @@ const {
 // 答案与解析：默认收起，点击标题展开/收起
 const answerOpen = ref(false);
 const toggleAnswer = () => {
+  // 游客（未登录）展开答案时给出说明
+  const isLoggedIn = Boolean(store.state.userData?.phone);
+  if (!isLoggedIn) {
+    ElMessage.warning('登录后可查看答案，请先登录');
+    return;
+  }
   answerOpen.value = !answerOpen.value;
 };
 

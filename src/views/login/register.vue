@@ -61,7 +61,6 @@
 import { reactive, ref, watch } from 'vue';
 import { ElMessage, ElNotification, type FormInstance } from 'element-plus';
 import { register, getCaptcha } from '@/services';
-import md5 from 'md5';
 import type { ICaptcha } from '@/types';
 
 // 表单的ref
@@ -70,7 +69,6 @@ const ruleFormRef = ref<FormInstance>();
 const dialogVisible = ref(false);
 
 const registerCaptcha = ref<string>('');
-const CaptchaAnswer = ref<string>('');
 
 // 传验证参
 const params: ICaptcha = {
@@ -78,11 +76,10 @@ const params: ICaptcha = {
   height: 30,
 };
 
-// 获取验证码列表
+// 获取验证码（答案由服务端校验，前端只展示图片）
 const Captcha = async () => {
   const res = await getCaptcha(params);
   registerCaptcha.value = res.data;
-  CaptchaAnswer.value = res.text;
 };
 
 const focusInput = () => {
@@ -156,15 +153,11 @@ const rules = {
   code: [{ required: true, message: '图形码不能为空', trigger: 'blur' }],
 };
 
-// 注册
+// 注册（验证码随请求提交，由服务端校验）
 const handleRegister = async () => {
   if (!ruleFormRef.value) return;
   ruleFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
-    if (md5(ruleForm.code) !== CaptchaAnswer.value) {
-      ElMessage.error('验证码错误');
-      return;
-    }
 
     await register(ruleForm);
     ElMessage.success({

@@ -47,7 +47,6 @@ export default defineConfig({
         manualChunks: {
           vue: ['vue', 'vue-router', 'vuex', 'vuex-persistedstate'],
           'element-plus': ['element-plus', '@element-plus/icons-vue'],
-          tinymce: ['tinymce'],
           echarts: ['echarts'],
           axios: ['axios'],
         },
