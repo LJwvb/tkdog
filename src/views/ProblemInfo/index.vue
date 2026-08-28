@@ -419,8 +419,7 @@ import {
   getMyFavorites,
   uploadImage,
 } from '@/services';
-import {
-  questionType,
+import {parseHashQuery, questionType,
   difficulty,
   transitionTime,
   firstQueryValue,
@@ -435,7 +434,7 @@ const {
   type: whereInterType,
   isClickSearch,
   commentId,
-} = queryString.parse(window?.location?.href?.split('?')[1] || '');
+} = parseHashQuery();
 
 // 答案与解析：默认收起，点击标题展开/收起
 const answerOpen = ref(false);

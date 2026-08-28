@@ -52,7 +52,7 @@
           <QuestionCard
             :question="item"
             type="userWrong"
-            :card-tip="reviewingCardTip(item, store.state.userData.username)"
+            :card-tip="reviewingCardTip(item, store.state.userData.userId)"
           />
         </div>
       </div>

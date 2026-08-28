@@ -27,6 +27,7 @@
 import { ref, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import queryString from 'query-string';
+import { parseHashQuery } from '@/utils';
 import { useStore } from 'vuex';
 
 import OneStep from './PaperStep/oneStep.vue';
@@ -36,7 +37,7 @@ import { getPaperQuestion } from '@/services';
 import { ElMessage } from 'element-plus';
 import { PaperPurview, type IQuestion } from '@/types';
 
-const { step } = queryString.parse(window?.location?.href?.split('?')[1] || '');
+const { step } = parseHashQuery();
 
 const router = useRouter();
 const store = useStore();

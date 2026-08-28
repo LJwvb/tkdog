@@ -1,9 +1,13 @@
 import queryString from 'query-string';
 import { nextTick, onMounted, onActivated } from 'vue';
 
-export const queryObj = queryString.parse(
-  window?.location?.href?.split('?')[1] || '',
-);
+export const parseHashQuery = () => {
+  const hash = window?.location?.hash || '';
+  const queryStr = hash.includes('?') ? hash.split('?')[1] : '';
+  return queryString.parse(queryStr || '');
+};
+
+export const queryObj = parseHashQuery();
 
 /**
  * query-string 解析出的值可能是 string、string[] 或 null。
@@ -87,14 +91,14 @@ export const reviewingCardTip = (
     chkState?: number;
     updateTime?: string;
     updateUser?: string;
-    creator?: string;
+    creator_id?: number;
   },
-  currentUsername?: string,
+  currentUserId?: number,
 ): string => {
   if (
     Number(q.chkState) === 0 &&
     q.updateTime &&
-    q.creator !== currentUsername
+    Number(q.creator_id) !== Number(currentUserId)
   ) {
     const who = q.updateUser || '用户';
     return `${who} 已于 ${transitionTime(q.updateTime)} 二次编辑了题目，还在审核中`;

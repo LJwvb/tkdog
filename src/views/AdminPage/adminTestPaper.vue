@@ -131,7 +131,7 @@ import TestCard from '@/components/TestCard/index.vue';
 import { ref, reactive, onMounted } from 'vue';
 import queryString from 'query-string';
 import { ElMessage } from 'element-plus';
-import { firstQueryValue } from '@/utils';
+import {parseHashQuery, firstQueryValue } from '@/utils';
 
 import {
   getNoChkPaper,
@@ -148,9 +148,7 @@ interface IChkPapers {
   chkState: number;
   activeNames: string;
 }
-const { index } = queryString.parse(
-  window?.location?.href?.split('?')[1] || '',
-);
+const { index } = parseHashQuery();
 const NoChkPaper = ref<IPaperCard[]>([]); //获取未审核试卷
 const ChkPaper = ref<IPaperCard[]>([]); //获取已审核试卷
 const DeletedPaper = ref<IPaperCard[]>([]); //获取已删除试卷

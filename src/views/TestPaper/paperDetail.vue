@@ -91,8 +91,7 @@ import { useStore } from 'vuex';
 import { ElMessage } from 'element-plus';
 import { getPaperDetail } from '@/services';
 import queryString from 'query-string';
-import {
-  transitionTime,
+import {parseHashQuery, transitionTime,
   firstQueryValue,
   exportPaperToWord,
   parsePaperOptions,
@@ -110,9 +109,7 @@ interface IPaperDetailInfo {
   purview?: number;
 }
 
-const { paperID } = queryString.parse(
-  window?.location?.href?.split('?')[1] || '',
-);
+const { paperID } = parseHashQuery();
 const router = useRouter();
 const paperDetail = ref<IQuestion[]>([]);
 const paperInfo = ref<IPaperDetailInfo>({});

@@ -5,7 +5,7 @@
         <QuestionCard
           :question="item"
           type="userFavorites"
-          :card-tip="reviewingCardTip(item, store.state.userData.username)"
+          :card-tip="reviewingCardTip(item, store.state.userData.userId)"
         />
       </div>
     </el-card>

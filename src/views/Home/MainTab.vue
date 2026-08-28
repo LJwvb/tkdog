@@ -38,11 +38,10 @@ import { ref, watchEffect } from 'vue';
 import SubTab from '@/components/SubTab/index.vue';
 import { getQuestionList } from '@/services';
 import queryString from 'query-string';
+import { parseHashQuery } from '@/utils';
 import type { IQuestion, IGetQuestionsParams } from '@/types';
 
-const { subjectID, catalogID } = queryString.parse(
-  window?.location?.href?.split('?')[1] || '',
-);
+const { subjectID, catalogID } = parseHashQuery();
 const loading = ref(true);
 
 const questionList = ref<IQuestion[]>();

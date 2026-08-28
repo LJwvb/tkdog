@@ -112,6 +112,7 @@ import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { ElMessage } from 'element-plus';
 import queryString from 'query-string';
+import { parseHashQuery } from '@/utils';
 import {
   searchQuestion,
   getQuestionList,
@@ -139,9 +140,7 @@ interface IForm {
   subjectID: string;
   tags: string;
 }
-const { isClickSearch, catalogID, subjectID } = queryString.parse(
-  window?.location?.href?.split('?')[1] || '',
-);
+const { isClickSearch, catalogID, subjectID } = parseHashQuery();
 const from = ref();
 const allQuestion = ref();
 const searchData = ref();

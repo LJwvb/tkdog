@@ -265,7 +265,7 @@
 import QuestionCard from '@/components/QuestionCard/index.vue';
 import { ref, reactive, onMounted } from 'vue';
 import queryString from 'query-string';
-import { firstQueryValue, questionType, exportQuestionsToCsv } from '@/utils';
+import {parseHashQuery, firstQueryValue, questionType, exportQuestionsToCsv } from '@/utils';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { CircleClose } from '@element-plus/icons-vue';
 import type { IImportQuestion, IQuestion } from '@/types';
@@ -287,9 +287,7 @@ interface IChkQuestion {
   chkRemarks?: string;
   activeName: string;
 }
-const { index } = queryString.parse(
-  window?.location?.href?.split('?')[1] || '',
-);
+const { index } = parseHashQuery();
 const activeName = ref(firstQueryValue(index, 'nochk'));
 //获取已审核题目
 const ChkQuestions = ref();

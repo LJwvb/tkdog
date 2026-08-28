@@ -9,7 +9,7 @@
         <QuestionCard
           :question="item"
           type="userLikes"
-          :card-tip="reviewingCardTip(item, store.state.userData.username)"
+          :card-tip="reviewingCardTip(item, store.state.userData.userId)"
         />
       </div>
       <el-pagination

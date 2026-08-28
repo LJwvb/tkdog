@@ -208,8 +208,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import queryString from 'query-string';
 import { getPaperDetail, submitPaper, aiJudgeAnswer } from '@/services';
 import { setWaterMark, removeWatermark } from '@/utils/waterMark';
-import {
-  questionType,
+import {parseHashQuery, questionType,
   difficulty,
   firstQueryValue,
   formatAnswerWithValues,
@@ -228,9 +227,7 @@ interface IOption {
 
 const router = useRouter();
 const store = useStore();
-const { paperID } = queryString.parse(
-  window?.location?.href?.split('?')[1] || '',
-);
+const { paperID } = parseHashQuery();
 
 // 当前登录用户（考试水印显示真实身份，用于追溯截图来源）
 const username = computed(() => store.state.userData?.username || 'tkdog');
