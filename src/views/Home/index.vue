@@ -13,11 +13,12 @@ import SideBar from './Slide.vue';
 </script>
 <style scoped>
 .home-left {
-  width: 70%;
-  padding-right: 40px;
+  flex: 1;
+  min-width: 0;
 }
 
 .home-right {
-  width: 30%;
+  width: 320px;
+  flex-shrink: 0;
 }
 </style>

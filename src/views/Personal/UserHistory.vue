@@ -1,25 +1,24 @@
-﻿<template>
+<template>
   <div
     v-loading="loading"
     class="user-info-container"
     element-loading-text="加载中..."
   >
     <el-card v-if="ids !== ''" style="min-height: 500px">
-      <div v-for="item in questionList" :key="item.id">
-        <QuestionCard :question="item" type="userHistory" />
-      </div>
-      <el-pagination
-        v-model:current-page="currentPage"
-        background
-        layout="slot, prev, pager, next"
-        :total="total"
-        prev-text="上一页"
-        next-text="下一页"
-        :hide-on-single-page="true"
-        @current-change="handleCurrentChange"
+      <VirtualList
+        v-if="questionList.length > 0"
+        :data="questionList"
+        :height="600"
+        :estimated-item-height="200"
+        :loading="loadingMore"
+        :finished="noMore"
+        @loadMore="loadMore"
       >
-        <template #default> 共 {{ total }} 条 </template>
-      </el-pagination>
+        <template #default="{ item }">
+          <QuestionCard :question="item" type="userHistory" />
+        </template>
+      </VirtualList>
+      <el-empty v-else :image-size="200" description="没有浏览记录" />
     </el-card>
     <el-card v-else>
       <el-empty :image-size="200" description="没有浏览记录" />
@@ -30,13 +29,17 @@
 import { ref, reactive, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import QuestionCard from '@/components/QuestionCard/index.vue';
+import VirtualList from '@/components/VirtualList/index.vue';
 
 import { getQuestionList } from '@/services';
 const store = useStore();
-const questionList = ref();
+const questionList = ref<any[]>([]);
 const loading = ref(true);
+const loadingMore = ref(false);
+const noMore = ref(false);
 const currentPage = ref(1);
 const total = ref(0);
+const pageSize = 10;
 
 const ids = store.state.browseTopicsId.join(',');
 
@@ -44,24 +47,35 @@ const likeTopicsIdParams = reactive({
   type: 'user',
   ids: ids,
   currentPage: 1,
-  pageSize: 10,
+  pageSize,
 });
-const getQuestionListData = async (val?: { currentPage: number }) => {
+const getQuestionListData = async (append = false) => {
+  if (append) {
+    loadingMore.value = true;
+  } else {
+    loading.value = true;
+  }
   const res = await getQuestionList({
     ...likeTopicsIdParams,
-    ...val,
+    currentPage: currentPage.value,
   });
-  questionList.value = res?.result;
-  total.value = res?.total;
+  if (append) {
+    questionList.value = [...questionList.value, ...(res?.result ?? [])];
+  } else {
+    questionList.value = res?.result ?? [];
+  }
+  total.value = res?.total ?? 0;
+  noMore.value = questionList.value.length >= total.value;
   loading.value = false;
+  loadingMore.value = false;
 };
 
-const handleCurrentChange = (val: number) => {
-  likeTopicsIdParams.currentPage = val;
-  document.documentElement.scrollTop = 0;
-  loading.value = true;
-  getQuestionListData({ currentPage: val });
+const loadMore = async () => {
+  if (loadingMore.value || noMore.value) return;
+  currentPage.value += 1;
+  await getQuestionListData(true);
 };
+
 onMounted(() => {
   getQuestionListData();
 });

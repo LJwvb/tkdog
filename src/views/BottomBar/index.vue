@@ -36,4 +36,16 @@ import { School, Promotion, Stamp } from '@element-plus/icons-vue';
   margin-right: 20px;
   align-items: center;
 }
+
+/* 移动端适配：垂直排列，避免文字被压缩 */
+@media (max-width: 768px) {
+  .connection {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .space {
+    margin-right: 0;
+    font-size: 12px;
+  }
+}
 </style>

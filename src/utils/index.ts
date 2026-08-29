@@ -101,7 +101,9 @@ export const reviewingCardTip = (
     Number(q.creator_id) !== Number(currentUserId)
   ) {
     const who = q.updateUser || '用户';
-    return `${who} 已于 ${transitionTime(q.updateTime)} 二次编辑了题目，还在审核中`;
+    return `${who} 已于 ${transitionTime(
+      q.updateTime,
+    )} 二次编辑了题目，还在审核中`;
   }
   return '';
 };
@@ -316,3 +318,29 @@ export function exportQuestionsToCsv(
   URL.revokeObjectURL(url);
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
+
+/**
+ * 取 el-table 真正可滚动的 body 容器。
+ *
+ * element-plus 升到 2.14 后 el-table 改用显式 expose（白名单里没有 bodyWrapper），
+ * 直接读 tableRef.value.bodyWrapper 会是 undefined，管理端表格的滚动加载会静默失效。
+ * 这里按优先级兜底：暴露的 bodyWrapper → 内部 $refs → DOM 查询，
+ * 并只在候选元素确实溢出时才采用（数据不足一屏时高度还没撑开）。
+ */
+export function getTableScrollBody(tableRef: unknown): HTMLElement | null {
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const t = tableRef as any;
+  if (!t) return null;
+  const candidates: HTMLElement[] = [
+    t.bodyWrapper,
+    t.$refs?.bodyWrapper,
+    t.$el?.querySelector?.('.el-table__body-wrapper'),
+    t.$el?.querySelector?.('.el-table__body-wrapper .el-scrollbar__wrap'),
+    t.$el?.querySelector?.('.el-scrollbar__wrap'),
+  ].filter(Boolean);
+  const scrollable = candidates.find(
+    (el) => el.scrollHeight - el.clientHeight > 1,
+  );
+  return scrollable || candidates[0] || null;
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+}

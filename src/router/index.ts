@@ -119,6 +119,9 @@ const routes: RouteRecordRaw[] = [
     name: 'user',
     meta: { requireAuth: true },
     component: () => import('@/views/Personal/user.vue'),
+    // user.vue 只负责渲染左侧菜单 + <router-view>，
+    // 直接访问 /user 时必须重定向到默认子页，否则右侧内容区是空的
+    redirect: { name: 'userInfo' },
     children: [
       {
         path: 'UserInfo',

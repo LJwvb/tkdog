@@ -28,7 +28,7 @@
             show-password
           ></el-input>
         </el-form-item>
-        <el-row>
+        <el-row :gutter="10">
           <el-col :span="16">
             <el-form-item prop="code">
               <el-input
@@ -39,10 +39,10 @@
               </el-input>
             </el-form-item>
           </el-col>
-          <el-col :span="7">
+          <el-col :span="8">
             <!-- eslint-disable vue/no-v-html -->
             <div
-              style="cursor: pointer; min-width: 120px"
+              class="captcha-img"
               @click="changeLoginCaptcha"
               v-html="loginCaptcha"
             ></div>
@@ -60,14 +60,12 @@
           </div>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" style="width: 100%" @click="toLogin"
+          <el-button type="primary" class="login-btn" @click="toLogin"
             >登录</el-button
           >
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" style="width: 100%" @click="toRegister"
-            >注册</el-button
-          >
+          <el-button class="register-btn" @click="toRegister">注册</el-button>
         </el-form-item>
         <el-form-item>
           <div class="forgot-row">
@@ -101,10 +99,7 @@
         <el-form-item label="验证码">
           <el-row :gutter="8">
             <el-col :span="14">
-              <el-input
-                v-model="forgotForm.code"
-                placeholder="请输入验证码"
-              />
+              <el-input v-model="forgotForm.code" placeholder="请输入验证码" />
             </el-col>
             <el-col :span="10">
               <!-- eslint-disable vue/no-v-html -->
@@ -182,7 +177,7 @@ const submitForgot = async () => {
 //传验证参
 const params: ICaptcha = {
   width: 120,
-  height: 30,
+  height: 36,
 };
 // 获取验证码（答案由服务端校验，前端只展示图片）
 const Captcha = async () => {
@@ -283,8 +278,8 @@ const toRegister = () => {
 
   display: flex;
   align-items: center;
-  justify-content: space-around;
-  /* background: linear-gradient(225deg, #1493fa, #01c6fa); */
+  justify-content: center;
+  gap: 60px;
   background: url(../../assets/bg.jpg) no-repeat;
   background-size: 100% 100%;
 }
@@ -292,12 +287,6 @@ const toRegister = () => {
   width: 35px;
   height: 35px;
   margin-right: 10px;
-}
-.left {
-  width: 478px;
-  height: 550px;
-  background: #f5f5f5;
-  padding: 48px;
 }
 
 .title-box {
@@ -308,28 +297,70 @@ const toRegister = () => {
 .title {
   font-size: 24px;
   margin-right: 14px;
+  font-weight: 600;
+  color: #303133;
 }
 
 .line {
   width: 1px;
-  background-color: #c7c7c7;
-  height: 27px;
+  background-color: #dcdfe6;
+  height: 24px;
   margin-right: 12px;
 }
 
 .sub-title {
-  font-size: 22px;
+  font-size: 20px;
+  color: #606266;
 }
 
 .loginBox {
-  padding: 35px 35px 15px 35px;
-  /* width: 350px; */
-  background: #f5f5f5;
+  padding: 36px 36px 20px 36px;
+  width: 400px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  flex-shrink: 0;
 }
 
 .login-form {
-  margin-top: 29px;
+  margin-top: 24px;
 }
+
+.login-form :deep(.el-form-item) {
+  margin-bottom: 18px;
+}
+
+.login-btn {
+  width: 100%;
+  height: 40px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.register-btn {
+  width: 100%;
+  height: 40px;
+  font-size: 15px;
+}
+
+.captcha-img {
+  cursor: pointer;
+  min-width: 100%;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.captcha-img :deep(img),
+.captcha-img :deep(svg) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .forgot-row {
   display: flex;
   justify-content: flex-end;
@@ -340,8 +371,31 @@ const toRegister = () => {
   align-items: center;
   gap: 4px;
   font-size: 13px;
+  flex-wrap: wrap;
 }
 .agreement-sep {
   color: #909399;
+}
+
+.right {
+  flex-shrink: 0;
+}
+
+.right img {
+  max-width: 500px;
+  height: auto;
+}
+
+@media (max-width: 900px) {
+  .login-container {
+    gap: 0;
+  }
+  .right {
+    display: none;
+  }
+  .loginBox {
+    width: 90%;
+    max-width: 400px;
+  }
 }
 </style>

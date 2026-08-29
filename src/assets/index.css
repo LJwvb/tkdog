@@ -66,5 +66,5 @@ th {
 
 /* 去掉相邻 el-button 默认的左边距 */
 .el-button + .el-button {
-  margin-left: 0 !important;
+  margin-left: 10px !important;
 }

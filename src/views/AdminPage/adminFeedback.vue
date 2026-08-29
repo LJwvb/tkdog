@@ -2,7 +2,14 @@
   <div class="feedback-list">
     <el-card>
       <template #header>题目纠错反馈</template>
-      <el-table v-loading="loading" :data="list" stripe>
+      <el-table
+        ref="feedbackTableRef"
+        v-loading="loading"
+        :data="list"
+        stripe
+        height="650"
+        @scroll="handleTableScroll"
+      >
         <el-table-column prop="id" label="ID" width="70" />
         <el-table-column label="对应题目" min-width="200" show-overflow-tooltip>
           <template #default="{ row }">
@@ -59,8 +66,20 @@
         description="暂无纠错反馈"
       />
 
+      <div
+        v-if="loadingMore || noMore"
+        style="
+          text-align: center;
+          padding: 12px;
+          color: var(--el-text-color-secondary);
+          font-size: 13px;
+        "
+      >
+        <span v-if="loadingMore">加载中...</span
+        ><span v-else-if="noMore">没有更多了，共 {{ total }} 条</span>
+      </div>
       <el-pagination
-        v-if="total > 0"
+        v-if="false"
         v-model:current-page="currentPage"
         background
         layout="slot, prev, pager, next"
@@ -107,12 +126,15 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { getFeedbackList, resolveFeedback } from '@/services';
-import { transitionTime } from '@/utils';
+import { transitionTime, getTableScrollBody } from '@/utils';
 import type { IQuestionFeedback } from '@/types';
 
 const router = useRouter();
 const list = ref<IQuestionFeedback[]>([]);
+const feedbackTableRef = ref();
 const loading = ref(true);
+const loadingMore = ref(false);
+const noMore = ref(false);
 const currentPage = ref(1);
 const total = ref(0);
 const resolveVisible = ref(false);
@@ -139,14 +161,22 @@ const resolveTip = (row: unknown) => {
   return parts.join('；') || '已处理';
 };
 
-const load = async () => {
-  loading.value = true;
+const load = async (append = false) => {
+  if (loadingMore.value) return;
+  loadingMore.value = true;
+  loading.value = !append;
   const res = await getFeedbackList({
     currentPage: currentPage.value,
     pageSize: 10,
   });
-  list.value = res?.result ?? [];
+  if (append) {
+    list.value = [...list.value, ...(res?.result ?? [])];
+  } else {
+    list.value = res?.result ?? [];
+  }
   total.value = res?.total ?? 0;
+  noMore.value = list.value.length >= total.value;
+  loadingMore.value = false;
   loading.value = false;
 };
 
@@ -156,6 +186,19 @@ const handlePageChange = (page: number) => {
   load();
 };
 
+const handleTableScroll = () => {
+  const body = getTableScrollBody(feedbackTableRef.value);
+  if (!body) return;
+  const { scrollTop, clientHeight, scrollHeight } = body;
+  if (
+    scrollTop + clientHeight >= scrollHeight - 50 &&
+    !loadingMore.value &&
+    !noMore.value
+  ) {
+    currentPage.value++;
+    load(true);
+  }
+};
 const goQuestion = (id: number) => {
   router.push({
     path: '/problemInfo',

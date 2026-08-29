@@ -21,7 +21,14 @@
             />
             <el-button type="primary" @click="handleSearch">搜索</el-button>
           </div>
-          <el-table v-loading="loading" :data="wordList" stripe>
+          <el-table
+            ref="wordTableRef"
+            v-loading="loading"
+            :data="wordList"
+            stripe
+            height="650"
+            @scroll="handleTableScroll"
+          >
             <el-table-column prop="id" label="ID" width="80" />
             <el-table-column prop="word" label="违禁词" min-width="200" />
             <el-table-column label="级别" width="120" align="center">
@@ -69,7 +76,12 @@
           </el-pagination>
         </el-tab-pane>
         <el-tab-pane label="已删除违禁词" name="deleted">
-          <el-table v-loading="deletedLoading" :data="deletedWords" stripe>
+          <el-table
+            v-loading="deletedLoading"
+            :data="deletedWords"
+            stripe
+            height="650"
+          >
             <el-table-column prop="id" label="ID" width="80" />
             <el-table-column prop="word" label="违禁词" min-width="200" />
             <el-table-column label="级别" width="120" align="center">
@@ -155,11 +167,13 @@ import {
   getDeletedSensitiveWords,
   restoreSensitiveWord,
 } from '@/services';
-import { transitionTime } from '@/utils';
+import { transitionTime, getTableScrollBody } from '@/utils';
 import type { ISensitiveWord } from '@/types';
 
 const wordList = ref<ISensitiveWord[]>([]);
 const loading = ref(true);
+const loadingMore = ref(false);
+const noMore = ref(false);
 const currentPage = ref(1);
 const total = ref(0);
 const pageSize = 10;
@@ -175,15 +189,20 @@ const form = reactive({
   level: 1,
 });
 
-const load = async () => {
+const load = async (append = false) => {
   loading.value = true;
   const res = await getSensitiveWords({
     currentPage: currentPage.value,
     pageSize,
     keyword: keyword.value,
   });
-  wordList.value = res?.result ?? [];
+  if (append) {
+    wordList.value = [...wordList.value, ...(res?.result ?? [])];
+  } else {
+    wordList.value = res?.result ?? [];
+  }
   total.value = res?.total ?? 0;
+  noMore.value = wordList.value.length >= total.value;
   loading.value = false;
 };
 
@@ -260,7 +279,26 @@ const handleTabChange = (name: string | number) => {
   }
 };
 
-onMounted(load);
+const wordTableRef = ref();
+const handleTableScroll = () => {
+  const body = getTableScrollBody(wordTableRef.value);
+  if (!body) return;
+  const { scrollTop, clientHeight, scrollHeight } = body;
+  if (
+    scrollTop + clientHeight >= scrollHeight - 50 &&
+    !loadingMore.value &&
+    !noMore.value
+  ) {
+    currentPage.value++;
+    loadingMore.value = true;
+    load(true).then(() => (loadingMore.value = false));
+  }
+};
+// 滚动加载改由 el-table 的 scroll 事件驱动（模板上 @scroll 绑定），
+// 不再用 setTimeout + 手动 addEventListener，避免表格未渲染时绑定失败
+onMounted(() => {
+  load();
+});
 </script>
 
 <style scoped>

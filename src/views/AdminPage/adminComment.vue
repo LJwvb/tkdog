@@ -60,7 +60,7 @@
                     <el-tag v-if="scope.row.parent_id" size="small" type="info"
                       >回复</el-tag
                     >
-                    <el-tag v-else size="small" type="primary">评论</el-tag>
+                    <el-tag v-else size="small">评论</el-tag>
                   </template>
                 </el-table-column>
                 <el-table-column label="状态" width="100" align="center">
@@ -154,7 +154,7 @@
               <el-tag v-if="scope.row.parent_id" size="small" type="info"
                 >回复</el-tag
               >
-              <el-tag v-else size="small" type="primary">评论</el-tag>
+              <el-tag v-else size="small">评论</el-tag>
             </template>
           </el-table-column>
           <el-table-column label="评论时间" width="170">

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="top-container">
     <el-card>
       <el-form ref="from" :model="form">
@@ -50,30 +50,39 @@
             style="width: 200px"
           />
         </el-form-item>
-        <el-button type="primary" @click="onSubmit">搜索</el-button>
-        <el-button @click="clearSearch">清空</el-button>
-        <el-button type="success" @click="startRandomPractice">
-          随机练习
-        </el-button>
+        <div class="search-actions">
+          <el-button type="primary" @click="onSubmit">搜索</el-button>
+
+          <el-button @click="clearSearch">清空</el-button>
+
+          <el-button type="success" @click="startRandomPractice">
+            随机练习
+          </el-button>
+        </div>
       </el-form>
     </el-card>
     <el-card
       v-loading="loading"
-      style="margin-top: 20px; min-height: 500px"
+      class="question-card-container"
+      style="min-height: 500px"
       element-loading-text="加载中..."
     >
+      <!-- 全部题目列表：使用 SubTab + 虚拟列表 -->
       <SubTab
         v-if="!clickSearch"
         :questionList="allQuestion"
         type="all"
         :catalogID="Number(catalogID)"
         :subjectID="Number(subjectID)"
-        :currentPage="currentPage"
         :subjectIDList="subjectIDList"
         :total="total"
+        :loadingMore="loadingMore"
+        :noMore="noMore"
+        :listHeight="650"
         @tabClick="tabClick"
-        @handleCurrentChange="handleCurrentChange"
+        @loadMore="loadMoreAllQuestion"
       />
+      <!-- 搜索结果列表：使用虚拟列表 -->
       <div v-if="clickSearch">
         <div v-if="searchData?.length === 0">
           <el-icon
@@ -81,27 +90,24 @@
             color="#aaa"
             style="float: right"
             @click="clearSearch"
-            ><CircleClose
-          /></el-icon>
+          >
+            <CircleClose />
+          </el-icon>
           <el-empty :image-size="200" />
         </div>
-        <div v-else>
-          <div v-for="item in searchData" :key="item.id">
+        <VirtualList
+          v-else
+          :data="searchData"
+          :height="650"
+          :estimated-item-height="200"
+          :loading="searchLoadingMore"
+          :finished="searchNoMore"
+          @loadMore="loadMoreSearch"
+        >
+          <template #default="{ item }">
             <QuestionCard :question="item" type="all" :isClickSearch="true" />
-          </div>
-          <el-pagination
-            v-model:current-page="currentSearchPage"
-            background
-            layout="slot, prev, pager, next"
-            :total="searchTotal"
-            prev-text="上一页"
-            next-text="下一页"
-            :hide-on-single-page="true"
-            @current-change="handleSearchCurrentChange"
-          >
-            <template #default> 共 {{ searchTotal }} 条 </template>
-          </el-pagination>
-        </div>
+          </template>
+        </VirtualList>
       </div>
     </el-card>
   </div>
@@ -111,7 +117,6 @@ import { ref, reactive, watchEffect, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { ElMessage } from 'element-plus';
-import queryString from 'query-string';
 import { parseHashQuery } from '@/utils';
 import {
   searchQuestion,
@@ -122,6 +127,7 @@ import {
 } from '@/services';
 import SubTab from '@/components/SubTab/index.vue';
 import QuestionCard from '@/components/QuestionCard/index.vue';
+import VirtualList from '@/components/VirtualList/index.vue';
 import { CircleClose } from '@element-plus/icons-vue';
 import { PaperPurview } from '@/types';
 interface IGetAllQuestionParams {
@@ -142,10 +148,14 @@ interface IForm {
 }
 const { isClickSearch, catalogID, subjectID } = parseHashQuery();
 const from = ref();
-const allQuestion = ref();
-const searchData = ref();
+const allQuestion = ref<any[]>([]);
+const searchData = ref<any[]>([]);
 const clickSearch = ref(false);
 const loading = ref(true);
+const loadingMore = ref(false);
+const noMore = ref(false);
+const searchLoadingMore = ref(false);
+const searchNoMore = ref(false);
 const store = useStore();
 const router = useRouter();
 const currentPage = ref(1);
@@ -154,6 +164,16 @@ const total = ref(0);
 const searchTotal = ref(0);
 const subjectIDList = ref();
 const searchPaginationClick = ref(false);
+const pageSize = 10;
+
+// 每个科目的数据缓存，切换 tab 时不重新请求
+interface ISubjectCache {
+  list: any[];
+  page: number;
+  total: number;
+  noMore: boolean;
+}
+const subjectCache = ref<Map<number, ISubjectCache>>(new Map());
 
 const form = reactive<IForm>({
   keyword: '',
@@ -162,11 +182,14 @@ const form = reactive<IForm>({
   subjectID: '',
   tags: '',
 });
-const getAllQuestionParams = reactive<IGetAllQuestionParams>({
+// subjectID 初始化时已确定（缺省为 0，即"全部"），这里在类型上收窄为必填，
+// 避免作为 subjectCache 的 Map key 时被推断成 number | undefined
+const getAllQuestionParams = reactive<
+  IGetAllQuestionParams & { subjectID: number }
+>({
   type: 'all',
   currentPage: 1,
-  pageSize: 10,
-  // catalogID: catalogID || 0,
+  pageSize,
   subjectID: Number(subjectID) || 0,
   refresh: false,
 });
@@ -182,6 +205,9 @@ const onSubmit = () => {
     return;
   }
   loading.value = true;
+  currentSearchPage.value = 1;
+  searchData.value = [];
+  searchNoMore.value = false;
   getSearchData({ currentPage: 1 });
   store.commit('setSearchHistory', {
     ...form,
@@ -193,31 +219,123 @@ const getAllQuestion = (refresh?: boolean) => {
     getAllQuestionParams.refresh = true;
   }
   loading.value = true;
+  currentPage.value = 1;
+  noMore.value = false;
   getQuestionList(getAllQuestionParams).then((res) => {
-    allQuestion.value = res?.result;
-    total.value = res?.total;
+    allQuestion.value = res?.result || [];
+    total.value = res?.total || 0;
+    noMore.value = allQuestion.value.length >= total.value;
     clickSearch.value = false;
     loading.value = false;
+    // 存入缓存
+    subjectCache.value.set(getAllQuestionParams.subjectID, {
+      list: [...allQuestion.value],
+      page: currentPage.value,
+      total: total.value,
+      noMore: noMore.value,
+    });
   });
 };
+
+// 加载更多全部题目
+const loadMoreAllQuestion = async () => {
+  if (loadingMore.value || noMore.value) return;
+  loadingMore.value = true;
+  currentPage.value += 1;
+  const params = {
+    ...getAllQuestionParams,
+    currentPage: currentPage.value,
+  };
+  try {
+    const res = await getQuestionList(params);
+    if (res?.result?.length) {
+      allQuestion.value = [...allQuestion.value, ...res.result];
+    }
+    total.value = res?.total || total.value;
+    noMore.value = allQuestion.value.length >= total.value;
+    // 更新缓存
+    subjectCache.value.set(getAllQuestionParams.subjectID, {
+      list: [...allQuestion.value],
+      page: currentPage.value,
+      total: total.value,
+      noMore: noMore.value,
+    });
+  } catch (e) {
+    currentPage.value -= 1;
+  } finally {
+    loadingMore.value = false;
+  }
+};
+
 const getSearchData = (val?: { currentPage: number }) => {
   searchQuestion({
     ...form,
     currentPage: val ? val.currentPage : currentSearchPage.value,
-    pageSize: 10,
+    pageSize,
   }).then((res) => {
-    searchData.value = res?.result;
-    searchTotal.value = res?.total;
+    searchData.value = res?.result || [];
+    searchTotal.value = res?.total || 0;
+    searchNoMore.value = searchData.value.length >= searchTotal.value;
     clickSearch.value = true;
     loading.value = false;
   });
 };
 
+// 加载更多搜索结果
+const loadMoreSearch = async () => {
+  if (searchLoadingMore.value || searchNoMore.value) return;
+  searchLoadingMore.value = true;
+  currentSearchPage.value += 1;
+  try {
+    const res = await searchQuestion({
+      ...form,
+      currentPage: currentSearchPage.value,
+      pageSize,
+    });
+    if (res?.result?.length) {
+      searchData.value = [...searchData.value, ...res.result];
+    }
+    searchTotal.value = res?.total || searchTotal.value;
+    searchNoMore.value = searchData.value.length >= searchTotal.value;
+  } catch (e) {
+    currentSearchPage.value -= 1;
+  } finally {
+    searchLoadingMore.value = false;
+  }
+};
+
 const tabClick = (type: string) => {
-  loading.value = true;
-  getAllQuestionParams.subjectID = Number(type);
-  getAllQuestionParams.currentPage = 1;
-  currentPage.value = 1;
+  const targetSubjectID = Number(type);
+  // 先保存当前科目的缓存
+  if (allQuestion.value.length > 0) {
+    subjectCache.value.set(getAllQuestionParams.subjectID, {
+      list: [...allQuestion.value],
+      page: currentPage.value,
+      total: total.value,
+      noMore: noMore.value,
+    });
+  }
+
+  // 检查目标科目是否有缓存
+  const cached = subjectCache.value.get(targetSubjectID);
+  if (cached && cached.list.length > 0) {
+    // 有缓存，直接恢复，不重新请求
+    getAllQuestionParams.subjectID = targetSubjectID;
+    allQuestion.value = cached.list;
+    currentPage.value = cached.page;
+    total.value = cached.total;
+    noMore.value = cached.noMore;
+    loading.value = false;
+  } else {
+    // 没有缓存，重新请求
+    loading.value = true;
+    getAllQuestionParams.subjectID = targetSubjectID;
+    getAllQuestionParams.currentPage = 1;
+    currentPage.value = 1;
+    allQuestion.value = [];
+    noMore.value = false;
+    getAllQuestion();
+  }
 };
 
 const clearSearch = () => {
@@ -230,26 +348,6 @@ const clearSearch = () => {
   store.commit('setSearchHistory', '');
 };
 
-const handleCurrentChange = (val: number) => {
-  getAllQuestionParams.currentPage = val;
-  // 滚到顶部
-  document.documentElement.scrollTop = 0;
-  loading.value = true;
-  getAllQuestion();
-};
-const handleSearchCurrentChange = (val: number) => {
-  // 滚到顶部
-  document.documentElement.scrollTop = 0;
-  loading.value = true;
-  searchPaginationClick.value = true;
-  getSearchData({
-    currentPage: val,
-  });
-  store.commit('setSearchHistory', {
-    ...form,
-    currentPage: val,
-  });
-};
 // 随机练习：随机抽题生成一张练习卷并进入在线做题
 const startRandomPractice = async () => {
   const res = await randomPickQuestions({
@@ -295,13 +393,16 @@ watchEffect(() => {
     form.questionType = searchHistory.questionType;
     form.difficulty = searchHistory.difficulty;
     currentSearchPage.value = searchHistory.currentPage;
+    searchData.value = [];
+    searchNoMore.value = false;
     searchQuestion({
       ...searchHistory,
       currentPage: searchHistory.currentPage,
-      pageSize: 10,
+      pageSize,
     }).then((res) => {
-      searchData.value = res?.result;
-      searchTotal.value = res?.total;
+      searchData.value = res?.result || [];
+      searchTotal.value = res?.total || 0;
+      searchNoMore.value = searchData.value.length >= searchTotal.value;
       clickSearch.value = true;
       currentSearchPage.value = searchHistory.currentPage;
       loading.value = false;
@@ -310,12 +411,6 @@ watchEffect(() => {
   }
 });
 
-watch(
-  () => getAllQuestionParams.subjectID,
-  () => {
-    getAllQuestion();
-  },
-);
 watch(
   () => clickSearch.value,
   () => {
@@ -331,6 +426,60 @@ watch(
 <style scoped>
 .top-container {
   width: 100%;
-  height: 100%;
+}
+
+.top-container :deep(.el-form-item) {
+  margin-bottom: 16px;
+}
+
+.top-container :deep(.el-form-item__label) {
+  width: 42px !important;
+  text-align: left;
+  padding-right: 12px;
+  font-weight: 500;
+  color: #606266;
+}
+
+.search {
+  max-width: 500px;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 10px;
+
+  padding-left: 12px;
+}
+
+.question-card-container {
+  margin-top: 16px !important;
+}
+
+/* 搜索按钮间距 + 与输入框左边缘对齐 */
+.search-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+/* 搜索按钮内边距优化 */
+.search-actions .el-button {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .question-card-container :deep(.virtual-list-container) {
+    height: 500px !important;
+  }
+
+  .top-container :deep(.el-form-item) {
+    margin-bottom: 10px;
+  }
+
+  .search {
+    max-width: 100%;
+  }
 }
 </style>

@@ -11,41 +11,32 @@
     </el-tabs>
 
     <el-card style="min-height: 500px">
-      <div v-if="questionList.length > 0">
-        <div v-for="item in questionList" :key="item.id">
+      <VirtualList
+        v-if="questionList.length > 0"
+        :data="questionList"
+        :height="600"
+        :estimated-item-height="200"
+        :loading="loadingMore"
+        :finished="noMore"
+        @loadMore="loadMore"
+      >
+        <template #default="{ item }">
           <QuestionCard
             :question="item"
             type="userQuestions"
             :card-tip="cardTipFor(item, store.state.userData.username)"
             @edit="openEdit"
           />
-        </div>
-      </div>
+        </template>
+      </VirtualList>
       <el-empty v-else :image-size="200" description="没有上传题目" />
-
-      <el-pagination
-        v-model:current-page="currentPage"
-        background
-        layout="slot, prev, pager, next"
-        :total="total"
-        prev-text="上一页"
-        next-text="下一页"
-        :hide-on-single-page="true"
-        @current-change="handleCurrentChange"
-      >
-        <template #default> 共 {{ total }} 条 </template>
-      </el-pagination>
     </el-card>
 
     <!-- 编辑题目弹窗 -->
     <el-dialog v-model="editVisible" title="编辑题目" width="640px">
       <el-form label-width="80px">
         <el-form-item label="题干">
-          <el-input
-            v-model="editForm.question"
-            type="textarea"
-            :rows="3"
-          />
+          <el-input v-model="editForm.question" type="textarea" :rows="3" />
         </el-form-item>
         <el-form-item label="难度">
           <el-radio-group v-model="editForm.difficulty">
@@ -55,10 +46,7 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item label="标签">
-          <el-input
-            v-model="editForm.tags"
-            placeholder="多个标签用逗号分隔"
-          />
+          <el-input v-model="editForm.tags" placeholder="多个标签用逗号分隔" />
         </el-form-item>
         <el-form-item label="答案">
           <el-input v-model="editForm.answer" type="textarea" :rows="6" />
@@ -79,6 +67,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 
 import { getUserUploadQues, updateQuestion } from '@/services';
 import QuestionCard from '@/components/QuestionCard/index.vue';
+import VirtualList from '@/components/VirtualList/index.vue';
 import { ChkState, type IQuestion } from '@/types';
 import { reviewingCardTip } from '@/utils';
 
@@ -87,36 +76,52 @@ const questionList = ref<IQuestion[]>([]);
 const currentPage = ref(1);
 const total = ref(0);
 const loading = ref(true);
+const loadingMore = ref(false);
+const noMore = ref(false);
 const activeChkState = ref(String(ChkState.Pending));
+const pageSize = 10;
 
 // 审核中（二次编辑后重新审核）题目点击卡片时的提示
 const cardTipFor = reviewingCardTip;
 
 const getUserUploadQuesParams = reactive({
   userId: store?.state?.userData?.userId as number,
-  pageSize: 10,
+  pageSize,
   chkState: ChkState.Pending,
 });
 
-const getUserUploadQuesData = async () => {
-  loading.value = true;
+const getUserUploadQuesData = async (append = false) => {
+  if (append) {
+    loadingMore.value = true;
+  } else {
+    loading.value = true;
+  }
   const res = await getUserUploadQues({
     ...getUserUploadQuesParams,
     currentPage: currentPage.value,
   });
-  questionList.value = res?.data ?? [];
+  if (append) {
+    questionList.value = [...questionList.value, ...(res?.data ?? [])];
+  } else {
+    questionList.value = res?.data ?? [];
+  }
   total.value = res?.total ?? 0;
+  noMore.value = questionList.value.length >= total.value;
   loading.value = false;
+  loadingMore.value = false;
+};
+
+const loadMore = async () => {
+  if (loadingMore.value || noMore.value) return;
+  currentPage.value += 1;
+  await getUserUploadQuesData(true);
 };
 
 const handleTabChange = (name: string | number) => {
   getUserUploadQuesParams.chkState = Number(name);
   currentPage.value = 1;
-  getUserUploadQuesData();
-};
-
-const handleCurrentChange = (page: number) => {
-  currentPage.value = page;
+  questionList.value = [];
+  noMore.value = false;
   getUserUploadQuesData();
 };
 
@@ -169,6 +174,9 @@ const saveEdit = async () => {
   });
   ElMessage.success('修改成功');
   editVisible.value = false;
+  currentPage.value = 1;
+  questionList.value = [];
+  noMore.value = false;
   getUserUploadQuesData();
 };
 

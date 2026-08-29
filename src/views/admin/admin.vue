@@ -75,23 +75,23 @@ const toLogin = async () => {
   if (!form) return;
 
   try {
-    adminLogin(ruleForm).then(async (result) => {
-      await form.validate();
+    // 先校验表单，通过后再发请求（避免空表单也发出请求）
+    await form.validate();
+    const result = await adminLogin(ruleForm);
 
-      store.commit('setUserData', {
-        ...result,
-        phone: 'admin',
-        username: result?.name ?? 'admin',
-        isAdmin: true,
-      });
-      store.commit('setBrowseTopicsId', []);
-      ElMessage.success({
-        message: '登录成功~',
-        type: 'success',
-      });
-      localStorage.setItem('uid', String(ruleForm.name));
-      router.push('/adminHome');
+    store.commit('setUserData', {
+      ...result,
+      phone: 'admin',
+      username: result?.name ?? 'admin',
+      isAdmin: true,
     });
+    store.commit('setBrowseTopicsId', []);
+    ElMessage.success({
+      message: '登录成功~',
+      type: 'success',
+    });
+    localStorage.setItem('uid', String(ruleForm.name));
+    router.push('/adminHome');
   } catch (error) {
     ElMessage.error('登录失败，请稍后重试');
     // eslint-disable-next-line no-console

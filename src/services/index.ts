@@ -1,4 +1,4 @@
-import { request } from '@/utils/request';
+﻿import { request } from '@/utils/request';
 import type {
   IRankingList,
   IGetQuestionsParams,
@@ -61,8 +61,13 @@ import type {
 // 排行榜接口（type: all/week/month）
 export function getRankList(
   type: 'all' | 'week' | 'month' = 'all',
-): Promise<IRankingList[]> {
-  return request<IRankingList[]>('GET', `/getRankingList?type=${type}`);
+  page = 1,
+  pageSize = 20,
+): Promise<{ list: IRankingList[]; total: number; hasMore: boolean }> {
+  return request<{ list: IRankingList[]; total: number; hasMore: boolean }>(
+    'GET',
+    `/getRankingList?type=${type}&page=${page}&pageSize=${pageSize}`,
+  );
 }
 
 // 获取未审核的题目接口
@@ -211,13 +216,8 @@ export async function uploadImage(
   channel = 'common',
 ): Promise<string> {
   const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-  const ALLOWED_EXT = [ 'jpg', 'jpeg', 'png', 'gif', 'webp' ];
-  const ALLOWED_MIME = [
-    'image/jpeg',
-    'image/png',
-    'image/gif',
-    'image/webp',
-  ];
+  const ALLOWED_EXT = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+  const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
   const ext = (file.name.split('.').pop() || '').toLowerCase();
   if (!ALLOWED_EXT.includes(ext)) {
     throw new Error('仅支持 jpg/png/gif/webp 格式的图片');

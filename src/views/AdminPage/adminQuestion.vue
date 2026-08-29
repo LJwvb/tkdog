@@ -79,27 +79,26 @@
             v-loading="loading"
             element-loading-text="加载中..."
           >
-            <div v-for="item in ChkQuestions" :key="item?.id">
-              <QuestionCard
-                :question="item"
-                type="chk"
-                activeName="chk"
-                @delete="deleteQuestion"
-                @edit="handleEdit"
-              />
+            <VirtualList
+              :data="ChkQuestions"
+              :height="650"
+              :estimated-item-height="200"
+              :loading="loadingMore"
+              :finished="ChkQuestions.length >= chkTotal"
+              @load-more="loadMoreChk"
+              ><template #default="{ item }">
+                <QuestionCard
+                  :question="item"
+                  type="chk"
+                  activeName="chk"
+                  @delete="deleteQuestion"
+                  @edit="handleEdit"
+                /> </template
+            ></VirtualList>
+            <!-- 已审核列表走无限滚动加载，不再叠加分页器（两套分页会互相打架） -->
+            <div v-if="chkTotal > 0" class="list-total">
+              共 {{ chkTotal }} 条，已加载 {{ ChkQuestions.length }} 条
             </div>
-            <el-pagination
-              v-model:current-page="currentChkPage"
-              background
-              layout="slot, prev, pager, next"
-              :total="chkTotal"
-              prev-text="上一页"
-              next-text="下一页"
-              :hide-on-single-page="true"
-              @current-change="handleChkCurrentChange"
-            >
-              <template #default> 共 {{ chkTotal }} 条 </template>
-            </el-pagination>
           </div>
           <div v-if="ChkQuestions?.length === 0 && activeName === 'chk'">
             <el-empty :image-size="200" description="没有已审核题目" />
@@ -263,9 +262,14 @@
 </template>
 <script setup lang="ts">
 import QuestionCard from '@/components/QuestionCard/index.vue';
+import VirtualList from '@/components/VirtualList/index.vue';
 import { ref, reactive, onMounted } from 'vue';
-import queryString from 'query-string';
-import {parseHashQuery, firstQueryValue, questionType, exportQuestionsToCsv } from '@/utils';
+import {
+  parseHashQuery,
+  firstQueryValue,
+  questionType,
+  exportQuestionsToCsv,
+} from '@/utils';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { CircleClose } from '@element-plus/icons-vue';
 import type { IImportQuestion, IQuestion } from '@/types';
@@ -290,13 +294,13 @@ interface IChkQuestion {
 const { index } = parseHashQuery();
 const activeName = ref(firstQueryValue(index, 'nochk'));
 //获取已审核题目
-const ChkQuestions = ref();
+const ChkQuestions = ref<IQuestion[]>([]);
 const from = ref();
 //获取未审核题目
 const NoChkQuestions = ref();
 const loading = ref(true);
+const loadingMore = ref(false);
 const currentNoChkPage = ref(1);
-const currentChkPage = ref(1);
 const noChkTotal = ref(0);
 const chkTotal = ref(0);
 const searchData = ref();
@@ -348,12 +352,20 @@ const handleNoChkCurrentChange = (val: number) => {
   loading.value = true;
   getNoChkQuestion();
 };
-const handleChkCurrentChange = (val: number) => {
-  chkParams.currentPage = val;
-  // 滚到顶部
-  document.documentElement.scrollTop = 0;
-  loading.value = true;
-  getAllChkQuestion();
+// 已审核列表：滚动到底部追加下一页（与分页器二选一，此处走无限滚动）
+const loadMoreChk = async () => {
+  if (loading.value || loadingMore.value) return;
+  if (ChkQuestions.value.length >= chkTotal.value) return;
+  loadingMore.value = true;
+  chkParams.currentPage += 1;
+  try {
+    await getAllChkQuestion(true);
+  } catch (err) {
+    // 加载失败回退页码，避免页码与数据错位
+    chkParams.currentPage -= 1;
+  } finally {
+    loadingMore.value = false;
+  }
 };
 const getNoChkQuestion = async () => {
   const res = await getNoChkQuestions(nochkParams);
@@ -361,10 +373,20 @@ const getNoChkQuestion = async () => {
   noChkTotal.value = res.total;
   loading.value = false;
 };
-const getAllChkQuestion = async () => {
+const getAllChkQuestion = async (append = false) => {
+  // 非追加（首次加载/切回标签页/删除后刷新）时回到第一页，
+  // 否则会停留在上次滚动加载到的页码，导致列表只剩那一页数据
+  if (!append) {
+    chkParams.currentPage = 1;
+  }
   const res = await getAllChkQuestions(chkParams);
-  ChkQuestions.value = res.result;
-  chkTotal.value = res.total;
+  const list = res?.result ?? [];
+  if (append) {
+    ChkQuestions.value = [...ChkQuestions.value, ...list];
+  } else {
+    ChkQuestions.value = list;
+  }
+  chkTotal.value = res?.total ?? 0;
   loading.value = false;
 };
 // 导出当前标签页全部题目为 CSV
@@ -703,5 +725,11 @@ const saveEdit = async () => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.list-total {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--el-text-color-secondary, #909399);
 }
 </style>

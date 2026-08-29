@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <el-card class="smart-pick">
     <div class="pick-header">
       <el-button type="primary" @click="togglePick">智能抽题</el-button>
@@ -192,8 +192,11 @@ onMounted(async () => {
 }
 .prev-step {
   margin-top: 16px;
+  float: right;
 }
 .next-step {
   margin-top: 16px;
+  float: right;
+  margin-right: 12px;
 }
 </style>

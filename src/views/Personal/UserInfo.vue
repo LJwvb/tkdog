@@ -45,7 +45,7 @@
         {{ checkinInfo?.todayChecked ? '今日已打卡' : '每日打卡 +5积分' }}
       </el-button>
     </el-card>
-    <el-card style="margin-top: 20px">
+    <el-card style="margin-top: 16px">
       <div class="question-info">
         <h4>信息</h4>
         <div class="integral">
@@ -178,6 +178,7 @@ const medals = computed(() => {
 // 用户等级：基于积分
 const level = computed<{
   name: string;
+  // el-tag 的 type 不含空字符串，新手档用 primary（蓝色）
   type: 'primary' | 'success' | 'warning' | 'info' | 'danger';
 }>(() => {
   const integral = userInfo.value.integral ?? 0;
@@ -256,38 +257,46 @@ watch(
 <style scoped>
 .user-info-container {
   width: 100%;
-  height: 100%;
-  margin-left: 20px;
 }
 .main-info {
   width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: row;
+  align-items: flex-start;
 }
 .intro {
-  margin-top: 30px;
+  margin-top: 12px;
+  font-size: 14px;
+  color: #909399;
 }
 .name-box {
   display: flex;
   flex-direction: column;
   margin-left: 20px;
+  flex: 1;
 }
 .name {
   display: flex;
   flex-direction: row;
   align-items: center;
 }
+.name h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #303133;
+  margin: 0;
+}
 
 .avatar {
-  width: 100px;
-  height: 100px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   object-fit: cover;
+  flex-shrink: 0;
 }
 .edit-btn {
   position: absolute;
-  top: 0px;
+  top: 20px;
   right: 20px;
 }
 .checkin-btn {
@@ -298,14 +307,23 @@ watch(
   flex-direction: column;
   align-items: flex-start;
 }
+.question-info > h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+  margin: 0 0 8px 0;
+}
 .question-info > div {
-  margin-top: 20px;
-  font-size: 18px;
+  margin-top: 10px;
+  font-size: 14px;
+  color: #606266;
+  line-height: 1.6;
 }
 .integral {
   display: flex;
   align-items: center;
   flex-direction: row;
+  gap: 4px;
 }
 .medals {
   display: flex;
@@ -320,9 +338,11 @@ watch(
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
 }
 .goal-progress {
-  margin-top: 6px;
+  margin-top: 8px;
   max-width: 320px;
+  width: 100%;
 }
 </style>

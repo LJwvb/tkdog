@@ -112,20 +112,37 @@ const formatDay = (date: string): string => {
   return `${Number(m)}月${Number(d)}日`;
 };
 
+const isDark = (): boolean =>
+  document.documentElement.classList.contains('dark');
+const tc = (): string => (isDark() ? '#e5eaf3' : '#303133');
+const tc2 = (): string => (isDark() ? '#a3a6ad' : '#909399');
+const bc = (): string => (isDark() ? '#4c4d4f' : '#dcdfe6');
 const buildLineOption = (s: IAdminStatistics): EChartsOption => ({
   title: {
     text: '近七日数据统计',
     subtext: `截至 ${s.days[s.days.length - 1] ?? ''}`,
   },
   tooltip: { trigger: 'axis' },
-  legend: { data: ['新增用户', '上传题目', '组卷', '答题'] },
+  legend: {
+    data: ['新增用户', '上传题目', '组卷', '答题'],
+    textStyle: { color: tc() },
+  },
   grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
   xAxis: {
     type: 'category',
     boundaryGap: false,
     data: s.days.map(formatDay),
+    axisLabel: { color: tc2() },
+    axisLine: { lineStyle: { color: bc() } },
+    splitLine: { show: false },
   },
-  yAxis: { type: 'value', minInterval: 1 },
+  yAxis: {
+    type: 'value',
+    minInterval: 1,
+    axisLabel: { color: tc2() },
+    axisLine: { lineStyle: { color: bc() } },
+    splitLine: { lineStyle: { color: bc() } },
+  },
   series: [
     {
       name: '新增用户',
@@ -158,9 +175,14 @@ const buildPieOption = (
   title: string,
   data: Array<{ name: string; value: number }>,
 ): EChartsOption => ({
-  title: { text: title, left: 'center' },
+  title: { text: title, left: 'center', textStyle: { color: tc() } },
   tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
-  legend: { orient: 'vertical', left: 'left', top: 'middle' },
+  legend: {
+    orient: 'vertical',
+    left: 'left',
+    top: 'middle',
+    textStyle: { color: tc() },
+  },
   series: [
     {
       name: title,
@@ -207,6 +229,7 @@ const clockOption: EChartsOption = {
       },
       axisLabel: {
         fontSize: 25,
+        color: tc(),
         distance: 25,
         formatter: function (value) {
           return value === 0 ? '' : value + '';
@@ -423,7 +446,7 @@ onBeforeUnmount(() => {
 .stat-label {
   margin-top: 6px;
   font-size: 14px;
-  color: #909399;
+  color: var(--el-text-color-secondary);
 }
 .chart-row {
   display: flex;
@@ -432,7 +455,7 @@ onBeforeUnmount(() => {
   margin-bottom: 20px;
 }
 .chart-box {
-  background-color: #fff;
+  background-color: var(--el-bg-color);
   border: 1px solid #ebeef5;
   border-radius: 6px;
   padding: 10px;
@@ -466,7 +489,7 @@ onBeforeUnmount(() => {
 
 .recent-item {
   padding: 8px 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--el-border-color-lighter);
 }
 
 .recent-item:last-child {
@@ -474,7 +497,7 @@ onBeforeUnmount(() => {
 }
 
 .recent-title {
-  color: #303133;
+  color: var(--el-text-color-primary);
   font-size: 14px;
   word-break: break-word;
 }
@@ -482,7 +505,7 @@ onBeforeUnmount(() => {
 .recent-meta {
   margin-top: 4px;
   font-size: 12px;
-  color: #909399;
+  color: var(--el-text-color-secondary);
 }
 
 /* 移动端：图表纵向堆叠、宽度自适应，避免 min-width 撑破布局导致图表溢出/不显示 */

@@ -70,6 +70,7 @@ declare module 'vue' {
     TestBasket: typeof import('./components/TestBasket/index.vue')['default']
     TestCard: typeof import('./components/TestCard/index.vue')['default']
     UploadQuestion: typeof import('./components/UploadQuestion/index.vue')['default']
+    VirtualList: typeof import('./components/VirtualList/index.vue')['default']
   }
   export interface GlobalDirectives {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']
@@ -136,4 +137,5 @@ declare global {
   const TestBasket: typeof import('./components/TestBasket/index.vue')['default']
   const TestCard: typeof import('./components/TestCard/index.vue')['default']
   const UploadQuestion: typeof import('./components/UploadQuestion/index.vue')['default']
+  const VirtualList: typeof import('./components/VirtualList/index.vue')['default']
 }

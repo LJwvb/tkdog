@@ -1,5 +1,11 @@
-<template>
+﻿<template>
   <div class="info-container">
+    <div class="page-header">
+      <el-button class="back-btn" @click="goBack">
+        <el-icon><ArrowLeft /></el-icon>
+        <span>返回试卷列表</span>
+      </el-button>
+    </div>
     <el-card style="margin-bottom: 20px">
       <div
         v-for="(item, index) in paperDetail"
@@ -90,15 +96,21 @@ import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { ElMessage } from 'element-plus';
 import { getPaperDetail } from '@/services';
-import queryString from 'query-string';
-import {parseHashQuery, transitionTime,
+import {
+  parseHashQuery,
+  transitionTime,
   firstQueryValue,
   exportPaperToWord,
   parsePaperOptions,
   formatAnswerWithValues,
 } from '@/utils';
 import type { IQuestion } from '@/types';
-import { Avatar, ArrowUpBold, ArrowDownBold } from '@element-plus/icons-vue';
+import {
+  Avatar,
+  ArrowUpBold,
+  ArrowDownBold,
+  ArrowLeft,
+} from '@element-plus/icons-vue';
 import { PaperPurview } from '@/types';
 
 interface IPaperDetailInfo {
@@ -155,6 +167,13 @@ const name = computed(() => {
     ? '公开试卷'
     : '个人试卷';
 });
+const goBack = () => {
+  if (window.history.length > 1) {
+    router.back();
+  } else {
+    router.push('/testPaper');
+  }
+};
 const goDoPaper = () => {
   router.push({
     path: '/testPaper/doPaper',
@@ -172,20 +191,31 @@ const exportWord = () => {
 .info-container {
   width: 70%;
   position: relative;
+  flex-shrink: 0;
 }
 
 .watermark {
   position: absolute;
-  top: 0px;
-  right: 0px;
-  transform: rotate(-45deg);
-  color: #ccc;
-  width: 100px;
-  height: 100px;
-  line-height: 100px;
+  top: 12px;
+  right: 12px;
+  transform: rotate(-15deg);
+  color: #909399;
+  width: 70px;
+  height: 70px;
+  line-height: 70px;
   text-align: center;
   border-radius: 50%;
-  border: 1px solid #ccc;
+  border: 1px solid #dcdfe6;
+  font-size: 12px;
+  background-color: rgba(255, 255, 255, 0.9);
+  z-index: 10;
+}
+
+/* 暗色模式下水印：html 选择器在 scoped 下无效，规则放在文件末尾的全局样式块 */
+
+/* 确保卡片容器有相对定位 */
+:deep(.el-card__body) {
+  position: relative;
 }
 
 .question-block {
@@ -239,6 +269,10 @@ const exportWord = () => {
 .slide-container {
   width: 30%;
   margin-left: 20px;
+  position: sticky;
+  top: 130px;
+  align-self: flex-start;
+  height: fit-content;
 }
 
 .paper-info {
@@ -272,5 +306,48 @@ const exportWord = () => {
 
 .tag-item {
   margin-right: 10px;
+}
+
+/* 页面顶部返回按钮 */
+.page-header {
+  margin-bottom: 16px;
+}
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+}
+
+/* 返回按钮 - sticky 内联，左右对齐 */
+.page-header {
+  position: sticky;
+  top: 60px;
+  z-index: 30;
+  margin-bottom: 16px;
+  padding: 4px 0;
+}
+.page-header .back-btn {
+  background: #fff;
+  border: 1px solid #dcdfe6;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  color: #606266;
+  transition: all 0.2s;
+}
+.page-header .back-btn:hover {
+  color: #409eff;
+  border-color: #c6e2ff;
+  background: #ecf5ff;
+}
+</style>
+
+<!-- 全局样式：html/body 级选择器在 scoped 块中会被加上 [data-v-xxx] 前缀而失效 -->
+<style>
+html.dark .watermark {
+  color: #a3a6ad;
+  border-color: #3a3b3c;
+  background-color: rgba(29, 30, 31, 0.9);
 }
 </style>

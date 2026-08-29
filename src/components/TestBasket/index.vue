@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="title-small">
     <div class="test-basket">
       <el-badge :value="badgeValue" :max="10" class="badge">
@@ -13,7 +13,7 @@
       size="50%"
     >
       <el-table :data="basketTableData" style="width: 100%">
-        <el-table-column label="试题">
+        <el-table-column label="试题" min-width="200">
           <template #default="scope">
             <div>{{ scope.row.question }}</div>
           </template>
@@ -47,13 +47,9 @@
           </template>
         </el-table-column>
       </el-table>
-      <div v-if="store.state.selectedTopic.length">
-        <el-button type="primary" class="btn" @click="getPaper">
-          组卷
-        </el-button>
-        <el-button type="primary" class="btn" @click="clearAll">
-          清空
-        </el-button>
+      <div v-if="store.state.selectedTopic.length" class="basket-actions">
+        <el-button type="primary" @click="getPaper"> 组卷 </el-button>
+        <el-button @click="clearAll"> 清空 </el-button>
       </div>
     </el-drawer>
   </div>
@@ -146,5 +142,42 @@ const clearAll = () => {
     padding: 12px 4px 12px 2px;
     font-size: 12px;
   }
+}
+
+/* 抽屉内表格优化 */
+:deep(.el-drawer__body) {
+  display: flex;
+  flex-direction: column;
+}
+:deep(.el-table) {
+  flex: 1;
+  border-radius: 6px;
+  overflow: hidden;
+}
+:deep(.el-table th) {
+  background: #f5f7fa !important;
+  font-weight: 600;
+  color: #303133;
+}
+:deep(.el-table__row:hover > td) {
+  background: #f5f7fa !important;
+}
+:deep(.el-table .cell) {
+  line-height: 1.6;
+}
+/* 试题内容限制宽度和换行 */
+:deep(.el-table .el-table_1_column_1 .cell) {
+  max-width: 300px;
+  white-space: normal;
+  word-break: break-all;
+}
+/* 抽屉底部按钮区 */
+.basket-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #ebeef5;
 }
 </style>

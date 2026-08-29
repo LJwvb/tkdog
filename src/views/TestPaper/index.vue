@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="paper-page">
     <div class="search-bar">
       <el-input
@@ -86,22 +86,52 @@ onMounted(async () => {
   width: 100%;
 }
 .search-bar {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+}
+.search-bar :deep(.el-input) {
+  max-width: 360px;
 }
 .tabs {
   width: 100%;
-  height: 100%;
+}
+.tabs :deep(.el-tabs__content) {
+  padding: 0;
+}
+.tabs :deep(.el-tab-pane) {
+  margin-left: 0;
+  margin-right: 0;
 }
 .tab-pane {
   width: 100%;
-  height: 100%;
   display: flex;
   flex-wrap: wrap;
+  gap: 16px;
+  padding-top: 16px;
 }
 .test-card {
-  width: 400px;
-  height: 200px;
-  margin-right: 20px;
-  margin-bottom: 20px;
+  width: calc(25% - 12px);
+  min-width: 260px;
+  min-height: 180px;
+  margin-right: 0 !important;
+  margin-bottom: 0 !important;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.test-card:hover {
+  transform: translateY(-2px);
+}
+@media (max-width: 1400px) {
+  .test-card {
+    width: calc(33.333% - 11px);
+  }
+}
+@media (max-width: 1000px) {
+  .test-card {
+    width: calc(50% - 8px);
+  }
+}
+@media (max-width: 600px) {
+  .test-card {
+    width: 100%;
+  }
 }
 </style>

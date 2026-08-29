@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="add-paper">
     <el-steps :active="active" finish-status="success" class="steps">
       <el-step title="试卷信息" />
@@ -26,7 +26,6 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import queryString from 'query-string';
 import { parseHashQuery } from '@/utils';
 import { useStore } from 'vuex';
 
@@ -127,14 +126,26 @@ const done = () => {
   flex-direction: column;
   height: 100%;
   width: 100%;
+  padding: 24px;
+  box-sizing: border-box;
 }
 .steps {
   width: 100%;
+  background: #fff;
+  padding: 24px 32px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  margin-bottom: 20px;
 }
 .step-content {
   position: relative;
-  top: 10px;
   width: 100%;
+  background: #fff;
+  padding: 32px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+  min-height: 400px;
 }
 .next-step {
   position: absolute;

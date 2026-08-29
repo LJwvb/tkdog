@@ -47,30 +47,24 @@
         </el-tag>
       </div>
 
-      <div v-if="questionList.length > 0" style="min-height: 400px">
-        <div v-for="item in questionList" :key="item.id">
+      <VirtualList
+        v-if="questionList.length > 0"
+        :data="questionList"
+        :height="500"
+        :estimated-item-height="200"
+        :loading="loadingMore"
+        :finished="noMore"
+        @loadMore="loadMore"
+      >
+        <template #default="{ item }">
           <QuestionCard
             :question="item"
             type="userWrong"
             :card-tip="reviewingCardTip(item, store.state.userData.userId)"
           />
-        </div>
-      </div>
+        </template>
+      </VirtualList>
       <el-empty v-else :image-size="200" description="暂无错题，继续保持！" />
-
-      <el-pagination
-        v-if="total > 0"
-        v-model:current-page="currentPage"
-        background
-        layout="slot, prev, pager, next"
-        :total="total"
-        prev-text="上一页"
-        next-text="下一页"
-        :hide-on-single-page="true"
-        @current-change="handleCurrentChange"
-      >
-        <template #default> 共 {{ total }} 道错题 </template>
-      </el-pagination>
     </el-card>
   </div>
 </template>
@@ -81,6 +75,7 @@ import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import QuestionCard from '@/components/QuestionCard/index.vue';
+import VirtualList from '@/components/VirtualList/index.vue';
 import {
   getWrongQuestions,
   getPaperQuestion,
@@ -93,28 +88,49 @@ const router = useRouter();
 const store = useStore();
 const questionList = ref<IWrongQuestion[]>([]);
 const loading = ref(true);
+const loadingMore = ref(false);
+const noMore = ref(false);
 const currentPage = ref(1);
 const total = ref(0);
+const pageSize = 10;
 const subjectFilter = ref<number | ''>('');
 const subjectStats = ref<
   Array<{ subjectID: number; subjectName: string; count: number }>
 >([]);
 
-const getData = async () => {
-  loading.value = true;
+const getData = async (append = false) => {
+  if (append) {
+    loadingMore.value = true;
+  } else {
+    loading.value = true;
+  }
   const res = await getWrongQuestions({
     currentPage: currentPage.value,
-    pageSize: 10,
+    pageSize,
     subjectID: subjectFilter.value === '' ? undefined : subjectFilter.value,
   });
-  questionList.value = res?.data ?? [];
+  if (append) {
+    questionList.value = [...questionList.value, ...(res?.data ?? [])];
+  } else {
+    questionList.value = res?.data ?? [];
+  }
   total.value = res?.total ?? 0;
   subjectStats.value = res?.subjectStats ?? [];
+  noMore.value = questionList.value.length >= total.value;
   loading.value = false;
+  loadingMore.value = false;
+};
+
+const loadMore = async () => {
+  if (loadingMore.value || noMore.value) return;
+  currentPage.value += 1;
+  await getData(true);
 };
 
 const onSubjectChange = () => {
   currentPage.value = 1;
+  questionList.value = [];
+  noMore.value = false;
   getData();
 };
 
@@ -128,15 +144,11 @@ const clearAll = () => {
       ElMessage.success('错题已清空');
       currentPage.value = 1;
       subjectFilter.value = '';
+      questionList.value = [];
+      noMore.value = false;
       getData();
     });
   });
-};
-
-const handleCurrentChange = (val: number) => {
-  currentPage.value = val;
-  document.documentElement.scrollTop = 0;
-  getData();
 };
 
 const startRework = async () => {
@@ -199,11 +211,12 @@ onMounted(() => {
   border-radius: 6px;
 }
 .stats-label {
-  font-size: 13px;
-  color: #909399;
   margin-right: 8px;
+  font-size: 13px;
+  color: #606266;
 }
 .stat-tag {
   margin-right: 8px;
+  margin-bottom: 4px;
 }
 </style>

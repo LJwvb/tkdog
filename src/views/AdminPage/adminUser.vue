@@ -2,7 +2,13 @@
   <div class="admin-user">
     <el-tabs v-model="activeTab" @tab-change="handleTabChange">
       <el-tab-pane label="用户列表" name="normal">
-        <el-table :data="userInfo" style="width: 100%">
+        <el-table
+          ref="userTableRef"
+          :data="userInfo"
+          style="width: 100%"
+          height="650"
+          @scroll="handleTableScroll"
+        >
           <el-table-column prop="userId" label="用户id" width="80" />
           <el-table-column prop="name" label="用户名昵称" />
           <el-table-column prop="phone" label="电话" />
@@ -63,8 +69,20 @@
             </template>
           </el-table-column>
         </el-table>
+        <div
+          v-if="loadingMore || noMore"
+          style="
+            text-align: center;
+            padding: 12px;
+            color: var(--el-text-color-secondary);
+            font-size: 13px;
+          "
+        >
+          <span v-if="loadingMore">加载中...</span
+          ><span v-else-if="noMore">没有更多了，共 {{ total }} 条</span>
+        </div>
         <el-pagination
-          v-if="total > 0"
+          v-if="false"
           v-model:current-page="currentPage"
           background
           layout="slot, prev, pager, next"
@@ -84,6 +102,7 @@
           v-loading="deletedLoading"
           :data="deletedUsers"
           style="width: 100%"
+          height="650"
         >
           <el-table-column prop="userId" label="用户id" width="80" />
           <el-table-column prop="name" label="用户名昵称" />
@@ -146,15 +165,22 @@ import {
   getDeletedUsers,
   restoreUser,
 } from '@/services';
-import { transitionSex, transitionTime } from '@/utils/index';
+import {
+  transitionSex,
+  transitionTime,
+  getTableScrollBody,
+} from '@/utils/index';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import type { FormInstance, FormRules } from 'element-plus';
 import type { IUserListItem } from '@/types';
 
-const userInfo = ref();
+const userInfo = ref<IUserListItem[]>([]);
 const currentPage = ref(1);
 const total = ref(0);
-const pageSize = 10;
+const pageSize = 20;
+const userTableRef = ref();
+const loadingMore = ref(false);
+const noMore = ref(false);
 const activeTab = ref('normal');
 const deletedUsers = ref<IUserListItem[]>([]);
 const deletedLoading = ref(false);
@@ -180,7 +206,9 @@ const rules = reactive<FormRules>({
   ],
 });
 
-const getUser = async () => {
+const getUser = async (append = false) => {
+  if (loadingMore.value) return;
+  loadingMore.value = true;
   const res = await getUserList({
     currentPage: currentPage.value,
     pageSize,
@@ -189,13 +217,32 @@ const getUser = async () => {
     item.name = item?.username || item?.name;
     // 积分由后端按统一公式实时计算返回，前端不再自行拼装，避免与用户端不一致
   });
-  userInfo.value = res?.result ?? [];
+  if (append) {
+    userInfo.value = [...userInfo.value, ...(res?.result ?? [])];
+  } else {
+    userInfo.value = res?.result ?? [];
+  }
   total.value = res?.total ?? 0;
+  noMore.value = userInfo.value.length >= total.value;
+  loadingMore.value = false;
 };
 const handlePageChange = (page: number) => {
   currentPage.value = page;
   document.documentElement.scrollTop = 0;
   getUser();
+};
+const handleTableScroll = () => {
+  const body = getTableScrollBody(userTableRef.value);
+  if (!body) return;
+  const { scrollTop, clientHeight, scrollHeight } = body;
+  if (
+    scrollTop + clientHeight >= scrollHeight - 50 &&
+    !loadingMore.value &&
+    !noMore.value
+  ) {
+    currentPage.value++;
+    getUser(true);
+  }
 };
 const deleteUserFun = (id: number) => {
   ElMessageBox.confirm(

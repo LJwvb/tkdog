@@ -1,9 +1,11 @@
-<template>
-  <el-button class="return" @click="returnToBefore">
-    <el-icon><ArrowLeftBold /></el-icon>
-    返回
-  </el-button>
+﻿<template>
   <div v-loading="loading" class="info-container">
+    <div class="page-header">
+      <el-button class="back-btn" @click="returnToBefore">
+        <el-icon><ArrowLeft /></el-icon>
+        <span>返回题目列表</span>
+      </el-button>
+    </div>
     <!-- 题目详情 -->
     <el-card class="container">
       <div class="grid-content">
@@ -121,11 +123,7 @@
                     :key="img"
                     class="comment-image-item"
                   >
-                    <el-image
-                      :src="img"
-                      fit="cover"
-                      class="comment-image"
-                    />
+                    <el-image :src="img" fit="cover" class="comment-image" />
                     <el-icon
                       class="comment-image-remove"
                       @click="removeCommentImage(idx)"
@@ -390,9 +388,7 @@
 <script setup lang="ts">
 import { ref, computed, reactive, onMounted, watchEffect, nextTick } from 'vue';
 import { ElMessage } from 'element-plus';
-import queryString from 'query-string';
 import {
-  ArrowLeftBold,
   Star,
   StarFilled,
   Avatar,
@@ -402,6 +398,7 @@ import {
   Picture,
   CircleCloseFilled,
   Loading,
+  ArrowLeft,
 } from '@element-plus/icons-vue';
 import { useStore } from 'vuex';
 import {
@@ -419,7 +416,9 @@ import {
   getMyFavorites,
   uploadImage,
 } from '@/services';
-import {parseHashQuery, questionType,
+import {
+  parseHashQuery,
+  questionType,
   difficulty,
   transitionTime,
   firstQueryValue,
@@ -429,12 +428,7 @@ import type { IComment, IQuestion } from '@/types';
 import router from '@/router';
 import CommentItem from '@/components/CommentItem/index.vue';
 const store = useStore();
-const {
-  id,
-  type: whereInterType,
-  isClickSearch,
-  commentId,
-} = parseHashQuery();
+const { id, type: whereInterType, isClickSearch, commentId } = parseHashQuery();
 
 // 答案与解析：默认收起，点击标题展开/收起
 const answerOpen = ref(false);
@@ -757,7 +751,7 @@ const MAX_COMMENT_IMAGES = 9;
 const isImageFile = (f: File) => {
   if (f.type && f.type.startsWith('image/')) return true;
   const ext = (f.name.split('.').pop() || '').toLowerCase();
-  return [ 'jpg', 'jpeg', 'png', 'gif', 'webp' ].includes(ext);
+  return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
 };
 const addCommentImages = async (files: File[]) => {
   const imgs = files.filter(isImageFile);
@@ -811,10 +805,36 @@ const removeCommentImage = (idx: number) => {
 
 // 常用表情（点击插入到光标处）
 const EMOJIS = [
-  '😀', '😁', '😂', '🤣', '😊', '😍', '😘', '😜',
-  '🤔', '😅', '😭', '😤', '😴', '🥳', '🤯', '👀',
-  '👍', '👎', '👏', '🙏', '❤️', '💔', '🔥', '🎉',
-  '✨', '💯', '🐶', '🌹', '☕', '🍉',
+  '😀',
+  '😁',
+  '😂',
+  '🤣',
+  '😊',
+  '😍',
+  '😘',
+  '😜',
+  '🤔',
+  '😅',
+  '😭',
+  '😤',
+  '😴',
+  '🥳',
+  '🤯',
+  '👀',
+  '👍',
+  '👎',
+  '👏',
+  '🙏',
+  '❤️',
+  '💔',
+  '🔥',
+  '🎉',
+  '✨',
+  '💯',
+  '🐶',
+  '🌹',
+  '☕',
+  '🍉',
 ];
 const insertEmoji = (emoji: string) => {
   const textarea = commentTextareaRef.value?.$el?.querySelector?.(
@@ -1174,7 +1194,7 @@ watchEffect(() => {
 .similar-question-text {
   font-size: 25px;
   color: #384548;
-  padding: 10px 0;
+  padding: 4px 0;
 }
 :deep(.el-collapse) {
   border: none;
@@ -1298,5 +1318,39 @@ watchEffect(() => {
 }
 .reply-detail-thread {
   margin-bottom: 8px;
+}
+
+/* 页面顶部返回按钮（与 paperDetail 统一） */
+.page-header {
+  margin-bottom: 16px;
+}
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+}
+
+/* 返回按钮 - sticky 内联，左右对齐 */
+.page-header {
+  position: sticky;
+  top: 60px;
+  z-index: 30;
+  margin-bottom: 16px;
+  padding: 4px 0;
+}
+.page-header .back-btn {
+  background: #fff;
+  border: 1px solid #dcdfe6;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  color: #606266;
+  transition: all 0.2s;
+}
+.page-header .back-btn:hover {
+  color: #409eff;
+  border-color: #c6e2ff;
+  background: #ecf5ff;
 }
 </style>

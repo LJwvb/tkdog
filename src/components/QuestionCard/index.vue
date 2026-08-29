@@ -1,126 +1,128 @@
-<template>
+﻿<template>
   <div class="card-container">
     <div class="card" @click="toProblemInfo()">
-      <div class="title">
-        <span class="title-text"> {{ question?.question }} </span>
+      <div class="title-row">
+        <div class="title">
+          <span class="title-text"> {{ question?.question }} </span>
+        </div>
+        <div class="title-actions">
+          <el-button
+            v-if="
+              props.type === '' ||
+              props.type === 'checked' ||
+              props.type === 'all'
+            "
+            type="primary"
+            size="small"
+            :disabled="isChecked"
+            @click.stop="selectedTopic"
+            >{{ isChecked ? '已选题' : '选题' }}</el-button
+          >
+        </div>
       </div>
       <div class="tags">
-        <el-tag v-for="tag in tags" :key="tag" class="tag-item">
+        <el-tag v-for="tag in tags" :key="tag" class="tag-item" size="small">
           {{ tag }}
         </el-tag>
       </div>
-      <div class="info">
-        <span>{{ typeName }}</span>
-        <div class="line" />
-        <span>{{ degreeDifficulty }}</span>
-        <div class="line" />
-        <span>{{ addDate }}</span>
-        <template v-if="updateInfo">
+      <div class="card-footer">
+        <div class="info">
+          <span>{{ typeName }}</span>
           <div class="line" />
-          <span class="update-info">{{ updateInfo }}</span>
-        </template>
-      </div>
-      <div class="nums">
-        <div class="num-item">
-          <el-icon style="width: 15px; height: 15px">
-            <View />
-          </el-icon>
-          <span class="num-text">{{ question?.browses_num ?? 0 }}</span>
+          <span>{{ degreeDifficulty }}</span>
+          <div class="line" />
+          <span>{{ addDate }}</span>
+          <template v-if="updateInfo">
+            <div class="line" />
+            <span class="update-info">{{ updateInfo }}</span>
+          </template>
         </div>
-        <div class="num-item">
-          <el-icon style="width: 15px; height: 15px">
-            <Star />
-          </el-icon>
-          <span class="num-text">{{ question?.likes_num ?? 0 }}</span>
-        </div>
-        <div class="num-item">
-          <el-icon style="width: 15px; height: 15px">
-            <Collection />
-          </el-icon>
-          <span class="num-text">{{ question?.favorite_num ?? 0 }}</span>
-        </div>
-        <div class="num-item">
-          <el-icon style="width: 15px; height: 15px">
-            <User />
-          </el-icon>
-          <span class="num-text">{{ question?.creator }}</span>
+        <div class="nums">
+          <div class="num-item">
+            <el-icon><View /></el-icon>
+            <span class="num-text">{{ question?.browses_num ?? 0 }}</span>
+          </div>
+          <div class="num-item">
+            <el-icon><Star /></el-icon>
+            <span class="num-text">{{ question?.likes_num ?? 0 }}</span>
+          </div>
+          <div class="num-item">
+            <el-icon><Collection /></el-icon>
+            <span class="num-text">{{ question?.favorite_num ?? 0 }}</span>
+          </div>
+          <div class="num-item">
+            <el-icon><User /></el-icon>
+            <span class="num-text">{{ question?.creator }}</span>
+          </div>
         </div>
       </div>
     </div>
-    <el-button
-      v-if="
-        props.type === '' || props.type === 'checked' || props.type === 'all'
-      "
-      type="primary"
-      class="btn0"
-      :disabled="isChecked"
-      @click="selectedTopic"
-      >{{ isChecked ? '已选题' : '选题' }}</el-button
-    >
-    <div v-if="store.state.userData.isAdmin">
+    <div class="card-actions">
+      <div v-if="store.state.userData.isAdmin" class="admin-actions">
+        <el-button
+          v-if="activeName === 'deleted'"
+          type="success"
+          size="small"
+          @click="() => emit('restore', question.id)"
+          >恢复</el-button
+        >
+        <el-button
+          v-if="activeName !== 'deleted'"
+          type="danger"
+          size="small"
+          @click="
+            () => {
+              emit('delete', question.id, activeName);
+            }
+          "
+          >删除</el-button
+        >
+        <el-button
+          v-if="activeName === 'nochk'"
+          type="primary"
+          size="small"
+          @click="openReview('check')"
+          >审核通过</el-button
+        >
+        <el-button
+          v-if="activeName === 'nochk'"
+          type="info"
+          size="small"
+          @click="openReview('uncheck')"
+          >审核不通过</el-button
+        >
+        <el-button
+          v-if="activeName === 'chk'"
+          type="primary"
+          size="small"
+          :disabled="isChecked"
+          @click="selectedTopic"
+        >
+          {{ isChecked ? '已选题' : '选题' }}</el-button
+        >
+        <el-button
+          v-if="activeName === 'chk'"
+          type="warning"
+          size="small"
+          @click="() => emit('edit', question)"
+          >编辑</el-button
+        >
+      </div>
       <el-button
-        v-if="activeName === 'deleted'"
-        type="success"
-        class="btn1"
-        @click="() => emit('restore', question.id)"
-        >恢复</el-button
-      >
-      <el-button
-        v-if="activeName !== 'deleted'"
-        type="danger"
-        class="btn2"
-        @click="
-          () => {
-            emit('delete', question.id, activeName);
-          }
-        "
-        >删除</el-button
-      >
-      <el-button
-        v-if="activeName === 'nochk'"
-        type="primary"
-        class="btn1"
-        @click="openReview('check')"
-        >审核通过</el-button
-      >
-      <el-button
-        v-if="activeName === 'nochk'"
-        type="info"
-        class="btn3"
-        @click="openReview('uncheck')"
-        >审核不通过</el-button
-      >
-      <el-button
-        v-if="activeName === 'chk'"
-        type="primary"
-        class="btn1"
-        :disabled="isChecked"
-        @click="selectedTopic"
-      >
-        {{ isChecked ? '已选题' : '选题' }}</el-button
-      >
-      <el-button
-        v-if="activeName === 'chk'"
+        v-if="props.type === 'userQuestions'"
         type="warning"
-        class="btn-edit"
+        size="small"
         @click="() => emit('edit', question)"
         >编辑</el-button
       >
+      <el-button
+        v-if="props.type === 'paper'"
+        type="danger"
+        size="small"
+        @click="deleteTopic"
+        >删除</el-button
+      >
     </div>
-    <el-button
-      v-if="props.type === 'userQuestions'"
-      type="warning"
-      class="btn-edit"
-      @click="() => emit('edit', question)"
-      >编辑</el-button
-    >
-    <el-button
-      v-if="props.type === 'paper'"
-      type="danger"
-      class="btn0"
-      @click="deleteTopic"
-      >删除</el-button
-    >
   </div>
 
   <!-- 审核弹窗：可自定义审核建议，默认「审核通过 / 审核不通过」 -->
@@ -254,7 +256,9 @@ const addDate = computed(() => {
 const updateInfo = computed(() => {
   if (!question?.updateTime) return '';
   const t = transitionTime(question.updateTime);
-  return question.updateUser ? `${question.updateUser} 修改于 ${t}` : `修改于 ${t}`;
+  return question.updateUser
+    ? `${question.updateUser} 修改于 ${t}`
+    : `修改于 ${t}`;
 });
 
 const toProblemInfo = () => {
@@ -319,57 +323,91 @@ watchEffect(() => {
 </script>
 <style scoped>
 .card-container {
-  height: 200px;
-  border-radius: 10px;
-  padding: 10px;
-  margin-bottom: 20px;
-  position: relative;
-  border: 2px solid #e6e6e6;
-  box-shadow: -10px -10px 20px #e6e6e6 inset;
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  border: 1px solid #e4e7ed;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.25s ease, transform 0.25s ease,
+    border-color 0.25s ease;
+  cursor: pointer;
+}
+
+.card-container:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+  border-color: #c0c4cc;
 }
 
 .card {
-  width: 100%;
-  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 .title {
-  align-items: center;
-  font-size: 25px;
-  width: 100%;
-  font-weight: bold;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #1f2d3d;
+  flex: 1;
+  min-width: 0;
+}
+
+.title-actions {
+  flex-shrink: 0;
+  padding-top: 2px;
 }
 
 .title-text {
-  width: 90%;
-  word-wrap: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .tags {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  margin-top: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .tag-item {
-  margin-right: 10px;
+  margin-right: 0 !important;
+}
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid #ebeef5;
 }
 
 .info {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
   font-size: 13px;
-  position: absolute;
-  bottom: 40px;
+  color: #909399;
+  flex-wrap: wrap;
+  gap: 0;
 }
 
 .line {
   width: 1px;
-  height: 10px;
-  background-color: #ccc;
-  margin: 0px 20px;
+  height: 12px;
+  background-color: #dcdfe6;
+  margin: 0 12px;
 }
 
 .update-info {
@@ -379,50 +417,32 @@ watchEffect(() => {
 .nums {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  width: 400px;
+  gap: 20px;
   font-size: 13px;
-  position: absolute;
-  bottom: 10px;
+  color: #909399;
+  flex-shrink: 0;
 }
 
 .num-item {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  width: 100%;
+  gap: 4px;
 }
 
 .num-text {
-  margin-left: 5px;
+  margin-left: 0;
 }
 
-.btn0 {
-  position: absolute;
-  right: 10px;
-  bottom: 10px;
+.card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
 }
 
-.btn1 {
-  position: absolute;
-  right: 10px;
-  top: 10px;
-}
-
-.btn2 {
-  position: absolute;
-  right: 10px;
-  bottom: 10px;
-}
-
-.btn3 {
-  position: absolute;
-  right: 10px;
-  bottom: 95px;
-}
-.btn-edit {
-  position: absolute;
-  right: 10px;
-  top: 50px;
+.admin-actions {
+  display: flex;
+  gap: 8px;
 }
 </style>

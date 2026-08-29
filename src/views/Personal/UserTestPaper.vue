@@ -30,9 +30,7 @@
       title="编辑试卷题目（增删题目）"
       width="720px"
     >
-      <div class="edit-title">
-        当前题目（{{ editQuestions.length }} 道）
-      </div>
+      <div class="edit-title">当前题目（{{ editQuestions.length }} 道）</div>
       <div class="edit-list">
         <div
           v-for="(q, index) in editQuestions"
@@ -41,10 +39,7 @@
         >
           <span class="edit-q-idx">{{ index + 1 }}.</span>
           <span class="edit-q-text">{{ q.question }}</span>
-          <el-button
-            link
-            type="danger"
-            @click="removeFromEdit(index)"
+          <el-button link type="danger" @click="removeFromEdit(index)"
             >删除</el-button
           >
         </div>
@@ -65,11 +60,7 @@
         <el-button type="primary" @click="searchAdd">搜索</el-button>
       </div>
       <div class="edit-list">
-        <div
-          v-for="q in searchResults"
-          :key="q.id"
-          class="edit-q-item"
-        >
+        <div v-for="q in searchResults" :key="q.id" class="edit-q-item">
           <span class="edit-q-text">{{ q.question }}</span>
           <el-button link type="primary" @click="addToEdit(q)">添加</el-button>
         </div>
@@ -166,7 +157,11 @@ const searchAdd = async () => {
     ElMessage.warning('请输入搜索关键词');
     return;
   }
-  const res = await searchQuestion({ keyword: kw, currentPage: 1, pageSize: 10 });
+  const res = await searchQuestion({
+    keyword: kw,
+    currentPage: 1,
+    pageSize: 10,
+  });
   searchResults.value = res?.result ?? [];
 };
 

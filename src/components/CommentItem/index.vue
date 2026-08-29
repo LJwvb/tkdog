@@ -196,11 +196,7 @@ export default { name: 'CommentItem' };
 <script setup lang="ts">
 import { ref, computed, nextTick } from 'vue';
 import { ElMessage } from 'element-plus';
-import {
-  Picture,
-  CircleCloseFilled,
-  Loading,
-} from '@element-plus/icons-vue';
+import { Picture, CircleCloseFilled, Loading } from '@element-plus/icons-vue';
 import { transitionTime } from '@/utils';
 import {
   addComment,
@@ -298,7 +294,7 @@ const MAX_REPLY_IMAGES = 9;
 const isImageFile = (f: File) => {
   if (f.type && f.type.startsWith('image/')) return true;
   const ext = (f.name.split('.').pop() || '').toLowerCase();
-  return [ 'jpg', 'jpeg', 'png', 'gif', 'webp' ].includes(ext);
+  return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
 };
 const addReplyImages = async (files: File[]) => {
   const imgs = files.filter(isImageFile);
@@ -352,10 +348,36 @@ const removeImage = (idx: number) => {
 
 // 常用表情（点击插入到光标处）
 const EMOJIS = [
-  '😀', '😁', '😂', '🤣', '😊', '😍', '😘', '😜',
-  '🤔', '😅', '😭', '😤', '😴', '🥳', '🤯', '👀',
-  '👍', '👎', '👏', '🙏', '❤️', '💔', '🔥', '🎉',
-  '✨', '💯', '🐶', '🌹', '☕', '🍉',
+  '😀',
+  '😁',
+  '😂',
+  '🤣',
+  '😊',
+  '😍',
+  '😘',
+  '😜',
+  '🤔',
+  '😅',
+  '😭',
+  '😤',
+  '😴',
+  '🥳',
+  '🤯',
+  '👀',
+  '👍',
+  '👎',
+  '👏',
+  '🙏',
+  '❤️',
+  '💔',
+  '🔥',
+  '🎉',
+  '✨',
+  '💯',
+  '🐶',
+  '🌹',
+  '☕',
+  '🍉',
 ];
 const insertEmoji = (emoji: string) => {
   const textarea = replyTextareaRef.value?.$el?.querySelector?.(
