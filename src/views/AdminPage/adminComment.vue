@@ -1,7 +1,13 @@
 <template>
   <div class="comments-list">
-    <h1>用户评论列表</h1>
-    <el-tabs v-model="activeTab" @tab-change="handleTabChange">
+    <el-card :body-style="{ padding: '0 20px 20px' }">
+      <template #header>
+        <div class="header">
+          <span>评论管理</span>
+        </div>
+      </template>
+
+      <el-tabs v-model="activeTab" @tab-change="handleTabChange">
       <el-tab-pane label="评论列表" name="normal">
         <div v-loading="loading">
           <el-collapse v-if="groups.length" v-model="activeGroups">
@@ -113,20 +119,22 @@
             :image-size="200"
             description="暂无评论数据"
           />
+          <div v-if="groups.length > 0" class="list-total">
+            共 {{ groups.length }} 组，第 {{ currentPage }} / {{ Math.ceil(groups.length / groupPageSize) }} 页
+          </div>
           <el-pagination
-            v-if="groups.length > groupPageSize"
-            v-model:current-page="groupPage"
+            v-if="groups.length > 0"
+            v-model:current-page="currentPage"
             background
-            layout="slot, prev, pager, next"
+            layout="prev, pager, next, jumper"
             :total="groups.length"
             :page-size="groupPageSize"
             prev-text="上一页"
             next-text="下一页"
-            style="margin-top: 12px; justify-content: flex-end"
-            @current-change="handleGroupPageChange"
-          >
-            <template #default> 共 {{ groups.length }} 组 </template>
-          </el-pagination>
+            :hide-on-single-page="true"
+            style="margin-top: 16px; justify-content: center"
+            @current-change="handlePageChange"
+          />
         </div>
       </el-tab-pane>
       <el-tab-pane label="已删除评论" name="deleted">
@@ -179,12 +187,16 @@
           description="没有已删除的评论"
         />
       </el-tab-pane>
-    </el-tabs>
+      </el-tabs>
+    </el-card>
+    <BackToTop />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
+import BackToTop from '@/components/BackToTop/index.vue';
+import { Loading } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
   getCommentList,
@@ -209,17 +221,22 @@ const loading = ref(true);
 const activeGroups = ref<number[]>([]);
 // 点击「回复 @xxx」后需要高亮定位到的父评论行
 const highlightRowId = ref<number | null>(null);
-// 分组分页（按题目分组分页）
-const groupPage = ref(1);
+// 按题目分组分页：每页展示的分组数
 const groupPageSize = 10;
+const currentPage = ref(1);
 // 已删除评论（恢复用）
 const activeTab = ref('normal');
 const deletedComments = ref<IComment[]>([]);
 const deletedLoading = ref(false);
 const pagedGroups = computed(() => {
-  const start = (groupPage.value - 1) * groupPageSize;
+  const start = (currentPage.value - 1) * groupPageSize;
   return groups.value.slice(start, start + groupPageSize);
 });
+
+const handlePageChange = (page: number) => {
+  currentPage.value = page;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
 
 const rowClassName = ({ row }: { row: IComment }) => {
   return row.id === highlightRowId.value ? 'highlight-row' : '';
@@ -271,12 +288,9 @@ const getComments = async () => {
   groups.value = Array.from(map.values());
   activeGroups.value = groups.value.map((g) => g.question_id);
   highlightRowId.value = null;
+  // 重新拉取后回到第一页
+  currentPage.value = 1;
   loading.value = false;
-};
-
-const handleGroupPageChange = (page: number) => {
-  groupPage.value = page;
-  document.documentElement.scrollTop = 0;
 };
 
 const handleApprove = (row: { id?: number }) => {
@@ -331,8 +345,50 @@ const handleTabChange = (name: string | number) => {
   }
 };
 
+// 页签吸顶控制
+let tabsHeaderEl: HTMLElement | null = null;
+let tabsPlaceholderEl: HTMLElement | null = null;
+let stickyTop = 0;
+
+const handleSticky = () => {
+  if (!tabsHeaderEl) return;
+  const scrollY = window.scrollY || window.pageYOffset;
+  if (scrollY >= stickyTop) {
+    if (!tabsHeaderEl.classList.contains('is-sticky')) {
+      tabsHeaderEl.classList.add('is-sticky');
+      if (tabsPlaceholderEl) {
+        tabsPlaceholderEl.style.display = 'block';
+        tabsPlaceholderEl.style.height = tabsHeaderEl.offsetHeight + 'px';
+      }
+    }
+  } else {
+    if (tabsHeaderEl.classList.contains('is-sticky')) {
+      tabsHeaderEl.classList.remove('is-sticky');
+      if (tabsPlaceholderEl) {
+        tabsPlaceholderEl.style.display = 'none';
+      }
+    }
+  }
+};
+
 onMounted(() => {
   getComments();
+  // 初始化吸顶
+  setTimeout(() => {
+    tabsHeaderEl = document.querySelector('.comments-list .el-tabs__header') as HTMLElement;
+    if (tabsHeaderEl) {
+      stickyTop = tabsHeaderEl.getBoundingClientRect().top + (window.scrollY || window.pageYOffset) - 60;
+      // 创建占位符
+      tabsPlaceholderEl = document.createElement('div');
+      tabsPlaceholderEl.style.display = 'none';
+      tabsHeaderEl.parentNode?.insertBefore(tabsPlaceholderEl, tabsHeaderEl);
+      window.addEventListener('scroll', handleSticky, { passive: true });
+    }
+  }, 100);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleSticky);
 });
 </script>
 
@@ -340,6 +396,19 @@ onMounted(() => {
 .comments-list {
   width: 100%;
   padding: 20px;
+}
+.comments-list :deep(.el-card__body) {
+  padding-top: 0 !important;
+}
+.comments-list :deep(.el-tabs) {
+  margin-top: 0 !important;
+}
+.comments-list :deep(.el-tabs__header) {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+.comments-list :deep(.el-card__header) {
+  padding-bottom: 10px !important;
 }
 
 .user-cell {
@@ -386,15 +455,39 @@ onMounted(() => {
 
 :deep(.el-collapse-item__header) {
   font-size: 15px;
-  padding: 4px 0;
+  padding: 12px 0;
+  font-weight: 600;
 }
 
 :deep(.el-collapse-item__content) {
-  padding-bottom: 4px;
+  padding-bottom: 12px;
 }
 
 :deep(.highlight-row td) {
   background-color: #fff7e6 !important;
   transition: background-color 0.3s;
+}
+
+/* 列表总数状态 */
+.list-total {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--el-text-color-secondary, #909399);
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
+/* 评论管理：页签吸顶（JS 控制） */
+.comments-list :deep(.el-tabs__header.is-sticky) {
+  position: fixed;
+  top: 60px;
+  z-index: 29;
+  background: var(--el-bg-color, #fff);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 </style>

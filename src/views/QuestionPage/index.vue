@@ -1,6 +1,6 @@
 <template>
   <div class="top-container">
-    <el-card>
+    <el-card class="search-card">
       <el-form ref="from" :model="form">
         <el-form-item label="搜索">
           <el-input
@@ -78,7 +78,8 @@
         :total="total"
         :loadingMore="loadingMore"
         :noMore="noMore"
-        :listHeight="650"
+        listHeight="auto"
+        :show-back-top="true"
         @tabClick="tabClick"
         @loadMore="loadMoreAllQuestion"
       />
@@ -98,10 +99,11 @@
         <VirtualList
           v-else
           :data="searchData"
-          :height="650"
+          height="auto"
           :estimated-item-height="200"
           :loading="searchLoadingMore"
           :finished="searchNoMore"
+          show-back-top
           @loadMore="loadMoreSearch"
         >
           <template #default="{ item }">
@@ -426,6 +428,14 @@ watch(
 <style scoped>
 .top-container {
   width: 100%;
+}
+
+/* 顶部筛选卡片：吸顶，滚动时不丢失搜索条件（60 为固定导航栏高度） */
+.search-card {
+  position: sticky;
+  top: 60px;
+  z-index: 30;
+  background: var(--el-bg-color, #fff);
 }
 
 .top-container :deep(.el-form-item) {

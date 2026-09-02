@@ -78,19 +78,7 @@
         <span v-if="loadingMore">加载中...</span
         ><span v-else-if="noMore">没有更多了，共 {{ total }} 条</span>
       </div>
-      <el-pagination
-        v-if="false"
-        v-model:current-page="currentPage"
-        background
-        layout="slot, prev, pager, next"
-        :total="total"
-        prev-text="上一页"
-        next-text="下一页"
-        :hide-on-single-page="true"
-        @current-change="handlePageChange"
-      >
-        <template #default> 共 {{ total }} 条 </template>
-      </el-pagination>
+      <!-- 反馈列表走表格滚动加载，隐藏的分页器已移除 -->
     </el-card>
 
     <!-- 处理弹窗 -->
@@ -178,12 +166,6 @@ const load = async (append = false) => {
   noMore.value = list.value.length >= total.value;
   loadingMore.value = false;
   loading.value = false;
-};
-
-const handlePageChange = (page: number) => {
-  currentPage.value = page;
-  document.documentElement.scrollTop = 0;
-  load();
 };
 
 const handleTableScroll = () => {

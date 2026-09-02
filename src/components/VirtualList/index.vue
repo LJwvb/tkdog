@@ -2,7 +2,7 @@
   <div
     ref="containerRef"
     class="virtual-list-container"
-    :style="height > 0 ? { height: height + 'px' } : {}"
+    :style="containerStyle"
     @scroll.passive="handleScroll"
   >
     <!-- 占位元素，撑开总高度 -->
@@ -43,20 +43,42 @@
       </div>
       <div v-else class="virtual-list-finished">没有更多了</div>
     </div>
+
+    <!-- 回到顶部：虚拟列表的滚动发生在容器内部，
+         所以按钮必须由组件自己渲染并操作自己的 scrollTop -->
+    <transition name="back-top-fade">
+      <div
+        v-if="showBackTopBtn"
+        class="back-to-top"
+        :style="{ right: backTopRight + 'px', bottom: backTopBottom + 'px' }"
+        title="回到顶部"
+        @click="scrollToTop"
+      >
+        <el-icon><ArrowUp /></el-icon>
+      </div>
+    </transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onMounted } from 'vue';
-import { Loading } from '@element-plus/icons-vue';
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
+import { Loading, ArrowUp } from '@element-plus/icons-vue';
+import '@/styles/back-top.css';
 
 interface Props {
   data: any[];
-  height?: number;
+  /** 容器高度：数字按 px 处理；也支持字符串如 '60vh' / '100%' / 'calc(100vh - 120px)'，
+   *  不传或传 0 则走 flex 自适应父容器 */
+  height?: number | string;
   estimatedItemHeight?: number;
   buffer?: number;
   loading?: boolean;
   finished?: boolean;
+  // 是否在滚动超过一定距离后显示「回到顶部」悬浮按钮
+  showBackTop?: boolean;
+  backTopVisibilityHeight?: number;
+  backTopRight?: number;
+  backTopBottom?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -65,6 +87,10 @@ const props = withDefaults(defineProps<Props>(), {
   buffer: 3,
   loading: false,
   finished: false,
+  showBackTop: false,
+  backTopVisibilityHeight: 300,
+  backTopRight: 40,
+  backTopBottom: 80,
 });
 
 const emit = defineEmits(['loadMore', 'scroll']);
@@ -129,10 +155,36 @@ const findStartIndex = (target: number): number => {
   return Math.max(0, high);
 };
 
-// 容器实际高度（支持 flex 自适应）
+// 容器高度样式：
+// 数字 → px；'auto' → 自动撑满视口剩余高度；
+// 其他字符串（'60vh' / '100%' / 'calc(...)'）→ 直接透传给 CSS
+const AUTO_BOTTOM_GAP = 40;
+const autoHeight = ref(0);
+const updateAutoHeight = () => {
+  if (props.height !== 'auto') return;
+  const el = containerRef.value;
+  if (!el) return;
+  const top = el.getBoundingClientRect().top;
+  autoHeight.value = Math.max(300, window.innerHeight - top - AUTO_BOTTOM_GAP);
+};
+
+const containerStyle = computed(() => {
+  if (props.height === 'auto') {
+    return autoHeight.value > 0 ? { height: autoHeight.value + 'px' } : {};
+  }
+  if (typeof props.height === 'number') {
+    return props.height > 0 ? { height: props.height + 'px' } : {};
+  }
+  return props.height ? { height: props.height } : {};
+});
+
+// 容器实际高度（支持 vh / 百分比 / auto 等非固定像素高度）
+const measuredHeight = ref(0);
 const containerHeight = computed(() => {
-  if (props.height > 0) return props.height;
-  return containerRef.value?.clientHeight || 600;
+  if (props.height === 'auto') return autoHeight.value || 600;
+  if (typeof props.height === 'number' && props.height > 0) return props.height;
+  // 优先用 ResizeObserver 量到的实时高度，量不到再兜底读 DOM
+  return measuredHeight.value || containerRef.value?.clientHeight || 600;
 });
 
 // 起始索引
@@ -212,6 +264,23 @@ const handleScroll = (e: Event) => {
   }
 };
 
+/**
+ * 首屏/不足一屏补偿：容器高度固定但内容不足一屏时根本没有滚动条，
+ * scroll 事件永不触发，列表会卡在已加载的页数上（大屏 + 多列行分块时极易踩到）。
+ * 每次数据变化后检查：内容没填满容器且还有更多数据，就继续触发 loadMore。
+ */
+const maybeFillViewport = async () => {
+  if (props.loading || props.finished) return;
+  await nextTick();
+  const el = containerRef.value;
+  if (!el) return;
+  if (el.clientHeight > 0 && el.scrollHeight > el.clientHeight + 80) return;
+  if (!isLoading.value) {
+    isLoading.value = true;
+    emit('loadMore');
+  }
+};
+
 // 监听 loading 状态，加载完成后解锁
 watch(
   () => props.loading,
@@ -256,6 +325,7 @@ watch(
           measureItem(i);
         }
       });
+      void maybeFillViewport();
       return;
     }
 
@@ -275,6 +345,7 @@ watch(
         measureItem(i);
       }
     });
+    void maybeFillViewport();
   },
   { deep: false },
 );
@@ -321,11 +392,48 @@ watch(
   },
 );
 
+// vh / 百分比等高度会随窗口和父容器变化，用 ResizeObserver 实时同步实际像素高度，
+// 否则 endIndex 计算用的还是旧值，会出现可视区域外空白或渲染不足
+let resizeObserver: ResizeObserver | null = null;
+const onWinResize = () => {
+  updateAutoHeight();
+};
 onMounted(() => {
   if (props.data.length > 0) {
     initHeights();
   }
+  if (containerRef.value) {
+    measuredHeight.value = containerRef.value.clientHeight;
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          measuredHeight.value = entry.contentRect.height;
+        }
+      });
+      resizeObserver.observe(containerRef.value);
+    }
+  }
+  updateAutoHeight();
+  window.addEventListener('resize', onWinResize);
+  void maybeFillViewport();
 });
+
+onUnmounted(() => {
+  resizeObserver?.disconnect();
+  resizeObserver = null;
+  window.removeEventListener('resize', onWinResize);
+});
+
+// 回到顶部按钮：滚动超过阈值才显示
+const showBackTopBtn = computed(
+  () => props.showBackTop && scrollTop.value > props.backTopVisibilityHeight,
+);
+
+const scrollToTop = () => {
+  if (containerRef.value) {
+    containerRef.value.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+};
 
 // 暴露方法
 defineExpose({
@@ -334,6 +442,7 @@ defineExpose({
       containerRef.value.scrollTop = getOffset(index);
     }
   },
+  scrollToTop,
 });
 </script>
 

@@ -297,7 +297,6 @@ const goDaily = () => {
   font-size: 15px;
 }
 .announce-card {
-  margin-bottom: 16px;
 }
 .announce-item {
   padding: 10px 0;
@@ -389,7 +388,7 @@ const goDaily = () => {
 .third :deep(.el-card__body) {
   display: flex;
   flex-direction: column;
-  height: 480px;
+  height: 520px;
   padding: 16px;
   box-sizing: border-box;
 }

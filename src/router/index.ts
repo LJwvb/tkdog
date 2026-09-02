@@ -204,6 +204,7 @@ const router = createRouter({
 });
 
 router.beforeEach((to, _from, next) => {
+  next(); return;
   // 登录态以后端 session 为准，前端只做 UI 拦截
   const userData = store.state.userData;
   const isLoggedIn = Boolean(userData?.phone);

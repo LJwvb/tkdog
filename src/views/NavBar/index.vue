@@ -584,6 +584,7 @@ const toTag = () => {
 }
 .msg-badge {
   margin-right: 16px;
+  margin-left: 10px;
 }
 
 /* 移动端导航栏精简 */

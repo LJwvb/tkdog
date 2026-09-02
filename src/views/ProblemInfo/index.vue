@@ -1122,7 +1122,7 @@ watchEffect(() => {
 .answer-section {
   margin-top: 20px;
   border-top: 1px solid #eee;
-  padding-top: 4px;
+  padding-top: 10px;
 }
 .answer-header {
   display: flex;
@@ -1142,11 +1142,11 @@ watchEffect(() => {
 }
 .answer {
   margin-top: 12px;
-  padding: 14px 16px;
   background-color: #f5f7fa;
   border-radius: 8px;
   line-height: 1.8;
   color: #303133;
+  text-indent: 2px;
 }
 .answer::before {
   display: none;
@@ -1209,7 +1209,7 @@ watchEffect(() => {
   padding: 0;
 }
 .comment-section {
-  margin-top: 30px;
+  margin-top: 10px;
   border-top: 1px solid #eee;
   padding-top: 20px;
 }
@@ -1222,6 +1222,7 @@ watchEffect(() => {
 }
 .comment-input {
   margin-bottom: 20px;
+  margin-top: 10px;
 }
 .comment-images {
   display: flex;

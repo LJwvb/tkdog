@@ -37,6 +37,29 @@ select {
 
 html {
   box-sizing: border-box;
+  /* 与 .tkdog-container 页面主体背景一致：
+     scrollbar-gutter 预留的滚动条槽位会透出 html/body 背景，需统一为页面背景色，避免右侧露出白条 */
+  background-color: #f0f2f5;
+}
+
+body {
+  /* 短页面时 body 高度可能超过视口，背景同样统一为页面灰色，避免底部/槽位露出白底 */
+  background-color: #f0f2f5;
+}
+
+/* 消除页面滚动条出现/消失引起的横向布局抖动：
+   为视口预留滚动条位置（gutter），滚动条仍只在内容溢出时显示 */
+@supports (scrollbar-gutter: stable) {
+  html {
+    scrollbar-gutter: stable;
+  }
+}
+
+/* 旧内核浏览器不支持 scrollbar-gutter 时兜底：始终保留滚动条位置 */
+@supports not (scrollbar-gutter: stable) {
+  html {
+    overflow-y: scroll;
+  }
 }
 
 *,

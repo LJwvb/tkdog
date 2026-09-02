@@ -4,6 +4,11 @@
  * 包含：全局容器、导航栏、文字颜色、卡片、表单、表格、各页面组件等
  */
 /* 暗色模式：覆盖主要容器背景与硬编码文字颜色（Element Plus 组件由 dark css-vars 自动适配） */
+html.dark {
+  /* 与 .tkdog-container 暗色背景一致，避免滚动条槽位透出亮色背景 */
+  background-color: #141414;
+}
+
 html.dark body {
   background-color: #141414;
   color: #e5eaf3;

@@ -14,10 +14,11 @@
       <VirtualList
         v-if="questionList.length > 0"
         :data="questionList"
-        :height="600"
+        height="auto"
         :estimated-item-height="200"
         :loading="loadingMore"
         :finished="noMore"
+        show-back-top
         @loadMore="loadMore"
       >
         <template #default="{ item }">

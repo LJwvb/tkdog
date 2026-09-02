@@ -59,21 +59,9 @@
             :image-size="160"
             description="暂无违禁词"
           />
-          <el-pagination
-            v-if="total > 0"
-            v-model:current-page="currentPage"
-            background
-            layout="slot, prev, pager, next"
-            :total="total"
-            :page-size="pageSize"
-            prev-text="上一页"
-            next-text="下一页"
-            :hide-on-single-page="true"
-            style="margin-top: 12px; justify-content: flex-end"
-            @current-change="handlePageChange"
-          >
-            <template #default> 共 {{ total }} 条 </template>
-          </el-pagination>
+          <div v-if="total > 0" class="list-total">
+            共 {{ total }} 条，已加载 {{ wordList.length }} 条
+          </div>
         </el-tab-pane>
         <el-tab-pane label="已删除违禁词" name="deleted">
           <el-table
@@ -158,7 +146,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, onUnmounted, nextTick } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
   getSensitiveWords,
@@ -176,7 +164,7 @@ const loadingMore = ref(false);
 const noMore = ref(false);
 const currentPage = ref(1);
 const total = ref(0);
-const pageSize = 10;
+const pageSize = 50;
 const activeTab = ref('normal');
 const deletedWords = ref<ISensitiveWord[]>([]);
 const deletedLoading = ref(false);
@@ -204,15 +192,23 @@ const load = async (append = false) => {
   total.value = res?.total ?? 0;
   noMore.value = wordList.value.length >= total.value;
   loading.value = false;
+
+  // 内容不足一屏时自动加载下一页，直到出现滚动条或加载完
+  if (!noMore.value) {
+    nextTick(() => {
+      setTimeout(() => {
+        const body = getTableScrollBody(wordTableRef.value);
+        if (body && body.scrollHeight <= body.clientHeight + 10) {
+          currentPage.value++;
+          load(true);
+        }
+      }, 50);
+    });
+  }
 };
 
 const handleSearch = () => {
   currentPage.value = 1;
-  load();
-};
-
-const handlePageChange = (page: number) => {
-  currentPage.value = page;
   load();
 };
 
@@ -280,10 +276,11 @@ const handleTabChange = (name: string | number) => {
 };
 
 const wordTableRef = ref();
+let scrollBodyEl: HTMLElement | null = null;
+
 const handleTableScroll = () => {
-  const body = getTableScrollBody(wordTableRef.value);
-  if (!body) return;
-  const { scrollTop, clientHeight, scrollHeight } = body;
+  if (!scrollBodyEl) return;
+  const { scrollTop, clientHeight, scrollHeight } = scrollBodyEl;
   if (
     scrollTop + clientHeight >= scrollHeight - 50 &&
     !loadingMore.value &&
@@ -294,10 +291,29 @@ const handleTableScroll = () => {
     load(true).then(() => (loadingMore.value = false));
   }
 };
-// 滚动加载改由 el-table 的 scroll 事件驱动（模板上 @scroll 绑定），
-// 不再用 setTimeout + 手动 addEventListener，避免表格未渲染时绑定失败
+
+const bindTableScroll = () => {
+  if (scrollBodyEl) {
+    scrollBodyEl.removeEventListener('scroll', handleTableScroll);
+  }
+  scrollBodyEl = getTableScrollBody(wordTableRef.value);
+  if (scrollBodyEl) {
+    scrollBodyEl.addEventListener('scroll', handleTableScroll, { passive: true });
+  }
+};
+
 onMounted(() => {
   load();
+  nextTick(() => {
+    setTimeout(bindTableScroll, 100);
+  });
+});
+
+onUnmounted(() => {
+  if (scrollBodyEl) {
+    scrollBodyEl.removeEventListener('scroll', handleTableScroll);
+    scrollBodyEl = null;
+  }
 });
 </script>
 
@@ -320,5 +336,13 @@ onMounted(() => {
 /* 去掉级别标签的过渡动画 */
 :deep(.el-tag) {
   transition: none !important;
+}
+
+/* 列表总数状态 */
+.list-total {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--el-text-color-secondary, #909399);
 }
 </style>

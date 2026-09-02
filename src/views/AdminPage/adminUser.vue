@@ -1,14 +1,23 @@
 <template>
   <div class="admin-user">
-    <el-tabs v-model="activeTab" @tab-change="handleTabChange">
-      <el-tab-pane label="用户列表" name="normal">
-        <el-table
-          ref="userTableRef"
-          :data="userInfo"
-          style="width: 100%"
-          height="650"
-          @scroll="handleTableScroll"
-        >
+    <el-card>
+      <template #header>
+        <div class="header">
+          <span>用户管理</span>
+        </div>
+      </template>
+
+      <el-tabs v-model="activeTab" @tab-change="handleTabChange">
+        <el-tab-pane label="用户列表" name="normal">
+          <el-table
+            ref="userTableRef"
+            v-loading="loading"
+            :data="userInfo"
+            stripe
+            style="width: 100%"
+            height="650"
+            @scroll="handleTableScroll"
+          >
           <el-table-column prop="userId" label="用户id" width="80" />
           <el-table-column prop="name" label="用户名昵称" />
           <el-table-column prop="phone" label="电话" />
@@ -48,7 +57,7 @@
             </template>
           </el-table-column>
           <el-table-column prop="integral" label="积分" />
-          <el-table-column fixed="right" label="Operations" width="120">
+          <el-table-column fixed="right" label="操作" width="120">
             <template #default="scope">
               <div class="operation">
                 <el-button
@@ -69,33 +78,9 @@
             </template>
           </el-table-column>
         </el-table>
-        <div
-          v-if="loadingMore || noMore"
-          style="
-            text-align: center;
-            padding: 12px;
-            color: var(--el-text-color-secondary);
-            font-size: 13px;
-          "
-        >
-          <span v-if="loadingMore">加载中...</span
-          ><span v-else-if="noMore">没有更多了，共 {{ total }} 条</span>
+        <div v-if="total > 0" class="list-total">
+          共 {{ total }} 条，已加载 {{ userInfo.length }} 条
         </div>
-        <el-pagination
-          v-if="false"
-          v-model:current-page="currentPage"
-          background
-          layout="slot, prev, pager, next"
-          :total="total"
-          :page-size="pageSize"
-          prev-text="上一页"
-          next-text="下一页"
-          :hide-on-single-page="true"
-          style="margin-top: 12px; justify-content: flex-end"
-          @current-change="handlePageChange"
-        >
-          <template #default> 共 {{ total }} 条 </template>
-        </el-pagination>
       </el-tab-pane>
       <el-tab-pane label="已删除用户" name="deleted">
         <el-table
@@ -130,7 +115,8 @@
           description="没有已删除的用户"
         />
       </el-tab-pane>
-    </el-tabs>
+      </el-tabs>
+    </el-card>
     <el-dialog
       v-model="dialogVisibleEditPassword"
       title="修改密码"
@@ -226,11 +212,6 @@ const getUser = async (append = false) => {
   noMore.value = userInfo.value.length >= total.value;
   loadingMore.value = false;
 };
-const handlePageChange = (page: number) => {
-  currentPage.value = page;
-  document.documentElement.scrollTop = 0;
-  getUser();
-};
 const handleTableScroll = () => {
   const body = getTableScrollBody(userTableRef.value);
   if (!body) return;
@@ -324,12 +305,22 @@ onMounted(() => {
 <style scoped>
 .admin-user {
   width: 100%;
-  height: 100%;
-  margin-left: 20px;
+  padding: 20px;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 .operation {
   display: flex;
   flex-direction: row;
   justify-content: center;
+}
+.list-total {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--el-text-color-secondary, #909399);
 }
 </style>

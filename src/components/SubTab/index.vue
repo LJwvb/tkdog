@@ -14,6 +14,7 @@
           :estimated-item-height="200"
           :loading="loadingMore"
           :finished="noMore"
+          :show-back-top="showBackTop"
           @loadMore="handleLoadMore"
         >
           <template #default="{ item }">
@@ -38,6 +39,7 @@
           :estimated-item-height="200"
           :loading="loadingMore"
           :finished="noMore"
+          :show-back-top="showBackTop"
           @loadMore="handleLoadMore"
         >
           <template #default="{ item }">
@@ -56,6 +58,7 @@
           :estimated-item-height="200"
           :loading="loadingMore"
           :finished="noMore"
+          :show-back-top="showBackTop"
           @loadMore="handleLoadMore"
         >
           <template #default="{ item }">
@@ -68,7 +71,7 @@
   </el-tabs>
 </template>
 <script lang="ts" setup>
-import { watchEffect, ref, computed } from 'vue';
+import { watchEffect, ref } from 'vue';
 import type { PropType } from 'vue';
 
 import QuestionCard from '@/components/QuestionCard/index.vue';
@@ -112,7 +115,7 @@ const props = defineProps({
     default: false,
   },
   listHeight: {
-    type: Number,
+    type: [Number, String],
     default: 600,
   },
   catalogIDList: {
@@ -124,6 +127,11 @@ const props = defineProps({
   subjectIDList: {
     type: Array as PropType<ISubject[]>,
     default: () => [],
+  },
+  // 是否展示「回到顶部」悬浮按钮（列表内部滚动时由 VirtualList 自行处理）
+  showBackTop: {
+    type: Boolean,
+    default: false,
   },
 });
 // 默认选中的子标签

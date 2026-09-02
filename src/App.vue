@@ -71,7 +71,10 @@ onBeforeUnmount(() => {
 
 .home-nav {
   position: fixed;
-  width: 100%;
+  /* scrollbar-gutter: stable 下 Chrome 会把 fixed 元素的 width:100%/100vw 都解析成"视口-滚动槽"，
+     导致右侧槽位透出页面背景形成空隙；改用 left:0 + right:0 拉伸定位，直接铺满含滚动槽的完整视口 */
+  left: 0;
+  right: 0;
   z-index: 100;
   height: 60px;
 }

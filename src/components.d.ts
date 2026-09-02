@@ -12,6 +12,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    BackToTop: typeof import('./components/BackToTop/index.vue')['default']
     CommentItem: typeof import('./components/CommentItem/index.vue')['default']
     EditUserInfo: typeof import('./components/EditUserInfo/index.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']
@@ -79,6 +80,7 @@ declare module 'vue' {
 
 // For TSX support
 declare global {
+  const BackToTop: typeof import('./components/BackToTop/index.vue')['default']
   const CommentItem: typeof import('./components/CommentItem/index.vue')['default']
   const EditUserInfo: typeof import('./components/EditUserInfo/index.vue')['default']
   const ElAlert: typeof import('element-plus/es')['ElAlert']

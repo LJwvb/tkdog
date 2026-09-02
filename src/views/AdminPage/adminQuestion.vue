@@ -1,20 +1,59 @@
 <template>
   <div class="hello" style="width: 100%">
-    <div v-if="activeName === 'chk'" class="search">
-      <el-form ref="from" :model="form">
-        <el-form-item label="搜索">
+    <!-- 搜索：所有页签（待审核/已审核/已删除）均可用，支持题干/题型/难度/状态组合筛选 -->
+    <div class="search">
+      <el-form ref="from" :model="form" inline>
+        <el-form-item label="关键词">
           <el-input
             v-model="form.keyword"
-            placeholder="请输入搜索的内容"
+            placeholder="按题目内容搜索"
+            clearable
             class="search"
+          />
+        </el-form-item>
+        <el-form-item label="题型">
+          <el-select
+            v-model="form.questionType"
+            placeholder="全部题型"
+            clearable
+            style="width: 120px"
           >
-          </el-input>
+            <el-option label="单选题" value="0" />
+            <el-option label="多选题" value="1" />
+            <el-option label="判断题" value="2" />
+            <el-option label="简答题" value="3" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="难度">
+          <el-select
+            v-model="form.difficulty"
+            placeholder="全部难度"
+            clearable
+            style="width: 110px"
+          >
+            <el-option label="简单" value="0" />
+            <el-option label="中等" value="1" />
+            <el-option label="困难" value="2" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-select
+            v-model="form.state"
+            placeholder="全部状态"
+            clearable
+            style="width: 130px"
+          >
+            <el-option label="待审核" value="0" />
+            <el-option label="已审核" value="1" />
+            <el-option label="不通过" value="2" />
+            <el-option label="已删除" value="deleted" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="onSubmit">搜索</el-button>
+          <el-button @click="clearSearch">清空</el-button>
         </el-form-item>
       </el-form>
-      <el-button type="primary" style="margin-left: 20px" @click="onSubmit"
-        >搜索</el-button
-      >
-      <el-button @click="clearSearch">清空</el-button>
     </div>
     <el-container v-if="!clickSearch">
       <el-main style="padding: 10px">
@@ -51,28 +90,27 @@
             v-loading="loading"
             element-loading-text="加载中..."
           >
-            <div v-for="item in NoChkQuestions" :key="item?.id">
-              <QuestionCard
-                :question="item"
-                type="nochk"
-                activeName="nochk"
-                @delete="deleteQuestion"
-                @check="check"
-                @uncheck="uncheck"
-              />
+            <VirtualList
+              :data="NoChkQuestions"
+              :height="'auto'"
+              :estimated-item-height="200"
+              :loading="nochkLoadingMore"
+              :finished="NoChkQuestions.length >= noChkTotal"
+              show-back-top
+              @load-more="loadMoreNoChk"
+              ><template #default="{ item }">
+                <QuestionCard
+                  :question="item"
+                  type="nochk"
+                  activeName="nochk"
+                  @delete="deleteQuestion"
+                  @check="check"
+                  @uncheck="uncheck"
+                /> </template
+            ></VirtualList>
+            <div v-if="noChkTotal > 0" class="list-total">
+              共 {{ noChkTotal }} 条，已加载 {{ NoChkQuestions.length }} 条
             </div>
-            <el-pagination
-              v-model:current-page="currentNoChkPage"
-              background
-              layout="slot, prev, pager, next"
-              :total="noChkTotal"
-              prev-text="上一页"
-              next-text="下一页"
-              :hide-on-single-page="true"
-              @current-change="handleNoChkCurrentChange"
-            >
-              <template #default> 共 {{ noChkTotal }} 条 </template>
-            </el-pagination>
           </div>
           <div
             v-if="activeName === 'chk'"
@@ -81,10 +119,11 @@
           >
             <VirtualList
               :data="ChkQuestions"
-              :height="650"
+              :height="'auto'"
               :estimated-item-height="200"
               :loading="loadingMore"
               :finished="ChkQuestions.length >= chkTotal"
+              show-back-top
               @load-more="loadMoreChk"
               ><template #default="{ item }">
                 <QuestionCard
@@ -108,26 +147,25 @@
             v-loading="loading"
             element-loading-text="加载中..."
           >
-            <div v-for="item in DeletedQuestions" :key="item?.id">
-              <QuestionCard
-                :question="item"
-                type="chk"
-                activeName="deleted"
-                @restore="restoreQuestionFun"
-              />
+            <VirtualList
+              :data="DeletedQuestions"
+              :height="'auto'"
+              :estimated-item-height="200"
+              :loading="deletedLoadingMore"
+              :finished="DeletedQuestions.length >= deletedTotal"
+              show-back-top
+              @load-more="loadMoreDeleted"
+              ><template #default="{ item }">
+                <QuestionCard
+                  :question="item"
+                  type="chk"
+                  activeName="deleted"
+                  @restore="restoreQuestionFun"
+                /> </template
+            ></VirtualList>
+            <div v-if="deletedTotal > 0" class="list-total">
+              共 {{ deletedTotal }} 条，已加载 {{ DeletedQuestions.length }} 条
             </div>
-            <el-pagination
-              v-model:current-page="currentDeletedPage"
-              background
-              layout="slot, prev, pager, next"
-              :total="deletedTotal"
-              prev-text="上一页"
-              next-text="下一页"
-              :hide-on-single-page="true"
-              @current-change="handleDeletedCurrentChange"
-            >
-              <template #default> 共 {{ deletedTotal }} 条 </template>
-            </el-pagination>
           </div>
           <div
             v-if="DeletedQuestions?.length === 0 && activeName === 'deleted'"
@@ -144,30 +182,30 @@
           color="#aaa"
           style="float: right"
           @click="clearSearch"
-          ><CircleClose
-        /></el-icon>
+        >
+          <CircleClose />
+        </el-icon>
         <el-empty :image-size="200" />
       </div>
       <div v-else>
-        <div v-for="item in searchData" :key="item.id">
-          <QuestionCard
-            :question="item"
-            activeName="chk"
-            :isClickSearch="true"
-          />
+        <VirtualList
+          :data="searchData"
+          :height="'auto'"
+          :estimated-item-height="200"
+          :loading="searchLoadingMore"
+          :finished="searchData.length >= searchTotal"
+          show-back-top
+          @load-more="loadMoreSearch"
+          ><template #default="{ item }">
+            <QuestionCard
+              :question="item"
+              activeName="chk"
+              :isClickSearch="true"
+            /> </template
+        ></VirtualList>
+        <div v-if="searchTotal > 0" class="list-total">
+          共 {{ searchTotal }} 条，已加载 {{ searchData.length }} 条
         </div>
-        <el-pagination
-          v-model:current-page="currentSearchPage"
-          background
-          layout="slot, prev, pager, next"
-          :total="searchTotal"
-          prev-text="上一页"
-          next-text="下一页"
-          :hide-on-single-page="true"
-          @current-change="handleSearchCurrentChange"
-        >
-          <template #default> 共 {{ searchTotal }} 条 </template>
-        </el-pagination>
       </div>
     </div>
   </div>
@@ -185,25 +223,25 @@
       </p>
       <pre class="import-sample">{{
         `[
-  {
-    "question": "Vue 中 v-if 和 v-show 的区别？",
-    "questionType": 0,
-    "difficulty": 1,
-    "subjectID": 5,
-    "tags": "Vue,面试",
-    "options": [
+      {
+      "question": "Vue 中 v-if 和 v-show 的区别？",
+      "questionType": 0,
+      "difficulty": 1,
+      "subjectID": 5,
+      "tags": "Vue,面试",
+      "options": [
       {"code": "A", "value": "选项A"},
       {"code": "B", "value": "选项B"}
-    ],
-    "answer": "A"
-  },
-  {
-    "question": "Vuex 是做什么的？",
-    "questionType": 3,
-    "subjectID": 5,
-    "answer": "Vuex 是 Vue 的状态管理模式..."
-  }
-]`
+      ],
+      "answer": "A"
+      },
+      {
+      "question": "Vuex 是做什么的？",
+      "questionType": 3,
+      "subjectID": 5,
+      "answer": "Vuex 是 Vue 的状态管理模式..."
+      }
+      ]`
       }}</pre>
     </div>
     <div class="import-upload">
@@ -279,7 +317,7 @@ import {
   getNoChkQuestions,
   deleteQuestions,
   chkQuestions,
-  searchQuestion,
+  searchAdminQuestions,
   importQuestions,
   updateQuestion,
   getDeletedQuestions,
@@ -297,19 +335,22 @@ const activeName = ref(firstQueryValue(index, 'nochk'));
 const ChkQuestions = ref<IQuestion[]>([]);
 const from = ref();
 //获取未审核题目
-const NoChkQuestions = ref();
+const NoChkQuestions = ref<IQuestion[]>([]);
 const loading = ref(true);
 const loadingMore = ref(false);
-const currentNoChkPage = ref(1);
+// 未审核列表滚动加载
+const nochkLoadingMore = ref(false);
 const noChkTotal = ref(0);
 const chkTotal = ref(0);
-const searchData = ref();
+const searchData = ref<IQuestion[]>([]);
 const clickSearch = ref(false);
-const currentSearchPage = ref(1);
+// 搜索结果滚动加载
+const searchLoadingMore = ref(false);
 const searchTotal = ref(0);
 // 已删除题目
 const DeletedQuestions = ref<IQuestion[]>([]);
-const currentDeletedPage = ref(1);
+// 已删除列表滚动加载
+const deletedLoadingMore = ref(false);
 const deletedTotal = ref(0);
 const deletedParams = reactive({
   currentPage: 1,
@@ -339,18 +380,23 @@ const chkParams = reactive({
 });
 const form = reactive({
   keyword: '',
+  questionType: '',
+  difficulty: '',
+  state: '',
 });
-const getSearchDataParams = reactive({
-  keyword: '',
-  currentPage: 1,
-  pageSize: 10,
-});
-const handleNoChkCurrentChange = (val: number) => {
-  nochkParams.currentPage = val;
-  // 滚到顶部
-  document.documentElement.scrollTop = 0;
-  loading.value = true;
-  getNoChkQuestion();
+// 未审核列表：滚动到底部追加下一页
+const loadMoreNoChk = async () => {
+  if (loading.value || nochkLoadingMore.value) return;
+  if (NoChkQuestions.value.length >= noChkTotal.value) return;
+  nochkLoadingMore.value = true;
+  nochkParams.currentPage += 1;
+  try {
+    await getNoChkQuestion(true);
+  } catch (err) {
+    nochkParams.currentPage -= 1;
+  } finally {
+    nochkLoadingMore.value = false;
+  }
 };
 // 已审核列表：滚动到底部追加下一页（与分页器二选一，此处走无限滚动）
 const loadMoreChk = async () => {
@@ -367,10 +413,20 @@ const loadMoreChk = async () => {
     loadingMore.value = false;
   }
 };
-const getNoChkQuestion = async () => {
+const getNoChkQuestion = async (append = false) => {
+  // 非追加（首次加载/切回标签页/审核后刷新）时回到第一页，
+  // 否则会停留在上次滚动加载到的页码，列表只剩那一页数据
+  if (!append) {
+    nochkParams.currentPage = 1;
+  }
   const res = await getNoChkQuestions(nochkParams);
-  NoChkQuestions.value = res.result;
-  noChkTotal.value = res.total;
+  const list = res?.result ?? [];
+  if (append) {
+    NoChkQuestions.value = [...NoChkQuestions.value, ...list];
+  } else {
+    NoChkQuestions.value = list;
+  }
+  noChkTotal.value = res?.total ?? 0;
   loading.value = false;
 };
 const getAllChkQuestion = async (append = false) => {
@@ -436,17 +492,34 @@ const downloadTemplate = () => {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 };
-const getDeletedQuestion = async () => {
+const getDeletedQuestion = async (append = false) => {
+  // 非追加时回到第一页，避免停留在上次滚动到的页码
+  if (!append) {
+    deletedParams.currentPage = 1;
+  }
   const res = await getDeletedQuestions(deletedParams);
-  DeletedQuestions.value = res.result;
-  deletedTotal.value = res.total;
+  const list = res?.result ?? [];
+  if (append) {
+    DeletedQuestions.value = [...DeletedQuestions.value, ...list];
+  } else {
+    DeletedQuestions.value = list;
+  }
+  deletedTotal.value = res?.total ?? 0;
   loading.value = false;
 };
-const handleDeletedCurrentChange = (val: number) => {
-  deletedParams.currentPage = val;
-  document.documentElement.scrollTop = 0;
-  loading.value = true;
-  getDeletedQuestion();
+// 已删除列表：滚动到底部追加下一页
+const loadMoreDeleted = async () => {
+  if (loading.value || deletedLoadingMore.value) return;
+  if (DeletedQuestions.value.length >= deletedTotal.value) return;
+  deletedLoadingMore.value = true;
+  deletedParams.currentPage += 1;
+  try {
+    await getDeletedQuestion(true);
+  } catch (err) {
+    deletedParams.currentPage -= 1;
+  } finally {
+    deletedLoadingMore.value = false;
+  }
 };
 const restoreQuestionFun = (id: number) => {
   restoreQuestion({ id }).then(() => {
@@ -465,36 +538,81 @@ const handleClick = (tab: { props: { name?: string | number } }) => {
   }
 };
 const onSubmit = () => {
-  if (!form.keyword) {
-    ElMessage.error('请输入搜索关键词');
+  // 允许纯条件筛选（题型/难度/状态），至少要有一项搜索条件
+  if (!form.keyword && !form.questionType && !form.difficulty && !form.state) {
+    ElMessage.error('请至少输入或选择一项搜索条件');
     return;
   }
   loading.value = true;
-  getSearchData({ currentPage: 1 });
+  getSearchData();
 };
 const clearSearch = () => {
   form.keyword = '';
+  form.questionType = '';
+  form.difficulty = '';
+  form.state = '';
   clickSearch.value = false;
 };
 
-const getSearchData = (val?: { currentPage: number }) => {
-  searchQuestion({
-    ...form,
-    currentPage: val ? val.currentPage : currentSearchPage.value,
-    pageSize: 10,
-  }).then((res) => {
-    searchData.value = res?.result;
-    searchTotal.value = res?.total;
-    clickSearch.value = true;
-    loading.value = false;
-  });
+const searchParams = reactive({
+  keyword: '',
+  questionType: '',
+  difficulty: '',
+  state: '',
+  currentPage: 1,
+  pageSize: 10,
+});
+// 把状态选项映射为后端的 chkState / isDeleted 参数：
+// '' 不限（含已删除）；0/1/2 = 待审核/已审核/不通过（未删除）；'deleted' 只看已删除
+const buildSearchRequest = (): Record<string, unknown> => {
+  const params: Record<string, unknown> = {
+    keyword: searchParams.keyword,
+    currentPage: searchParams.currentPage,
+    pageSize: searchParams.pageSize,
+  };
+  if (searchParams.questionType) {
+    params.questionType = searchParams.questionType;
+  }
+  if (searchParams.difficulty) {
+    params.difficulty = searchParams.difficulty;
+  }
+  if (searchParams.state === 'deleted') {
+    params.isDeleted = 1;
+  } else if (searchParams.state !== '') {
+    params.chkState = Number(searchParams.state);
+    params.isDeleted = 0;
+  }
+  return params;
 };
-const handleSearchCurrentChange = (val: number) => {
-  getSearchDataParams.currentPage = val;
-  // 滚到顶部
-  document.documentElement.scrollTop = 0;
-  loading.value = true;
-  getSearchData();
+// append=true 时把下一页追加到已有结果后面（滚动加载）
+const getSearchData = async (append = false) => {
+  if (!append) {
+    searchParams.currentPage = 1;
+  }
+  searchParams.keyword = form.keyword;
+  searchParams.questionType = form.questionType ?? '';
+  searchParams.difficulty = form.difficulty ?? '';
+  searchParams.state = form.state ?? '';
+  const res = await searchAdminQuestions(buildSearchRequest());
+  const list = res?.result ?? [];
+  searchData.value = append ? [...searchData.value, ...list] : list;
+  searchTotal.value = res?.total ?? 0;
+  clickSearch.value = true;
+  loading.value = false;
+};
+// 搜索结果：滚动到底部追加下一页
+const loadMoreSearch = async () => {
+  if (loading.value || searchLoadingMore.value) return;
+  if (searchData.value.length >= searchTotal.value) return;
+  searchLoadingMore.value = true;
+  searchParams.currentPage += 1;
+  try {
+    await getSearchData(true);
+  } catch (err) {
+    searchParams.currentPage -= 1;
+  } finally {
+    searchLoadingMore.value = false;
+  }
 };
 onMounted(() => {
   getNoChkQuestion();
@@ -664,20 +782,25 @@ const saveEdit = async () => {
   display: flex;
   flex-wrap: wrap;
 }
+
 .search {
   display: flex;
   flex-direction: row;
 }
+
 :deep(.el-loading-mask) {
   z-index: 9;
 }
+
 .batch-bar {
   margin-bottom: 12px;
 }
+
 .import-tip {
   color: #606266;
   font-size: 13px;
 }
+
 .import-sample {
   background-color: #f5f7fa;
   padding: 12px;
@@ -688,11 +811,13 @@ const saveEdit = async () => {
   max-height: 200px;
   margin: 8px 0 12px;
 }
+
 .import-upload {
   display: flex;
   align-items: center;
   gap: 12px;
 }
+
 .import-preview {
   margin-top: 12px;
   max-height: 220px;
@@ -700,6 +825,7 @@ const saveEdit = async () => {
   border: 1px solid #eee;
   border-radius: 4px;
 }
+
 .preview-item {
   display: flex;
   align-items: center;
@@ -708,10 +834,12 @@ const saveEdit = async () => {
   border-bottom: 1px solid #f0f0f0;
   font-size: 13px;
 }
+
 .preview-index {
   color: #909399;
   flex-shrink: 0;
 }
+
 .preview-type {
   flex-shrink: 0;
   font-size: 12px;
@@ -720,12 +848,14 @@ const saveEdit = async () => {
   padding: 1px 8px;
   border-radius: 3px;
 }
+
 .preview-question {
   color: #303133;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .list-total {
   margin-top: 8px;
   text-align: center;

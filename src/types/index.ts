@@ -178,6 +178,8 @@ export interface IGetPaperParamsList {
   pageSize?: number;
   paper_tags?: string | string[];
   author?: string;
+  // 关键词搜索（服务端按标题/标签过滤，配合分页使用）
+  keyword?: string;
 }
 
 /**
@@ -263,8 +265,17 @@ export interface IPaperItem extends IPaperInfo {
   chkState?: number;
 }
 
-// 试卷列表按分组返回（key 为分组名）
-export type IPaperGroup = Record<string, IPaperItem[]>;
+// 单个分组的分页结果（type='all' 时每个分组各自分页）
+export interface IPaperGroupPage {
+  // 后端返回的是原始 snake_case 行数据，用 IPaperCard 而非 IPaperInfo
+  list: IPaperCard[];
+  total: number;
+  currentPage: number;
+  pageSize: number;
+}
+
+// 试卷列表按分组返回（key 为分组名，如 purviewPaper / personPaper）
+export type IPaperGroup = Record<string, IPaperGroupPage>;
 
 // 试卷详情
 export interface IPaperDetail {

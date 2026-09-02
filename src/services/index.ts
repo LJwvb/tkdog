@@ -88,6 +88,15 @@ export function getAllChkQuestions(
   });
 }
 
+// 管理端题目搜索接口（题干/题型/难度/审核状态/已删除等条件组合，覆盖全部状态）
+export function searchAdminQuestions(
+  params: Record<string, unknown>,
+): Promise<IGetQuestionsReturn> {
+  return request<IGetQuestionsReturn>('POST', '/searchAdminQuestions', {
+    data: params,
+  });
+}
+
 // 获取所有未审核的试卷接口
 export function getNoChkPaper(params: IPagedParams): Promise<INoChkPaper> {
   return request<INoChkPaper>('POST', '/getNoChkPaper', {
