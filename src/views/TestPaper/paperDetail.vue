@@ -2,7 +2,9 @@
   <div class="info-container">
     <div class="page-header">
       <el-button class="back-btn" @click="goBack">
-        <el-icon><ArrowLeft /></el-icon>
+        <el-icon>
+          <ArrowLeft />
+        </el-icon>
         <span>返回试卷列表</span>
       </el-button>
     </div>
@@ -285,6 +287,10 @@ const exportWord = () => {
   justify-content: space-between;
 }
 
+.paper-info .el-button + .el-button {
+  margin-left: 0px !important;
+}
+
 .do-paper-btn {
   width: 100%;
 }
@@ -315,6 +321,7 @@ const exportWord = () => {
 .page-header {
   margin-bottom: 16px;
 }
+
 .back-btn {
   display: flex;
   align-items: center;
@@ -330,6 +337,7 @@ const exportWord = () => {
   margin-bottom: 16px;
   padding: 4px 0;
 }
+
 .page-header .back-btn {
   background: #fff;
   border: 1px solid #dcdfe6;
@@ -339,6 +347,7 @@ const exportWord = () => {
   color: #606266;
   transition: all 0.2s;
 }
+
 .page-header .back-btn:hover {
   color: #409eff;
   border-color: #c6e2ff;

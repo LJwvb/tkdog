@@ -1014,12 +1014,12 @@ const submitComment = async () => {
     ElMessage.warning('评论内容不能为空');
     return;
   }
-  await addComment({
+  const res: any = await addComment({
     content: commentContent.value,
     questionId: Number(id.value),
     images: commentImages.value,
   });
-  ElMessage.success('评论成功');
+  ElMessage.success(res?.message || '评论成功');
   commentContent.value = '';
   commentImages.value = [];
   getComments();

@@ -64,6 +64,35 @@
             </div>
             <div class="q-stem">{{ q.question }}</div>
 
+            <!-- AI 提示按钮 -->
+            <div class="hint-row">
+              <el-button
+                v-if="!hintVisible[index]"
+                type="primary"
+                plain
+                size="small"
+                :loading="hintLoading[index]"
+                @click="showHint(index, q.id)"
+              >
+                <el-icon><QuestionFilled /></el-icon>
+                <span style="margin-left: 4px">AI 提示</span>
+              </el-button>
+              <div v-if="hintVisible[index]" class="hint-box">
+                <div class="hint-title">
+                  <el-icon><MagicStick /></el-icon>
+                  <span>AI 解题提示（仅给思路，不给答案）</span>
+                </div>
+                <div class="hint-content">{{ hintMap[index] }}</div>
+                <el-button
+                  type="primary"
+                  link
+                  size="small"
+                  @click="hintVisible[index] = false"
+                  >收起提示</el-button
+                >
+              </div>
+            </div>
+
             <!-- 单选题 -->
             <el-radio-group
               v-if="Number(q.questionType) === 0"
@@ -441,6 +470,7 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { QuestionFilled, MagicStick } from '@element-plus/icons-vue';
 import {
   getPaperDetail,
   submitPaper,
@@ -448,6 +478,7 @@ import {
   aiJudgeBatch,
   aiPaperReport,
   getRecordDetail,
+  aiHint,
 } from '@/services';
 import { setWaterMark, removeWatermark } from '@/utils/waterMark';
 import {
@@ -483,6 +514,10 @@ const switchCount = ref(0);
 
 const loading = ref(true);
 const submitting = ref(false);
+// AI 答题提示
+const hintLoading = ref<Record<number, boolean>>({});
+const hintVisible = ref<Record<number, boolean>>({});
+const hintMap = ref<Record<number, string>>({});
 const submitted = ref(false);
 const questions = ref<IQuestion[]>([]);
 // 难度权重：简单(0)=1、中等(1)=2、困难(2)=3
@@ -844,6 +879,29 @@ const handleSubmit = async () => {
     runAiJudging();
   } finally {
     submitting.value = false;
+  }
+};
+
+// AI 提示：只给解题思路，不给答案
+const showHint = async (index: number, questionId: number) => {
+  if (hintLoading.value[index]) return;
+  if (hintMap.value[index]) {
+    hintVisible.value[index] = true;
+    return;
+  }
+  hintLoading.value[index] = true;
+  try {
+    const res = await aiHint({ questionId: Number(questionId) });
+    if (res.available && res.hint) {
+      hintMap.value[index] = res.hint;
+      hintVisible.value[index] = true;
+    } else {
+      ElMessage.warning(res.message || 'AI 提示生成失败');
+    }
+  } catch (e) {
+    ElMessage.error('AI 提示请求失败');
+  } finally {
+    hintLoading.value[index] = false;
   }
 };
 
@@ -1639,5 +1697,30 @@ onUnmounted(() => {
   margin: 0 8px;
   color: #dcdfe6;
   font-size: 12px;
+}
+.hint-row {
+  margin: 10px 0;
+}
+.hint-box {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 1px solid #7dd3fc;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-top: 8px;
+}
+.hint-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: #0369a1;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+.hint-content {
+  color: #0c4a6e;
+  line-height: 1.7;
+  font-size: 14px;
+  white-space: pre-wrap;
 }
 </style>

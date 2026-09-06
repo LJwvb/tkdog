@@ -1,4 +1,6 @@
 ﻿import { request } from '@/utils/request';
+import axios from 'axios';
+import { ElMessage } from 'element-plus';
 import type {
   IRankingList,
   IGetQuestionsParams,
@@ -171,6 +173,16 @@ export function aiAnalyze(params: { questionId: number }): Promise<{
   template?: string;
 }> {
   return request('POST', '/aiAnalyze', { data: params, timeout: 60000 });
+}
+
+// AI 答题提示（只给思路，不给答案）
+export function aiHint(params: { questionId: number }): Promise<{
+  available: boolean;
+  message?: string;
+  hint?: string;
+  fromCache?: boolean;
+}> {
+  return request('POST', '/aiHint', { data: params, timeout: 60000 });
 }
 
 // 题目取消点赞接口
@@ -524,9 +536,24 @@ export function editAdminPassword(
   return request<void>('POST', '/editAdminPassword', { data: params });
 }
 
-// 评论接口
-export function addComment(params: Record<string, unknown>): Promise<void> {
-  return request<void>('POST', '/addComment', { data: params });
+// 评论接口（返回完整响应，含 message，用于区分"评论成功"和"待审核"）
+export function addComment(params: Record<string, unknown>): Promise<{ message?: string }> {
+  return axios
+    .post('/api/addComment', params, { withCredentials: true })
+    .then((res) => {
+      const body = res.data || {};
+      if (body.success === false || (body.code !== 200 && body.code !== 0)) {
+        ElMessage.error(body.message || '评论失败');
+        return Promise.reject(body);
+      }
+      return body;
+    })
+    .catch((err) => {
+      if (!err?.response?.data?.message) {
+        ElMessage.error(err?.message || '网络请求失败');
+      }
+      return Promise.reject(err);
+    });
 }
 
 // 获取评论接口（顶层评论分页，result 为当前页评论树，total 为顶层评论总数；

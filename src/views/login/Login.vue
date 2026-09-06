@@ -20,16 +20,16 @@
         <p class="brand-slogan">面试刷题 · 一站搞定</p>
         <div class="brand-tags">
           <span class="brand-tag">
-            <el-icon><Notebook /></el-icon>精选题库
-          </span>
-          <span class="brand-tag">
-            <el-icon><MagicStick /></el-icon>自动判分
+            <el-icon><MagicStick /></el-icon>AI解题提示
           </span>
           <span class="brand-tag">
             <el-icon><Files /></el-icon>智能组卷
           </span>
           <span class="brand-tag">
-            <el-icon><TrendCharts /></el-icon>排行互动
+            <el-icon><DataAnalysis /></el-icon>AI答题报告
+          </span>
+          <span class="brand-tag">
+            <el-icon><CircleCheck /></el-icon>AI智能判分
           </span>
         </div>
         <div class="brand-stats">
@@ -39,8 +39,8 @@
           </div>
           <div class="stat-divider"></div>
           <div class="stat-item">
-            <span class="stat-num">100+</span>
-            <span class="stat-label">面试专题</span>
+            <span class="stat-num">AI</span>
+            <span class="stat-label">智能辅助</span>
           </div>
           <div class="stat-divider"></div>
           <div class="stat-item">
@@ -207,10 +207,10 @@ import {
   Iphone,
   Lock,
   Key,
-  Notebook,
   MagicStick,
   Files,
-  TrendCharts,
+  DataAnalysis,
+  CircleCheck,
 } from '@element-plus/icons-vue';
 const store = useStore();
 

@@ -462,14 +462,14 @@ const toggleLike = async () => {
 
 const submitReply = async () => {
   if (!replyInput.value.trim() && replyImages.value.length === 0) return;
-  await addComment({
+  const res: any = await addComment({
     content: replyInput.value,
     questionId: props.questionId,
     parentId: props.comment.id,
     replyUsername: props.comment.username,
     images: replyImages.value,
   });
-  ElMessage.success('回复成功');
+  ElMessage.success(res?.message || '回复成功');
   replyInput.value = '';
   replyImages.value = [];
   showReplyInput.value = false;
