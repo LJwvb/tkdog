@@ -205,6 +205,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/login/Login.vue'),
   },
   {
+    // GitHub OAuth 回调页：对所有人开放
+    path: '/oauth/github/callback',
+    name: 'GithubCallback',
+    component: () => import('@/views/oauth/GithubCallback.vue'),
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/404',
   },
@@ -216,9 +222,9 @@ const router = createRouter({
 });
 
 router.beforeEach((to, _from, next) => {
-  // 登录态以后端 session 为准，前端只做 UI 拦截
+  // 登录态以 JWT Token 为准，前端只做 UI 拦截
   const userData = store.state.userData;
-  const isLoggedIn = Boolean(userData?.phone);
+  const isLoggedIn = Boolean((userData as any)?.token);
   const isAdmin = Boolean(userData?.isAdmin);
 
   // 需要登录的路由：未登录重定向到登录页

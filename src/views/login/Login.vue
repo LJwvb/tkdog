@@ -131,6 +131,25 @@
           </el-form-item>
 
           <el-form-item>
+            <div class="oauth-divider">
+              <span class="oauth-line"></span>
+              <span class="oauth-text">其他登录方式</span>
+              <span class="oauth-line"></span>
+            </div>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button class="github-btn" @click="handleGithubLogin">
+              <svg class="github-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path
+                  d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"
+                />
+              </svg>
+              GitHub 登录
+            </el-button>
+          </el-form-item>
+
+          <el-form-item>
             <div class="forgot-row">
               <el-link type="primary" @click="openForgot">忘记密码？</el-link>
             </div>
@@ -199,7 +218,7 @@
 import { ref, reactive, unref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
-import { login, getCaptcha, resetPassword } from '@/services';
+import { login, getCaptcha, resetPassword, getGithubAuthUrl } from '@/services';
 import { ElMessage, type FormInstance } from 'element-plus';
 import type { ICaptcha } from '@/types';
 import Register from '@/views/login/register.vue';
@@ -342,6 +361,26 @@ const toLogin = async () => {
     // eslint-disable-next-line no-console
     console.error('Login error:', error);
     changeLoginCaptcha();
+  }
+};
+
+// GitHub 第三方登录
+const handleGithubLogin = async () => {
+  console.log('[GitHub Login] 点击 GitHub 登录按钮');
+  try {
+    console.log('[GitHub Login] 调用 /api/oauth/github 获取授权 URL...');
+    const res: any = await getGithubAuthUrl();
+    console.log('[GitHub Login] 接口返回:', res);
+    if (res?.authUrl) {
+      console.log('[GitHub Login] 跳转到 GitHub 授权页:', res.authUrl);
+      window.location.href = res.authUrl;
+    } else {
+      console.error('[GitHub Login] 接口未返回 authUrl');
+      ElMessage.error('GitHub 登录暂不可用');
+    }
+  } catch (err: any) {
+    console.error('[GitHub Login] 获取授权 URL 失败:', err);
+    ElMessage.error(err?.message || 'GitHub 登录初始化失败');
   }
 };
 
@@ -771,29 +810,128 @@ onBeforeUnmount(() => {
   margin-bottom: 16px;
 }
 
-/* 输入框：透明玻璃底 */
-.login-form :deep(.el-input__wrapper) {
-  background: rgba(255, 255, 255, 0.06);
+/* 忘记密码弹窗：深色主题 */
+.forgot-dialog .el-dialog {
+  background: linear-gradient(145deg, #1a2540 0%, #0f1830 100%) !important;
+  border: 1px solid rgba(140, 200, 255, 0.2) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 150, 255, 0.1) !important;
+}
+.forgot-dialog .el-dialog__header {
+  border-bottom: 1px solid rgba(140, 200, 255, 0.15) !important;
+  padding: 20px 24px !important;
+  margin-right: 0 !important;
+}
+.forgot-dialog .el-dialog__title {
+  color: #eaf6ff !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+}
+.forgot-dialog .el-dialog__headerbtn .el-dialog__close {
+  color: rgba(180, 210, 240, 0.6) !important;
+}
+.forgot-dialog .el-dialog__headerbtn:hover .el-dialog__close {
+  color: #00a6ff !important;
+}
+.forgot-dialog .el-dialog__body {
+  padding: 24px !important;
+  color: #c8dcf0 !important;
+}
+.forgot-dialog .el-dialog__footer {
+  border-top: 1px solid rgba(140, 200, 255, 0.15) !important;
+  padding: 16px 24px !important;
+}
+.forgot-dialog .el-form-item__label {
+  color: rgba(200, 225, 250, 0.85) !important;
+}
+.forgot-dialog .el-button--default {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(140, 200, 255, 0.3) !important;
+  color: #c8dcf0 !important;
+}
+.forgot-dialog .el-button--default:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(0, 190, 255, 0.5) !important;
+  color: #eaf6ff !important;
+}
+
+/* 输入框：透明玻璃底（强制覆盖 Element Plus 默认白色背景） */
+.login-form :deep(.el-input__wrapper),
+.login-form .el-input__wrapper,
+.forgot-dialog .el-input__wrapper {
+  background-color: #162236 !important;
+  background: #162236 !important;
   border-radius: 10px;
   box-shadow: 0 0 0 1px rgba(140, 200, 255, 0.18) inset;
   padding: 2px 12px;
   transition: all 0.3s ease;
 }
-.login-form :deep(.el-input__wrapper:hover) {
+.login-form :deep(.el-input__wrapper:hover),
+.login-form .el-input__wrapper:hover,
+.forgot-dialog .el-input__wrapper:hover {
   box-shadow: 0 0 0 1px rgba(0, 190, 255, 0.4) inset;
+  background-color: #1a2638 !important;
 }
-.login-form :deep(.el-input__wrapper.is-focus) {
+.login-form :deep(.el-input__wrapper.is-focus),
+.login-form .el-input__wrapper.is-focus,
+.forgot-dialog .el-input__wrapper.is-focus {
   box-shadow: 0 0 0 1.5px rgba(0, 190, 255, 0.75) inset,
     0 0 18px rgba(0, 170, 255, 0.18);
-  background: rgba(255, 255, 255, 0.09);
+  background-color: #1c2a40 !important;
 }
-.login-form :deep(.el-input__inner) {
-  color: #eaf6ff;
+/* 错误状态下也保持深色背景 */
+.login-form :deep(.el-input__wrapper.is-error),
+.login-form .el-input__wrapper.is-error,
+.forgot-dialog .el-input__wrapper.is-error {
+  background-color: #162236 !important;
+  box-shadow: 0 0 0 1px rgba(255, 80, 80, 0.5) inset;
+}
+.login-form :deep(.el-input__inner),
+.login-form .el-input__inner,
+.forgot-dialog .el-input__inner {
+  color: #eaf6ff !important;
   height: 40px;
   font-size: 14px;
+  -webkit-text-fill-color: #eaf6ff !important;
 }
-.login-form :deep(.el-input__inner::placeholder) {
-  color: rgba(180, 210, 240, 0.45);
+.login-form :deep(.el-input__inner::placeholder),
+.login-form .el-input__inner::placeholder,
+.forgot-dialog .el-input__inner::placeholder {
+  color: rgba(180, 210, 240, 0.45) !important;
+}
+/* 密码显示按钮颜色 */
+.login-form :deep(.el-input__password),
+.login-form .el-input__password,
+.forgot-dialog .el-input__password {
+  color: rgba(140, 200, 255, 0.65);
+}
+
+/* 浏览器自动填充（autofill）时覆盖默认白色/黄色背景 */
+.login-form :deep(input:-webkit-autofill),
+.login-form :deep(input:-internal-autofill-selected),
+.login-form input:-webkit-autofill,
+.login-form input:-internal-autofill-selected,
+.forgot-dialog input:-webkit-autofill,
+.forgot-dialog input:-internal-autofill-selected {
+  /* 用内阴影覆盖背景色（autofill 状态下 background-color 无效） */
+  -webkit-box-shadow: 0 0 0 1000px #162236 inset !important;
+  box-shadow: 0 0 0 1000px #162236 inset !important;
+  /* 文字颜色 */
+  -webkit-text-fill-color: #eaf6ff !important;
+  caret-color: #eaf6ff !important;
+  /* 延迟背景变化，防止闪烁 */
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+/* autofill 时的 hover/focus 状态 */
+.login-form :deep(input:-webkit-autofill:hover),
+.login-form :deep(input:-webkit-autofill:focus),
+.login-form input:-webkit-autofill:hover,
+.login-form input:-webkit-autofill:focus,
+.forgot-dialog input:-webkit-autofill:hover,
+.forgot-dialog input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #1c2a40 inset !important;
+  box-shadow: 0 0 0 1000px #1c2a40 inset !important;
+  -webkit-text-fill-color: #eaf6ff !important;
 }
 
 .input-wrap {
@@ -923,6 +1061,57 @@ onBeforeUnmount(() => {
   color: #fff;
 }
 
+/* 第三方登录分割线 */
+.oauth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0;
+}
+.oauth-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(140, 200, 255, 0.25),
+    transparent
+  );
+}
+.oauth-text {
+  font-size: 12px;
+  color: rgba(180, 210, 240, 0.5);
+  white-space: nowrap;
+}
+
+/* GitHub 登录按钮 */
+.github-btn {
+  width: 100%;
+  height: 46px;
+  font-size: 15px;
+  border-radius: 12px;
+  color: #eaf6ff;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(140, 200, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+.github-btn:hover {
+  border-color: rgba(0, 190, 255, 0.6);
+  background: rgba(0, 170, 255, 0.12);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 150, 255, 0.2);
+}
+.github-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
 .forgot-row {
   display: flex;
   justify-content: center;
@@ -994,52 +1183,113 @@ onBeforeUnmount(() => {
   color: rgba(200, 225, 250, 0.85);
   font-size: 14px;
 }
+/* ============ 忘记密码弹窗深色主题（全局，因为 dialog teleport 到 body） ============ */
+:global(.forgot-dialog .el-dialog) {
+  background: linear-gradient(145deg, #1a2540 0%, #0f1830 100%) !important;
+  border: 1px solid rgba(140, 200, 255, 0.2) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 150, 255, 0.1) !important;
+}
+:global(.forgot-dialog .el-dialog__header) {
+  border-bottom: 1px solid rgba(140, 200, 255, 0.15) !important;
+  padding: 20px 24px !important;
+  margin-right: 0 !important;
+}
+:global(.forgot-dialog .el-dialog__title) {
+  color: #eaf6ff !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+}
+:global(.forgot-dialog .el-dialog__headerbtn .el-dialog__close) {
+  color: rgba(180, 210, 240, 0.6) !important;
+}
+:global(.forgot-dialog .el-dialog__headerbtn:hover .el-dialog__close) {
+  color: #00a6ff !important;
+}
+:global(.forgot-dialog .el-dialog__body) {
+  padding: 24px !important;
+  color: #c8dcf0 !important;
+}
+:global(.forgot-dialog .el-dialog__footer) {
+  border-top: 1px solid rgba(140, 200, 255, 0.15) !important;
+  padding: 16px 24px !important;
+}
+:global(.forgot-dialog .el-form-item__label) {
+  color: rgba(200, 225, 250, 0.85) !important;
+}
+/* 输入框 */
 :global(.forgot-dialog .el-input__wrapper) {
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow: 0 0 0 1px rgba(140, 200, 255, 0.18) inset;
-  border-radius: 10px;
-  transition: all 0.3s ease;
+  background-color: #162236 !important;
+  background: #162236 !important;
+  box-shadow: 0 0 0 1px rgba(140, 200, 255, 0.18) inset !important;
+  border-radius: 10px !important;
+  transition: all 0.3s ease !important;
 }
 :global(.forgot-dialog .el-input__wrapper:hover) {
-  box-shadow: 0 0 0 1px rgba(0, 190, 255, 0.4) inset;
+  box-shadow: 0 0 0 1px rgba(0, 190, 255, 0.4) inset !important;
+  background-color: #1a2638 !important;
 }
 :global(.forgot-dialog .el-input__wrapper.is-focus) {
   box-shadow: 0 0 0 1.5px rgba(0, 190, 255, 0.75) inset,
-    0 0 16px rgba(0, 170, 255, 0.15);
-  background: rgba(255, 255, 255, 0.09);
+    0 0 16px rgba(0, 170, 255, 0.15) !important;
+  background-color: #1c2a40 !important;
+}
+:global(.forgot-dialog .el-input__wrapper.is-error) {
+  background-color: #162236 !important;
+  box-shadow: 0 0 0 1px rgba(255, 80, 80, 0.5) inset !important;
 }
 :global(.forgot-dialog .el-input__inner) {
-  color: #eaf6ff;
+  color: #eaf6ff !important;
+  -webkit-text-fill-color: #eaf6ff !important;
 }
 :global(.forgot-dialog .el-input__inner::placeholder) {
-  color: rgba(180, 210, 240, 0.45);
+  color: rgba(180, 210, 240, 0.45) !important;
 }
+:global(.forgot-dialog .el-input__password) {
+  color: rgba(140, 200, 255, 0.65) !important;
+}
+/* autofill 覆盖 */
+:global(.forgot-dialog input:-webkit-autofill),
+:global(.forgot-dialog input:-internal-autofill-selected) {
+  -webkit-box-shadow: 0 0 0 1000px #162236 inset !important;
+  box-shadow: 0 0 0 1000px #162236 inset !important;
+  -webkit-text-fill-color: #eaf6ff !important;
+  caret-color: #eaf6ff !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+:global(.forgot-dialog input:-webkit-autofill:hover),
+:global(.forgot-dialog input:-webkit-autofill:focus) {
+  -webkit-box-shadow: 0 0 0 1000px #1c2a40 inset !important;
+  box-shadow: 0 0 0 1000px #1c2a40 inset !important;
+  -webkit-text-fill-color: #eaf6ff !important;
+}
+/* 按钮 */
 :global(.forgot-dialog .el-button--primary) {
-  border: none;
-  border-radius: 10px;
-  color: #fff;
-  font-weight: 500;
-  background: linear-gradient(120deg, #00c6ff, #0072ff, #00c6ff);
-  background-size: 200% 100%;
-  box-shadow: 0 8px 22px rgba(0, 120, 255, 0.35);
-  transition: all 0.35s ease;
+  border: none !important;
+  border-radius: 10px !important;
+  color: #fff !important;
+  font-weight: 500 !important;
+  background: linear-gradient(120deg, #00c6ff, #0072ff, #00c6ff) !important;
+  background-size: 200% 100% !important;
+  box-shadow: 0 8px 22px rgba(0, 120, 255, 0.35) !important;
+  transition: all 0.35s ease !important;
 }
 :global(.forgot-dialog .el-button--primary:hover) {
-  background-position: 100% 0;
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(0, 140, 255, 0.5);
+  background-position: 100% 0 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 28px rgba(0, 140, 255, 0.5) !important;
 }
 :global(.forgot-dialog .el-button:not(.el-button--primary)) {
-  border-radius: 10px;
-  color: rgba(220, 240, 255, 0.9);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(140, 200, 255, 0.25);
-  transition: all 0.3s ease;
+  border-radius: 10px !important;
+  color: rgba(220, 240, 255, 0.9) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(140, 200, 255, 0.25) !important;
+  transition: all 0.3s ease !important;
 }
 :global(.forgot-dialog .el-button:not(.el-button--primary):hover) {
-  border-color: rgba(0, 190, 255, 0.6);
-  background: rgba(0, 170, 255, 0.12);
-  color: #fff;
+  border-color: rgba(0, 190, 255, 0.6) !important;
+  background: rgba(0, 170, 255, 0.12) !important;
+  color: #fff !important;
 }
 
 /* ============ 响应式 ============ */

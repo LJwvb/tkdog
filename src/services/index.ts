@@ -537,7 +537,9 @@ export function editAdminPassword(
 }
 
 // 评论接口（返回完整响应，含 message，用于区分"评论成功"和"待审核"）
-export function addComment(params: Record<string, unknown>): Promise<{ message?: string }> {
+export function addComment(
+  params: Record<string, unknown>,
+): Promise<{ message?: string }> {
   return axios
     .post('/api/addComment', params, { withCredentials: true })
     .then((res) => {
@@ -947,4 +949,19 @@ export function getMyFeedback(params: IPagedParams): Promise<{
 // 未处理反馈数量（管理员角标）
 export function getUnresolvedFeedbackCount(): Promise<{ count: number }> {
   return request<{ count: number }>('POST', '/getUnresolvedFeedbackCount');
+}
+
+// ==================== GitHub OAuth 第三方登录 ====================
+
+// 获取 GitHub 授权页 URL（返回 authUrl，前端跳转）
+export function getGithubAuthUrl(): Promise<{ authUrl: string }> {
+  return request<{ authUrl: string }>('GET', '/oauth/github');
+}
+
+// GitHub OAuth 回调处理（用 code 换登录态，返回用户信息）
+export function githubCallback(params: {
+  code: string;
+  state: string;
+}): Promise<any> {
+  return request<any>('POST', '/oauth/github/callback', { data: params });
 }

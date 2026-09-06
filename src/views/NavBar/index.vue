@@ -31,7 +31,7 @@
         <span>试卷</span>
       </el-menu-item>
       <el-menu-item
-        v-if="store.state.userData?.phone"
+        v-if="store.state.userData?.userId"
         index="4"
         @click="toUser"
       >
@@ -59,14 +59,14 @@
         </el-button>
       </el-badge>
       <el-button
-        v-if="store.state.userData?.phone"
+        v-if="store.state.userData?.userId"
         type="primary"
         class="upload"
         @click="toAddSubject"
       >
         上传
       </el-button>
-      <el-dropdown v-if="store.state.userData?.phone">
+      <el-dropdown v-if="store.state.userData?.userId">
         <el-avatar
           :size="50"
           :src="store.state.userData?.avatar"
@@ -298,7 +298,7 @@ let pendingTimer: ReturnType<typeof setInterval> | null = null;
 const loadUnread = async () => {
   // 管理员或无登录态时不拉取用户未读数
   if (store.state.userData.isAdmin) return;
-  if (!store.state.userData?.phone) return;
+  if (!store.state.userData?.userId) return;
   try {
     const res = await getUnreadCount();
     store.commit('setUnreadCount', res?.count ?? 0);

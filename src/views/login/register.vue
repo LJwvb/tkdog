@@ -265,24 +265,46 @@ defineExpose({ dialogVisible });
   font-size: 14px;
 }
 .register-dialog .el-input__wrapper {
-  background: rgba(255, 255, 255, 0.06);
+  background-color: #162236 !important;
+  background: #162236 !important;
   border-radius: 10px;
   box-shadow: 0 0 0 1px rgba(140, 200, 255, 0.18) inset;
   transition: all 0.3s ease;
 }
 .register-dialog .el-input__wrapper:hover {
   box-shadow: 0 0 0 1px rgba(0, 190, 255, 0.4) inset;
+  background-color: #1a2638 !important;
 }
 .register-dialog .el-input__wrapper.is-focus {
   box-shadow: 0 0 0 1.5px rgba(0, 190, 255, 0.75) inset,
     0 0 16px rgba(0, 170, 255, 0.15);
-  background: rgba(255, 255, 255, 0.09);
+  background-color: #1c2a40 !important;
+}
+.register-dialog .el-input__wrapper.is-error {
+  background-color: #162236 !important;
+  box-shadow: 0 0 0 1px rgba(255, 80, 80, 0.5) inset;
 }
 .register-dialog .el-input__inner {
-  color: #eaf6ff;
+  color: #eaf6ff !important;
+  -webkit-text-fill-color: #eaf6ff !important;
 }
 .register-dialog .el-input__inner::placeholder {
-  color: rgba(180, 210, 240, 0.45);
+  color: rgba(180, 210, 240, 0.45) !important;
+}
+/* 浏览器自动填充（autofill）覆盖 */
+.register-dialog input:-webkit-autofill,
+.register-dialog input:-internal-autofill-selected {
+  -webkit-box-shadow: 0 0 0 1000px #162236 inset !important;
+  box-shadow: 0 0 0 1000px #162236 inset !important;
+  -webkit-text-fill-color: #eaf6ff !important;
+  caret-color: #eaf6ff !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+.register-dialog input:-webkit-autofill:hover,
+.register-dialog input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #1c2a40 inset !important;
+  box-shadow: 0 0 0 1000px #1c2a40 inset !important;
+  -webkit-text-fill-color: #eaf6ff !important;
 }
 .register-dialog .el-radio__label {
   color: rgba(200, 225, 250, 0.85);

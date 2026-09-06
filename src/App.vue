@@ -20,13 +20,14 @@
 </template>
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import NavBar from '@/views/NavBar/index.vue';
 import BottomBar from '@/views/BottomBar/index.vue';
 import TestBasket from '@/components/TestBasket/index.vue';
 import { setWaterMark } from './utils/waterMark';
 
 const route = useRoute();
+const router = useRouter();
 // 登录页 / 管理员登录页 / 404 / 协议页属于独立页面，不渲染全局导航与布局
 // 导航未完成（name 为空）时也视为独立页面，避免重定向前渲染完整布局触发无关请求
 const isStandalonePage = computed(() => {
@@ -37,7 +38,8 @@ const isStandalonePage = computed(() => {
     name === 'admin' ||
     name === '404' ||
     name === 'agreement' ||
-    name === 'privacy'
+    name === 'privacy' ||
+    name === 'GithubCallback'
   );
 });
 
@@ -57,6 +59,27 @@ const keydownHandler = (event: KeyboardEvent) => {
 onMounted(() => {
   setWaterMark('tkdog', '面试题库');
   document.addEventListener('keydown', keydownHandler);
+
+  // GitHub OAuth 回调处理：GitHub 不接受带 # 的 hash 回调 URL，
+  // 回调到首页 ?code=xxx&state=xxx 后，跳转到 hash 路由的回调页处理
+  console.log('[App] onMounted, 当前 URL:', window.location.href);
+  console.log('[App] window.location.search:', window.location.search);
+  const urlParams = new URLSearchParams(window.location.search);
+  const githubCode = urlParams.get('code');
+  const githubState = urlParams.get('state');
+  console.log('[App] 检测到 code:', githubCode, 'state:', githubState);
+  if (githubCode) {
+    const redirectHash = `/oauth/github/callback?code=${encodeURIComponent(
+      githubCode,
+    )}${githubState ? `&state=${encodeURIComponent(githubState)}` : ''}`;
+    console.log('[App] 用 router.replace 跳转到回调页:', redirectHash);
+    // 清除 URL 中的 query 参数，避免刷新重复处理
+    window.history.replaceState({}, document.title, window.location.pathname);
+    // 用 Vue Router 跳转，确保组件 onMounted 被触发
+    router.replace(redirectHash);
+  } else {
+    console.log('[App] 未检测到 code，正常渲染页面');
+  }
 });
 
 onBeforeUnmount(() => {

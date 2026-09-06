@@ -136,7 +136,7 @@ const answerOpen = ref<Record<number, boolean>>({});
 // 游客（未登录）展开答案时给出说明：后端对未登录强制隐藏答案
 const store = useStore();
 const toggleAnswer = (id: number) => {
-  const isLoggedIn = Boolean(store.state.userData?.phone);
+  const isLoggedIn = Boolean(store.state.userData?.userId);
   if (!isLoggedIn) {
     ElMessage.warning('登录后可查看答案，请先登录');
     return;

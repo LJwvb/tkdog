@@ -522,7 +522,7 @@ const aiData = ref<{
   pitfall?: string;
   template?: string;
 } | null>(null);
-const isLoggedInForAi = computed(() => Boolean(store.state.userData?.phone));
+const isLoggedInForAi = computed(() => Boolean(store.state.userData?.userId));
 const toggleAiAnalysis = () => {
   if (!isLoggedInForAi.value) {
     ElMessage.warning('登录后可查看 AI 解题思路');
@@ -551,7 +551,7 @@ const loadAiAnalysis = async () => {
 const answerOpen = ref(false);
 const toggleAnswer = () => {
   // 游客（未登录）展开答案时给出说明
-  const isLoggedIn = Boolean(store.state.userData?.phone);
+  const isLoggedIn = Boolean(store.state.userData?.userId);
   if (!isLoggedIn) {
     ElMessage.warning('登录后可查看答案，请先登录');
     return;
@@ -1113,7 +1113,7 @@ const saveEdit = async () => {
 };
 // 加载当前题目的收藏状态
 const loadFavoriteStatus = async () => {
-  if (!store.state.userData?.phone || store.state.userData?.isAdmin) return; // 未登录或管理端跳过收藏状态（管理端无 userId session，收藏接口会 401）
+  if (!store.state.userData?.userId || store.state.userData?.isAdmin) return; // 未登录或管理端跳过收藏状态（管理端无 userId session，收藏接口会 401）
   try {
     const favs = await getMyFavorites();
     isFavorite.value = (favs || []).some((q) => Number(q.id) === Number(id));

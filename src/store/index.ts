@@ -15,6 +15,9 @@ export interface UserData {
   username: string;
   name?: string;
   isAdmin?: boolean;
+  token?: string;
+  accessToken?: string;
+  refreshToken?: string;
 }
 
 export interface PaperInfo {
@@ -91,7 +94,8 @@ export default createStore<RootState>({
   modules: {},
   plugins: [
     createPersistedState({
-      storage: window?.sessionStorage,
+      key: 'tkdog',
+      storage: window?.localStorage,
     }),
   ],
 });

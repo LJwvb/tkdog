@@ -359,12 +359,42 @@ html.dark .el-select .el-input__inner {
   color: #e5eaf3 !important;
 }
 
-/* 暗色下：输入框 */
-html.dark .el-input__inner,
+/* 暗色下：输入框（wrapper 才是实际背景容器） */
+html.dark .el-input__wrapper,
 html.dark .el-textarea__inner {
   background-color: #262727 !important;
-  border-color: #3a3b3c !important;
+  box-shadow: 0 0 0 1px #3a3b3c inset !important;
   color: #e5eaf3 !important;
+}
+html.dark .el-input__wrapper:hover {
+  box-shadow: 0 0 0 1px #5a5b5c inset !important;
+}
+html.dark .el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 1px #409eff inset !important;
+}
+html.dark .el-input__wrapper.is-error {
+  box-shadow: 0 0 0 1px #f56c6c inset !important;
+}
+html.dark .el-input__inner,
+html.dark .el-textarea__inner {
+  background-color: transparent !important;
+  color: #e5eaf3 !important;
+  -webkit-text-fill-color: #e5eaf3 !important;
+}
+/* 暗色下：浏览器自动填充（autofill）覆盖 */
+html.dark input:-webkit-autofill,
+html.dark input:-internal-autofill-selected {
+  -webkit-box-shadow: 0 0 0 1000px #262727 inset !important;
+  box-shadow: 0 0 0 1000px #262727 inset !important;
+  -webkit-text-fill-color: #e5eaf3 !important;
+  caret-color: #e5eaf3 !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+html.dark input:-webkit-autofill:hover,
+html.dark input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #2d2e2f inset !important;
+  box-shadow: 0 0 0 1000px #2d2e2f inset !important;
+  -webkit-text-fill-color: #e5eaf3 !important;
 }
 
 /* 暗色下：答题页固定 header */
