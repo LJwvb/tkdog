@@ -1,9 +1,21 @@
 <template>
-  <el-dialog v-model="dialogVisible" title="上传题目" width="60%" center :before-close="handleClose">
+  <el-dialog
+    v-model="dialogVisible"
+    title="上传题目"
+    width="60%"
+    center
+    :before-close="handleClose"
+  >
     <el-form label-width="90px" status-icon>
       <el-form-item label="题干" required>
-        <el-input v-model="ruleForm.question" type="textarea" :rows="3" maxlength="500" show-word-limit
-          placeholder="请输入题目题干" />
+        <el-input
+          v-model="ruleForm.question"
+          type="textarea"
+          :rows="3"
+          maxlength="500"
+          show-word-limit
+          placeholder="请输入题目题干"
+        />
       </el-form-item>
 
       <el-form-item label="题型" required>
@@ -24,18 +36,40 @@
       </el-form-item>
 
       <el-form-item label="所属科目" required>
-        <el-select v-model="ruleForm.subjectID" placeholder="请选择所属科目" style="width: 240px">
-          <el-option v-for="s in subjects" :key="s.subjectID" :label="s.content" :value="s.subjectID" />
+        <el-select
+          v-model="ruleForm.subjectID"
+          placeholder="请选择所属科目"
+          style="width: 240px"
+        >
+          <el-option
+            v-for="s in subjects"
+            :key="s.subjectID"
+            :label="s.content"
+            :value="s.subjectID"
+          />
         </el-select>
       </el-form-item>
 
       <el-form-item label="标签">
         <div class="tag-wrap">
-          <el-tag v-for="tag in dynamicTags" :key="tag" class="tag" closable @close="handleCloseTag(tag)">
+          <el-tag
+            v-for="tag in dynamicTags"
+            :key="tag"
+            class="tag"
+            closable
+            @close="handleCloseTag(tag)"
+          >
             {{ tag }}
           </el-tag>
-          <el-input v-if="inputVisible" ref="InputRef" v-model="inputValue" size="small" class="tag-input"
-            @keyup.enter="handleInputConfirm" @blur="handleInputConfirm" />
+          <el-input
+            v-if="inputVisible"
+            ref="InputRef"
+            v-model="inputValue"
+            size="small"
+            class="tag-input"
+            @keyup.enter="handleInputConfirm"
+            @blur="handleInputConfirm"
+          />
           <el-button v-if="showAddTag" size="small" @click="showInput">
             + 新标签
           </el-button>
@@ -44,26 +78,63 @@
 
       <!-- 单选 / 多选：选项 + 正确答案 -->
       <el-form-item v-if="isChoice" label="选项与答案" required>
-        <el-radio-group v-if="isSingle" v-model="correctSingle" class="options-list">
-          <div v-for="(opt, index) in choiceOptions" :key="opt.code" class="option-row">
+        <el-radio-group
+          v-if="isSingle"
+          v-model="correctSingle"
+          class="options-list"
+        >
+          <div
+            v-for="(opt, index) in choiceOptions"
+            :key="opt.code"
+            class="option-row"
+          >
             <span class="option-code">{{ opt.code }}</span>
-            <el-input v-model="opt.value" placeholder="请输入选项内容" class="option-input" />
+            <el-input
+              v-model="opt.value"
+              placeholder="请输入选项内容"
+              class="option-input"
+            />
             <el-radio :label="opt.code" class="option-correct">正确</el-radio>
-            <el-button link type="danger" :disabled="choiceOptions.length <= 2"
-              @click="removeChoiceOption(index)">删除</el-button>
+            <el-button
+              link
+              type="danger"
+              :disabled="choiceOptions.length <= 2"
+              @click="removeChoiceOption(index)"
+              >删除</el-button
+            >
           </div>
         </el-radio-group>
         <el-checkbox-group v-else v-model="correctMulti" class="options-list">
-          <div v-for="(opt, index) in choiceOptions" :key="opt.code" class="option-row">
+          <div
+            v-for="(opt, index) in choiceOptions"
+            :key="opt.code"
+            class="option-row"
+          >
             <span class="option-code">{{ opt.code }}</span>
-            <el-input v-model="opt.value" placeholder="请输入选项内容" class="option-input" />
-            <el-checkbox :label="opt.code" class="option-correct">正确</el-checkbox>
-            <el-button link type="danger" :disabled="choiceOptions.length <= 2"
-              @click="removeChoiceOption(index)">删除</el-button>
+            <el-input
+              v-model="opt.value"
+              placeholder="请输入选项内容"
+              class="option-input"
+            />
+            <el-checkbox :label="opt.code" class="option-correct"
+              >正确</el-checkbox
+            >
+            <el-button
+              link
+              type="danger"
+              :disabled="choiceOptions.length <= 2"
+              @click="removeChoiceOption(index)"
+              >删除</el-button
+            >
           </div>
         </el-checkbox-group>
-        <el-button type="primary" plain :disabled="choiceOptions.length >= 6" @click="addChoiceOption">+
-          添加选项</el-button>
+        <el-button
+          type="primary"
+          plain
+          :disabled="choiceOptions.length >= 6"
+          @click="addChoiceOption"
+          >+ 添加选项</el-button
+        >
       </el-form-item>
 
       <!-- 判断：正确答案 -->
@@ -76,8 +147,14 @@
 
       <!-- 简答：参考答案 -->
       <el-form-item v-if="isShortAnswer" label="参考答案" required>
-        <el-input v-model="ruleForm.answer" type="textarea" :rows="6" maxlength="2000" show-word-limit
-          placeholder="请输入参考答案（将用于 AI 批改对照）" />
+        <el-input
+          v-model="ruleForm.answer"
+          type="textarea"
+          :rows="6"
+          maxlength="2000"
+          show-word-limit
+          placeholder="请输入参考答案（将用于 AI 批改对照）"
+        />
       </el-form-item>
     </el-form>
 
@@ -117,9 +194,7 @@ const correctSingle = ref('');
 const correctMulti = ref<string[]>([]);
 const judgeAnswer = ref('');
 
-const isChoice = computed(() =>
-  ['0', '1'].includes(ruleForm.questionType),
-);
+const isChoice = computed(() => ['0', '1'].includes(ruleForm.questionType));
 const isSingle = computed(() => ruleForm.questionType === '0');
 const isJudge = computed(() => ruleForm.questionType === '2');
 const isShortAnswer = computed(() => ruleForm.questionType === '3');

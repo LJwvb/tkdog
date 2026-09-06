@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="sensitive-word">
     <el-card>
       <template #header>
@@ -21,7 +21,14 @@
             />
             <el-button type="primary" @click="handleSearch">搜索</el-button>
           </div>
-          <el-table v-loading="loading" :data="wordList" stripe>
+          <el-table
+            ref="wordTableRef"
+            v-loading="loading"
+            :data="list"
+            stripe
+            height="calc(100vh - 372px)"
+            empty-text=""
+          >
             <el-table-column prop="id" label="ID" width="80" />
             <el-table-column prop="word" label="违禁词" min-width="200" />
             <el-table-column label="级别" width="120" align="center">
@@ -46,30 +53,28 @@
                 </el-button>
               </template>
             </el-table-column>
+
+            <template #empty>
+              <el-empty
+                v-if="!loading && list.length === 0"
+                :image-size="160"
+                description="暂无违禁词"
+              />
+            </template>
           </el-table>
-          <el-empty
-            v-if="!loading && wordList.length === 0"
-            :image-size="160"
-            description="暂无违禁词"
-          />
-          <el-pagination
-            v-if="total > 0"
-            v-model:current-page="currentPage"
-            background
-            layout="slot, prev, pager, next"
-            :total="total"
-            :page-size="pageSize"
-            prev-text="上一页"
-            next-text="下一页"
-            :hide-on-single-page="true"
-            style="margin-top: 12px; justify-content: flex-end"
-            @current-change="handlePageChange"
-          >
-            <template #default> 共 {{ total }} 条 </template>
-          </el-pagination>
+
+          <div v-if="total > 0" class="list-total">
+            共 {{ total }} 条，已加载 {{ list.length }} 条
+          </div>
         </el-tab-pane>
         <el-tab-pane label="已删除违禁词" name="deleted">
-          <el-table v-loading="deletedLoading" :data="deletedWords" stripe>
+          <el-table
+            v-loading="deletedLoading"
+            :data="deletedWords"
+            stripe
+            height="calc(100vh - 372px)"
+            empty-text=""
+          >
             <el-table-column prop="id" label="ID" width="80" />
             <el-table-column prop="word" label="违禁词" min-width="200" />
             <el-table-column label="级别" width="120" align="center">
@@ -94,12 +99,16 @@
                 </el-button>
               </template>
             </el-table-column>
+
+            <template #empty>
+              <el-empty
+                v-if="!deletedLoading && deletedWords.length === 0"
+                :image-size="160"
+                description="没有已删除的违禁词"
+              />
+            </template>
           </el-table>
-          <el-empty
-            v-if="!deletedLoading && deletedWords.length === 0"
-            :image-size="160"
-            description="没有已删除的违禁词"
-          />
+
           <el-pagination
             v-if="deletedTotal > 0"
             v-model:current-page="deletedPage"
@@ -156,45 +165,42 @@ import {
   restoreSensitiveWord,
 } from '@/services';
 import { transitionTime } from '@/utils';
+import { useInfiniteTable } from '@/composables/useInfiniteTable';
 import type { ISensitiveWord } from '@/types';
 
-const wordList = ref<ISensitiveWord[]>([]);
-const loading = ref(true);
-const currentPage = ref(1);
-const total = ref(0);
-const pageSize = 10;
-const activeTab = ref('normal');
-const deletedWords = ref<ISensitiveWord[]>([]);
-const deletedLoading = ref(false);
-const deletedPage = ref(1);
-const deletedTotal = ref(0);
+const PAGE_SIZE = 50;
+// deleted tab 仍走传统 el-pagination，需独立 pageSize 引用
+const pageSize = PAGE_SIZE;
+
+const wordTableRef = ref();
 const keyword = ref('');
+const activeTab = ref('normal');
 const dialogVisible = ref(false);
 const form = reactive({
   word: '',
   level: 1,
 });
 
-const load = async () => {
-  loading.value = true;
-  const res = await getSensitiveWords({
-    currentPage: currentPage.value,
-    pageSize,
-    keyword: keyword.value,
-  });
-  wordList.value = res?.result ?? [];
-  total.value = res?.total ?? 0;
-  loading.value = false;
-};
+/**
+ * 「违禁词列表」tab：滚动追加 + 不足一屏自动补屏
+ * 「已删除违禁词」tab：仍保留传统 el-pagination（数据量小，且不需要滚动追加）
+ */
+const { list, total, loading, reset } = useInfiniteTable<ISensitiveWord>(
+  (params) =>
+    getSensitiveWords({
+      ...params,
+      keyword: keyword.value,
+    }),
+  { pageSize: PAGE_SIZE, tableRef: wordTableRef },
+);
+
+const deletedWords = ref<ISensitiveWord[]>([]);
+const deletedLoading = ref(false);
+const deletedPage = ref(1);
+const deletedTotal = ref(0);
 
 const handleSearch = () => {
-  currentPage.value = 1;
-  load();
-};
-
-const handlePageChange = (page: number) => {
-  currentPage.value = page;
-  load();
+  void reset();
 };
 
 const openDialog = () => {
@@ -212,7 +218,7 @@ const handleAdd = async () => {
   await addSensitiveWord({ word, level: form.level });
   ElMessage.success('添加成功');
   dialogVisible.value = false;
-  load();
+  void reset();
 };
 
 const handleDelete = (row: unknown) => {
@@ -224,7 +230,7 @@ const handleDelete = (row: unknown) => {
   }).then(() => {
     deleteSensitiveWord({ id: r.id }).then(() => {
       ElMessage.success('删除成功');
-      load();
+      void reset();
     });
   });
 };
@@ -233,7 +239,7 @@ const loadDeleted = async () => {
   deletedLoading.value = true;
   const res = await getDeletedSensitiveWords({
     currentPage: deletedPage.value,
-    pageSize,
+    pageSize: PAGE_SIZE,
   });
   deletedWords.value = res?.result ?? [];
   deletedTotal.value = res?.total ?? 0;
@@ -250,7 +256,7 @@ const handleRestore = (row: unknown) => {
   restoreSensitiveWord({ id: r.id }).then(() => {
     ElMessage.success('已恢复');
     loadDeleted();
-    load();
+    void reset();
   });
 };
 
@@ -260,13 +266,14 @@ const handleTabChange = (name: string | number) => {
   }
 };
 
-onMounted(load);
+onMounted(() => {
+  void reset();
+});
 </script>
 
 <style scoped>
 .sensitive-word {
   width: 100%;
-  padding: 20px;
 }
 .header {
   display: flex;
@@ -282,5 +289,13 @@ onMounted(load);
 /* 去掉级别标签的过渡动画 */
 :deep(.el-tag) {
   transition: none !important;
+}
+
+/* 列表总数状态 */
+.list-total {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--el-text-color-secondary, #909399);
 }
 </style>

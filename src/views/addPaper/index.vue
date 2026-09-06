@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="add-paper">
     <el-steps :active="active" finish-status="success" class="steps">
       <el-step title="试卷信息" />
@@ -24,9 +24,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import queryString from 'query-string';
+import { parseHashQuery } from '@/utils';
 import { useStore } from 'vuex';
 
 import OneStep from './PaperStep/oneStep.vue';
@@ -36,7 +36,7 @@ import { getPaperQuestion } from '@/services';
 import { ElMessage } from 'element-plus';
 import { PaperPurview, type IQuestion } from '@/types';
 
-const { step } = queryString.parse(window?.location?.href?.split('?')[1] || '');
+const { step } = parseHashQuery();
 
 const router = useRouter();
 const store = useStore();
@@ -60,9 +60,19 @@ const next = () => {
   if (active.value++ > 1) active.value = 0;
 };
 const prev = () => {
-  if (active.value-- < 0) active.value = 1;
+  // 边界保护：步骤 0 再点上一步会出现 active=-1 的空白页
+  if (active.value > 0) active.value--;
 };
+// 清理倒计时（setInterval 必须用 clearInterval，且组件卸载时也要清理，避免卸载后仍跳转路由）
+const clearCountdown = () => {
+  if (timer) {
+    clearInterval(timer);
+    timer = undefined;
+  }
+};
+onUnmounted(clearCountdown);
 const goTestPaper = () => {
+  clearCountdown();
   if (store.state.userData.isAdmin) {
     router.push({
       path: '/adminQuestion',
@@ -73,7 +83,6 @@ const goTestPaper = () => {
   } else {
     router.push('/questionPage');
   }
-  clearTimeout(timer);
 };
 const done = () => {
   getPaperQuestion({
@@ -93,10 +102,12 @@ const done = () => {
         type: 'success',
         duration: 1000,
       });
-      // 倒计时5s
+      // 倒计时5s（先清掉可能存在的旧倒计时，避免重复触发）
+      clearCountdown();
       let count = 5;
       timer = setInterval(() => {
-        if (count === 1) {
+        if (count === 0) {
+          clearCountdown();
           if (store.state.userData.isAdmin) {
             router.push('/adminTestPaper');
             store.commit('setActiveMenuIndex', '3');
@@ -104,7 +115,7 @@ const done = () => {
             router.push('/user/UserTestPaper');
             store.commit('setActiveMenuIndex', '4');
           }
-          clearInterval(timer);
+          return;
         }
         ElMessage({
           message: `试卷创建成功,${count}秒后跳转到试卷列表`,
@@ -114,8 +125,11 @@ const done = () => {
         count--;
       }, 1000);
     })
-    .catch(() => {
-      error.value = true;
+    .catch((err) => {
+      // fourStep 的 error 声明为 Object 并读取 error.message，传布尔会导致失败原因丢失
+      error.value = {
+        message: err?.message || '创建试卷失败，请稍后重试',
+      };
     });
 };
 </script>
@@ -126,14 +140,26 @@ const done = () => {
   flex-direction: column;
   height: 100%;
   width: 100%;
+  padding: 24px;
+  box-sizing: border-box;
 }
 .steps {
   width: 100%;
+  background: #fff;
+  padding: 24px 32px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  margin-bottom: 20px;
 }
 .step-content {
   position: relative;
-  top: 10px;
   width: 100%;
+  background: #fff;
+  padding: 32px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+  min-height: 400px;
 }
 .next-step {
   position: absolute;
@@ -143,5 +169,21 @@ const done = () => {
 }
 :deep(.el-step__head.is-error .el-step__icon-inner.is-status) {
   color: var(--el-color-danger);
+}
+
+/* 小屏：缩小页面与卡片容器的内边距，给题目卡片让出更多宽度 */
+@media (max-width: 600px) {
+  .add-paper {
+    padding: 12px;
+  }
+
+  .steps {
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .step-content {
+    padding: 16px;
+  }
 }
 </style>

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div v-loading="loading" class="profile-container">
     <el-card v-if="profile" class="profile-card">
       <div class="profile-head">
@@ -49,17 +49,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useStore } from 'vuex';
-import { useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { getPublicProfile, followUser, unfollowUser } from '@/services';
-import queryString from 'query-string';
-import { firstQueryValue } from '@/utils';
+import { parseHashQuery, firstQueryValue } from '@/utils';
 import type { IPublicProfile } from '@/types';
 
 const store = useStore();
-const route = useRoute();
 const myId = store.state.userData.userId as number;
-const { id } = queryString.parse(route.fullPath.split('?')[1] || '');
+const { id } = parseHashQuery();
 const targetId = Number(firstQueryValue(id));
 const profile = ref<IPublicProfile | null>(null);
 const loading = ref(true);

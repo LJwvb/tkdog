@@ -65,8 +65,6 @@
       </el-menu>
     </div>
     <div class="user-content">
-      <UserInfo v-if="activeIndex === '0'" />
-
       <router-view></router-view>
     </div>
   </div>
@@ -76,7 +74,6 @@
 import { ref, watchEffect } from 'vue';
 
 import { useRouter } from 'vue-router';
-import UserInfo from './UserInfo.vue';
 import {
   User,
   Star,
@@ -90,7 +87,7 @@ import {
 } from '@element-plus/icons-vue';
 
 const paths = ref([
-  '/user',
+  '/user/UserInfo',
   '/user/UserLikes',
   '/user/UserFavorite',
   '/user/UserQuestions',
@@ -114,6 +111,7 @@ watchEffect(() => {
   const path = router.currentRoute.value.path;
   switch (path) {
     case '/user':
+    case '/user/UserInfo':
       activeIndex.value = '0';
       break;
     case '/user/UserLikes':
@@ -155,15 +153,26 @@ watchEffect(() => {
   display: flex;
   align-items: flex-start;
   width: 100%;
+  gap: 20px;
 }
 
 .user-menu {
-  width: 190px;
+  width: 200px;
   flex-shrink: 0;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
 .user-menu :deep(.el-menu) {
   border-right: none;
+}
+
+.user-menu :deep(.el-menu-item) {
+  height: 48px;
+  line-height: 48px;
+  font-size: 14px;
 }
 
 .user-content {
@@ -175,6 +184,7 @@ watchEffect(() => {
 @media (max-width: 768px) {
   .user-layout {
     flex-direction: column;
+    gap: 12px;
   }
 
   .user-menu {
@@ -195,7 +205,6 @@ watchEffect(() => {
 
   .user-content {
     width: 100%;
-    margin-top: 12px;
   }
 }
 </style>

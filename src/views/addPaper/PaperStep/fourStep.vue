@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <el-result :icon="icon" :title="title" :sub-title="subTitle"> </el-result>
   <el-button
     v-if="props.error"
@@ -54,4 +54,17 @@ const prevStep = () => {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.prev-step {
+  margin-top: 24px;
+  float: right;
+}
+/* 成功/失败图标区域 */
+.result-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+}
+</style>

@@ -12,6 +12,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    BackToTop: typeof import('./components/BackToTop/index.vue')['default']
     CommentItem: typeof import('./components/CommentItem/index.vue')['default']
     EditUserInfo: typeof import('./components/EditUserInfo/index.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']
@@ -70,6 +71,7 @@ declare module 'vue' {
     TestBasket: typeof import('./components/TestBasket/index.vue')['default']
     TestCard: typeof import('./components/TestCard/index.vue')['default']
     UploadQuestion: typeof import('./components/UploadQuestion/index.vue')['default']
+    VirtualList: typeof import('./components/VirtualList/index.vue')['default']
   }
   export interface GlobalDirectives {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']
@@ -78,6 +80,7 @@ declare module 'vue' {
 
 // For TSX support
 declare global {
+  const BackToTop: typeof import('./components/BackToTop/index.vue')['default']
   const CommentItem: typeof import('./components/CommentItem/index.vue')['default']
   const EditUserInfo: typeof import('./components/EditUserInfo/index.vue')['default']
   const ElAlert: typeof import('element-plus/es')['ElAlert']
@@ -136,4 +139,5 @@ declare global {
   const TestBasket: typeof import('./components/TestBasket/index.vue')['default']
   const TestCard: typeof import('./components/TestCard/index.vue')['default']
   const UploadQuestion: typeof import('./components/UploadQuestion/index.vue')['default']
+  const VirtualList: typeof import('./components/VirtualList/index.vue')['default']
 }

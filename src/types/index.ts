@@ -13,9 +13,9 @@ export enum PaperAuth {
   Private = '3',
 }
 
-// 试卷可见范围 purview：0 公开 / 3 个人 / -1 官方（管理员）
+// 试卷可见范围 purview：1 公开（需审核）/ 3 个人（私有）/ -1 官方（管理员）
 export enum PaperPurview {
-  Public = 0,
+  Public = 1,
   Private = 3,
   Official = -1,
 }
@@ -66,7 +66,7 @@ export interface IGetQuestionsParams {
   pageSize?: number; // 每页条数
   catalogID?: number; // 章节ID
   subjectID?: number; // 科目ID
-  ids?: string[]; // 题目ID
+  ids?: string; // 题目ID，逗号分隔
 }
 export interface IGetQuestionsReturn {
   total: number;
@@ -83,7 +83,7 @@ export interface IQuestion {
   answer: string; // 答案
   addDate: string; // 添加时间
   tags: string | string[]; // 标签
-  questionType: string; // 题目类型 0: '单选题' 1: '多选题' 2: '判断题' 3: '填空题'4: '简答题'
+  questionType: string; // 题目类型 0: '单选题' 1: '多选题' 2: '判断题' 3: '简答题'（注意：曾注释为 4 型含"填空题"已废弃，全站统一为 4 型枚举）
   number?: number; // 试题编号
   difficulty: number; // 难度 0:'简单'1:'中等'2:'困难'
   chkState?: number; // 审核状态 0:未审核 1:审核通过 2:审核不通过
@@ -178,6 +178,8 @@ export interface IGetPaperParamsList {
   pageSize?: number;
   paper_tags?: string | string[];
   author?: string;
+  // 关键词搜索（服务端按标题/标签过滤，配合分页使用）
+  keyword?: string;
 }
 
 /**
@@ -241,7 +243,7 @@ export interface IPaperInfo {
   paperId: number | string;
   paperTitle?: string;
   paper_tags?: string | string[];
-  purview?: number; // 0: 公开试卷 其他: 个人试卷
+  purview?: number; // 1: 公开试卷 3: 个人（私有）试卷 -1: 官方试卷
   author?: string;
   ctime?: string;
   [key: string]: unknown;
@@ -263,8 +265,17 @@ export interface IPaperItem extends IPaperInfo {
   chkState?: number;
 }
 
-// 试卷列表按分组返回（key 为分组名）
-export type IPaperGroup = Record<string, IPaperItem[]>;
+// 单个分组的分页结果（type='all' 时每个分组各自分页）
+export interface IPaperGroupPage {
+  // 后端返回的是原始 snake_case 行数据，用 IPaperCard 而非 IPaperInfo
+  list: IPaperCard[];
+  total: number;
+  currentPage: number;
+  pageSize: number;
+}
+
+// 试卷列表按分组返回（key 为分组名，如 purviewPaper / personPaper）
+export type IPaperGroup = Record<string, IPaperGroupPage>;
 
 // 试卷详情
 export interface IPaperDetail {

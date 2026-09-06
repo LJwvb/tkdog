@@ -1,0 +1,555 @@
+﻿/**
+ * 暗色模式样式
+ * 所有 html.dark 相关的样式都集中在这里，方便统一维护
+ * 包含：全局容器、导航栏、文字颜色、卡片、表单、表格、各页面组件等
+ */
+/* 暗色模式：覆盖主要容器背景与硬编码文字颜色（Element Plus 组件由 dark css-vars 自动适配） */
+html.dark {
+  /* 与 .tkdog-container 暗色背景一致，避免滚动条槽位透出亮色背景 */
+  background-color: #141414;
+}
+
+html.dark body {
+  background-color: #141414;
+  color: #e5eaf3;
+}
+
+html.dark .tkdog-container {
+  background-color: #141414;
+}
+
+html.dark .nav-container,
+html.dark .home-nav {
+  /* 与页面底色 #141414 完全一致，避免导航呈现色带 */
+  background-color: #141414 !important;
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border-bottom: 1px solid rgba(0, 166, 255, 0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+/* 暗色下：硬编码的深色文字统一调亮 */
+html.dark .question,
+html.dark .q-stem,
+html.dark .comment-text,
+html.dark .comment-user,
+html.dark .option-row,
+html.dark .option-value,
+html.dark .similar-question-text,
+html.dark .question-title,
+html.dark .answer,
+html.dark .group-question,
+html.dark .announce-title,
+html.dark .about-item {
+  color: #e5eaf3 !important;
+}
+
+/* 暗色下：浅色背景改为深色 */
+html.dark .reply-quote,
+html.dark .answer,
+html.dark .child-comment,
+html.dark .deep-reply,
+html.dark .q-type,
+html.dark .question-type,
+html.dark .subject-stats {
+  background-color: #262727 !important;
+}
+
+/* 暗色下：次级文字 */
+html.dark .comment-time,
+html.dark .option-code,
+html.dark .announce-content,
+html.dark .stats-label {
+  color: #a3a6ad !important;
+}
+
+/* 暗色下：高亮定位的评论保持可见 */
+html.dark .comment-item.highlighted {
+  background-color: #3a2f1d !important;
+}
+
+/* 暗色下：题目卡片（自定义 .card-container） */
+html.dark .card-container {
+  background-color: #1d1e1f !important;
+  border-color: #3a3b3c !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.dark .card-container:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+  border-color: #4a4b4c !important;
+}
+
+/* 暗色下：题目卡片文字 */
+html.dark .card-container .title,
+html.dark .card-container .title-text {
+  color: #e5eaf3 !important;
+}
+
+html.dark .card-container .card-footer {
+  border-top-color: #3a3b3c !important;
+}
+
+html.dark .card-container .info,
+html.dark .card-container .nums {
+  color: #a3a6ad !important;
+}
+
+html.dark .card-container .line {
+  background-color: #3a3b3c !important;
+}
+
+html.dark .card-container .update-info {
+  color: #e6a23c !important;
+}
+
+/* 暗色下：首页题目卡片容器（MainTab 的 .el-table 白底）与「查看更多」链接 */
+html.dark .el-table {
+  background-color: #1d1e1f !important;
+}
+
+html.dark .more {
+  color: #a3a6ad !important;
+}
+
+/* 暗色下：登录/注册页 */
+html.dark .login-container {
+  background: #141414 !important;
+}
+
+html.dark .loginBox {
+  background-color: #1d1e1f !important;
+}
+
+html.dark .loginBox .title,
+html.dark .loginBox .sub-title {
+  color: #e5eaf3 !important;
+}
+
+/* 暗色下：输入框 placeholder */
+html.dark .el-input__inner::placeholder,
+html.dark .el-textarea__inner::placeholder {
+  color: #6b6f76 !important;
+}
+
+/* 暗色下：搜索区 label 文字 */
+html.dark .search-label,
+html.dark .filter-label,
+html.dark .form-label {
+  color: #a3a6ad !important;
+}
+
+/* 暗色下：标签文字调亮 */
+html.dark .el-tag,
+html.dark .tag,
+html.dark .question-tag,
+html.dark .subject-tag {
+  color: #e5eaf3 !important;
+  border-color: #3a3b3c !important;
+}
+
+/* 暗色下：白色卡片改深色 */
+html.dark .question-card,
+html.dark .paper-card,
+html.dark .info-card,
+html.dark .content-card {
+  background-color: #1d1e1f !important;
+  border-color: #3a3b3c !important;
+  color: #e5eaf3 !important;
+}
+
+/* 暗色下：步骤条文字 */
+html.dark .el-step__title,
+html.dark .step-title {
+  color: #a3a6ad !important;
+}
+
+html.dark .el-step.is-process .el-step__title,
+html.dark .el-step.is-active .el-step__title {
+  color: #e5eaf3 !important;
+}
+
+/* 暗色下：分割线 */
+html.dark .el-divider,
+html.dark .divider,
+html.dark hr {
+  border-color: #3a3b3c !important;
+  background-color: #3a3b3c !important;
+}
+
+/* 暗色下：答题页 header 和导航栏 */
+html.dark .paper-header,
+html.dark .do-paper-header,
+html.dark .question-nav {
+  background-color: #1d1e1f !important;
+  border-color: #3a3b3c !important;
+  color: #e5eaf3 !important;
+}
+
+/* 暗色下：空状态图标 */
+html.dark .empty-icon,
+html.dark .el-empty__image {
+  opacity: 0.5;
+}
+
+/* 暗色下：首页 hero 横幅 */
+html.dark .home-hero {
+  background: linear-gradient(
+      120deg,
+      rgba(0, 166, 255, 0.14) 0%,
+      rgba(0, 200, 220, 0.06) 45%,
+      rgba(255, 255, 255, 0) 100%
+    ),
+    #1d1e1f !important;
+  border-color: rgba(0, 166, 255, 0.25) !important;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.4) !important;
+}
+html.dark .home-hero .hero-title {
+  color: #e5eaf3 !important;
+}
+html.dark .home-hero .hero-sub {
+  color: #a3a6ad !important;
+}
+html.dark .home-hero .hero-badge {
+  color: #7fd7ff !important;
+  border-color: rgba(90, 190, 255, 0.4) !important;
+  background: rgba(0, 160, 255, 0.14) !important;
+}
+html.dark .home-hero .hero-glow-1 {
+  background: rgba(0, 150, 255, 0.2);
+}
+html.dark .home-hero .hero-glow-2 {
+  background: rgba(0, 200, 220, 0.12);
+}
+
+/* 暗色下：答案与解析面板 */
+html.dark .answer-section {
+  background: linear-gradient(
+      135deg,
+      rgba(0, 166, 255, 0.08) 0%,
+      rgba(0, 200, 220, 0.03) 45%,
+      rgba(255, 255, 255, 0) 100%
+    ),
+    #1d1e1f !important;
+  border-color: rgba(0, 166, 255, 0.25) !important;
+}
+html.dark .answer-title {
+  color: #e5eaf3 !important;
+}
+html.dark .answer {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  color: #c7cdd6 !important;
+}
+
+/* 暗色下：AI 解题思路面板 */
+html.dark .ai-section {
+  background: linear-gradient(
+      135deg,
+      rgba(0, 166, 255, 0.08) 0%,
+      rgba(0, 200, 220, 0.03) 45%,
+      rgba(255, 255, 255, 0) 100%
+    ),
+    #1d1e1f !important;
+  border-color: rgba(0, 166, 255, 0.25) !important;
+}
+html.dark .ai-title,
+html.dark .ai-block-title {
+  color: #e5eaf3 !important;
+}
+html.dark .ai-summary {
+  color: #e5eaf3 !important;
+  background: rgba(0, 166, 255, 0.12) !important;
+}
+html.dark .ai-list,
+html.dark .ai-text {
+  color: #c7cdd6 !important;
+}
+html.dark .ai-text {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+html.dark .ai-login-tip,
+html.dark .ai-error {
+  color: #a3a6ad !important;
+}
+
+/* 暗色下：页脚 */
+html.dark .connection {
+  background: #1d1e1f !important;
+  border-color: #3a3b3c !important;
+  color: #a3a6ad !important;
+}
+html.dark .connection .el-icon {
+  color: #4fc3ff !important;
+}
+
+/* 暗色下：el-card 组件 */
+html.dark .el-card {
+  background-color: #1d1e1f !important;
+  border-color: #3a3b3c !important;
+  color: #e5eaf3 !important;
+}
+
+html.dark .el-card__body {
+  color: #e5eaf3 !important;
+}
+
+/* 暗色下：el-drawer 抽屉 */
+html.dark .el-drawer {
+  background-color: #1d1e1f !important;
+  color: #e5eaf3 !important;
+}
+
+html.dark .el-drawer__title {
+  color: #e5eaf3 !important;
+}
+
+/* 暗色下：表格 */
+html.dark .el-table th,
+html.dark .el-table td {
+  background-color: #1d1e1f !important;
+  border-color: #3a3b3c !important;
+  color: #e5eaf3 !important;
+}
+
+html.dark .el-table tr:hover > td {
+  background-color: #262727 !important;
+}
+
+/* 暗色下：表单 label */
+html.dark .el-form-item__label {
+  color: #a3a6ad !important;
+}
+
+/* 暗色下：题目卡片容器 */
+html.dark .question-card-container,
+html.dark .top-container .el-card {
+  background-color: #1d1e1f !important;
+  border-color: #3a3b3c !important;
+}
+
+/* 暗色下：QuestionCard 题目卡片组件 */
+html.dark .card-container {
+  background-color: #1d1e1f !important;
+  border-color: #3a3b3c !important;
+  color: #e5eaf3 !important;
+}
+html.dark .card-container:hover {
+  background-color: #262727 !important;
+  border-color: #4a4b4c !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* 暗色下：单选/多选按钮组 */
+html.dark .el-radio-button__inner {
+  background-color: #262727 !important;
+  border-color: #3a3b3c !important;
+  color: #e5eaf3 !important;
+}
+
+html.dark .el-radio-button.is-active .el-radio-button__inner {
+  background-color: #409eff !important;
+  border-color: #409eff !important;
+  color: #fff !important;
+}
+
+/* 暗色下：下拉选择框 */
+html.dark .el-select .el-input__inner {
+  background-color: #262727 !important;
+  border-color: #3a3b3c !important;
+  color: #e5eaf3 !important;
+}
+
+/* 暗色下：输入框（wrapper 才是实际背景容器） */
+html.dark .el-input__wrapper,
+html.dark .el-textarea__inner {
+  background-color: #262727 !important;
+  box-shadow: 0 0 0 1px #3a3b3c inset !important;
+  color: #e5eaf3 !important;
+}
+html.dark .el-input__wrapper:hover {
+  box-shadow: 0 0 0 1px #5a5b5c inset !important;
+}
+html.dark .el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 1px #409eff inset !important;
+}
+html.dark .el-input__wrapper.is-error {
+  box-shadow: 0 0 0 1px #f56c6c inset !important;
+}
+html.dark .el-input__inner,
+html.dark .el-textarea__inner {
+  background-color: transparent !important;
+  color: #e5eaf3 !important;
+  -webkit-text-fill-color: #e5eaf3 !important;
+}
+/* 暗色下：浏览器自动填充（autofill）覆盖 */
+html.dark input:-webkit-autofill,
+html.dark input:-internal-autofill-selected {
+  -webkit-box-shadow: 0 0 0 1000px #262727 inset !important;
+  box-shadow: 0 0 0 1000px #262727 inset !important;
+  -webkit-text-fill-color: #e5eaf3 !important;
+  caret-color: #e5eaf3 !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+html.dark input:-webkit-autofill:hover,
+html.dark input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #2d2e2f inset !important;
+  box-shadow: 0 0 0 1000px #2d2e2f inset !important;
+  -webkit-text-fill-color: #e5eaf3 !important;
+}
+
+/* 暗色下：答题页固定 header */
+html.dark .header-fixed {
+  background-color: #1d1e1f !important;
+  border-bottom: 1px solid #3a3b3c !important;
+}
+
+html.dark .header-fixed .paper-title,
+html.dark .header-fixed .meta-item {
+  color: #e5eaf3 !important;
+}
+
+html.dark .header-fixed .meta-divider {
+  color: #6b6f76 !important;
+}
+
+/* 暗色下：答题页题型标签 */
+html.dark .q-type {
+  background-color: #262727 !important;
+  color: #a3a6ad !important;
+  border-color: #3a3b3c !important;
+}
+
+/* 暗色下：答题页题目卡片 */
+html.dark .question-card {
+  background-color: #1d1e1f !important;
+  border-color: #3a3b3c !important;
+}
+
+html.dark .question-card .q-stem,
+html.dark .question-card .q-index {
+  color: #e5eaf3 !important;
+}
+
+/* 暗色下：答题页题目导航 */
+html.dark .question-nav {
+  background-color: #1d1e1f !important;
+  border-color: #3a3b3c !important;
+}
+
+html.dark .question-nav .nav-title,
+html.dark .question-nav .nav-progress {
+  color: #e5eaf3 !important;
+}
+
+/* 暗色下：用户页左侧菜单 */
+html.dark .user-menu {
+  background-color: #1d1e1f !important;
+  border-color: #3a3b3c !important;
+}
+
+html.dark .user-menu .el-menu-item,
+html.dark .user-menu .menu-item {
+  color: #a3a6ad !important;
+}
+
+html.dark .user-menu .el-menu-item.is-active,
+html.dark .user-menu .menu-item.active {
+  color: #409eff !important;
+  background-color: #262727 !important;
+}
+
+html.dark .user-menu .el-menu-item:hover,
+html.dark .user-menu .menu-item:hover {
+  background-color: #262727 !important;
+  color: #e5eaf3 !important;
+}
+
+/* 暗色下：用户页信息卡片 */
+html.dark .user-info-container .main-info,
+html.dark .user-info-container .question-info {
+  /* background-color: #1d1e1f !important; */
+  border-color: #3a3b3c !important;
+}
+
+html.dark .user-info-container .name,
+html.dark .user-info-container .intro,
+html.dark .user-info-container .box-item {
+  color: #e5eaf3 !important;
+}
+
+/* 暗色下：组卷页步骤条和表单 */
+html.dark .add-paper .steps,
+html.dark .add-paper .step-content {
+  background-color: #1d1e1f !important;
+  border-color: #3a3b3c !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.dark .add-paper .el-step__title {
+  color: #a3a6ad !important;
+}
+
+html.dark .add-paper .el-step.is-process .el-step__title,
+html.dark .add-paper .el-step.is-active .el-step__title {
+  color: #e5eaf3 !important;
+}
+
+html.dark .add-paper .el-form-item__label {
+  color: #a3a6ad !important;
+}
+
+html.dark .add-paper .el-radio__label {
+  color: #e5eaf3 !important;
+}
+
+/* ============================================
+   首页右侧栏（Slide.vue）
+   ============================================ */
+
+/* 卡片标题（公告、每日一题、关于本站） */
+html.dark .card-header,
+html.dark .rank-header {
+  color: #e5eaf3 !important;
+}
+
+html.dark .card-header .text,
+html.dark .rank-header span {
+  color: #e5eaf3 !important;
+}
+
+/* 公告内容标题 */
+html.dark .announce-title {
+  color: #e5eaf3 !important;
+}
+
+/* 公告内容 */
+html.dark .announce-content {
+  color: #a3a6ad !important;
+}
+
+/* 每日一题问题 */
+html.dark .question {
+  color: #e5eaf3 !important;
+}
+
+/* 关于本站内容 */
+html.dark .about-item {
+  color: #a3a6ad !important;
+}
+
+/* 分割线 */
+html.dark .announce-item,
+html.dark .border_bottom {
+  border-bottom-color: #3a3b3c !important;
+}
+
+/* 排行榜排名数字 */
+html.dark .rank {
+  color: #a3a6ad !important;
+}
+
+/* 排行榜用户名 */
+html.dark .row .name,
+html.dark .border_bottom .name {
+  color: #e5eaf3 !important;
+}

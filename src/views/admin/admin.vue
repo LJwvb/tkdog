@@ -13,7 +13,12 @@
         rules：校验规则
         ref：将来获取表单实例
        -->
-      <el-form ref="ruleFormRef" class="login-form">
+      <el-form
+        ref="ruleFormRef"
+        :model="ruleForm"
+        :rules="rules"
+        class="login-form"
+      >
         <!-- prop要跟model中的属性和rules中的属性，保持一致 -->
         <el-form-item prop="name">
           <el-input
@@ -54,7 +59,7 @@ import { ref, reactive, unref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { adminLogin } from '@/services';
-import { ElMessage, type FormInstance } from 'element-plus';
+import { ElMessage, type FormInstance, type FormRules } from 'element-plus';
 
 const store = useStore();
 
@@ -69,29 +74,43 @@ const ruleForm = reactive({
   password: '', // 密码
 });
 
+// 校验规则（el-form 必须绑定 :model 与 :rules，否则 validate() 永远通过）
+const rules = reactive<FormRules>({
+  name: [{ required: true, message: '请输入账号', trigger: 'blur' }],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    // { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' },
+  ],
+});
+
 // 登录
 const toLogin = async () => {
   const form = unref(ruleFormRef);
   if (!form) return;
 
+  // 先校验表单，未通过直接返回（校验提示由表单项自行展示）
   try {
-    adminLogin(ruleForm).then(async (result) => {
-      await form.validate();
+    await form.validate();
+  } catch {
+    return;
+  }
 
-      store.commit('setUserData', {
-        ...result,
-        phone: 'admin',
-        username: result?.name ?? 'admin',
-        isAdmin: true,
-      });
-      store.commit('setBrowseTopicsId', []);
-      ElMessage.success({
-        message: '登录成功~',
-        type: 'success',
-      });
-      localStorage.setItem('uid', String(ruleForm.name));
-      router.push('/adminHome');
+  try {
+    const result = await adminLogin(ruleForm);
+
+    store.commit('setUserData', {
+      ...result,
+      phone: 'admin',
+      username: result?.name ?? 'admin',
+      isAdmin: true,
     });
+    store.commit('setBrowseTopicsId', []);
+    ElMessage.success({
+      message: '登录成功~',
+      type: 'success',
+    });
+    localStorage.setItem('uid', String(ruleForm.name));
+    router.push('/adminHome');
   } catch (error) {
     ElMessage.error('登录失败，请稍后重试');
     // eslint-disable-next-line no-console
@@ -105,9 +124,12 @@ const toPersonLogin = () => {
 
 <style scoped>
 .login-container {
-  width: 100%;
-  height: 100%;
+  /* fixed 四边拉伸铺满完整视口（含滚动槽），避免 scrollbar-gutter 下右侧露出空隙 */
   position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   background-size: 100% 100%;
 
   display: flex;

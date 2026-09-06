@@ -31,7 +31,7 @@
         <span>试卷</span>
       </el-menu-item>
       <el-menu-item
-        v-if="store.state.userData?.phone"
+        v-if="store.state.userData?.userId"
         index="4"
         @click="toUser"
       >
@@ -59,14 +59,14 @@
         </el-button>
       </el-badge>
       <el-button
-        v-if="store.state.userData?.phone"
+        v-if="store.state.userData?.userId"
         type="primary"
         class="upload"
         @click="toAddSubject"
       >
         上传
       </el-button>
-      <el-dropdown v-if="store.state.userData?.phone">
+      <el-dropdown v-if="store.state.userData?.userId">
         <el-avatar
           :size="50"
           :src="store.state.userData?.avatar"
@@ -209,11 +209,6 @@
         <span>标签管理</span>
       </el-menu-item>
     </el-menu>
-    <!-- <el-input placeholder="请输入搜索的内容" size="large" class="search">
-      <template #append>
-        <el-button :icon="Search" size="large" />
-      </template>
-    </el-input> -->
     <div class="left">
       <el-button type="primary" class="upload" @click="toAddSubject">
         上传
@@ -303,7 +298,7 @@ let pendingTimer: ReturnType<typeof setInterval> | null = null;
 const loadUnread = async () => {
   // 管理员或无登录态时不拉取用户未读数
   if (store.state.userData.isAdmin) return;
-  if (!store.state.userData?.phone) return;
+  if (!store.state.userData?.userId) return;
   try {
     const res = await getUnreadCount();
     store.commit('setUnreadCount', res?.count ?? 0);
@@ -545,8 +540,11 @@ const toTag = () => {
   align-items: center;
   justify-content: space-between;
   height: 60px;
-  background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border-bottom: 1px solid rgba(0, 166, 255, 0.08);
+  box-shadow: 0 4px 18px rgba(31, 45, 61, 0.06);
   padding: 0 20px;
 }
 
@@ -555,17 +553,58 @@ const toTag = () => {
   align-items: center;
 }
 
+.logo img {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 150, 255, 0.3);
+}
+
 .title {
   font-size: 20px;
-  font-weight: 600;
+  font-weight: 700;
   margin-left: 10px;
   white-space: nowrap;
+  background: linear-gradient(120deg, #0072ff, #00c6ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .nav {
   border: none !important;
   width: 100%;
   margin-left: 60px;
+}
+
+/* 菜单项：激活态渐变文字 + 悬浮渐变下划线 */
+.nav :deep(.el-menu-item) {
+  border-bottom: none !important;
+  transition: color 0.25s ease;
+}
+.nav :deep(.el-menu-item:hover) {
+  color: var(--el-color-primary);
+  background: transparent;
+}
+.nav :deep(.el-menu-item.is-active) {
+  color: var(--el-color-primary);
+  font-weight: 600;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 70%,
+    rgba(0, 166, 255, 0.12) 70%,
+    rgba(0, 166, 255, 0.12) 100%
+  );
+}
+.nav :deep(.el-menu-item.is-active::after) {
+  content: '';
+  position: absolute;
+  left: 20%;
+  right: 20%;
+  bottom: 6px;
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #00c6ff, #0072ff);
+  box-shadow: 0 0 8px rgba(0, 166, 255, 0.5);
 }
 
 .search {
@@ -581,9 +620,12 @@ const toTag = () => {
 
 .upload {
   margin-right: 20px;
+  border-radius: 10px;
+  font-weight: 600;
 }
 .msg-badge {
   margin-right: 16px;
+  margin-left: 10px;
 }
 
 /* 移动端导航栏精简 */
@@ -623,7 +665,17 @@ const toTag = () => {
     margin-right: 8px;
   }
 }
+.nav :deep(.el-menu-item) {
+  position: relative;
+  overflow: visible;
+}
 .menu-badge {
-  margin-left: 6px;
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  width: 0;
+  height: 0;
+  margin-left: 0;
+  z-index: 10;
 }
 </style>

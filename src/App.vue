@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <router-view v-if="isStandalonePage" />
     <div v-else class="tkdog-container">
@@ -20,18 +20,27 @@
 </template>
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import NavBar from '@/views/NavBar/index.vue';
 import BottomBar from '@/views/BottomBar/index.vue';
 import TestBasket from '@/components/TestBasket/index.vue';
 import { setWaterMark } from './utils/waterMark';
 
 const route = useRoute();
-// 登录页 / 管理员登录页 / 404 属于独立页面，不渲染全局导航与布局
+const router = useRouter();
+// 登录页 / 管理员登录页 / 404 / 协议页属于独立页面，不渲染全局导航与布局
 // 导航未完成（name 为空）时也视为独立页面，避免重定向前渲染完整布局触发无关请求
 const isStandalonePage = computed(() => {
   const name = route.name;
-  return !name || name === 'Login' || name === 'admin' || name === '404';
+  return (
+    !name ||
+    name === 'Login' ||
+    name === 'admin' ||
+    name === '404' ||
+    name === 'agreement' ||
+    name === 'privacy' ||
+    name === 'GithubCallback'
+  );
 });
 
 // 仅在非输入元素上阻止 Enter 键默认行为（如表单提交）
@@ -50,6 +59,27 @@ const keydownHandler = (event: KeyboardEvent) => {
 onMounted(() => {
   setWaterMark('tkdog', '面试题库');
   document.addEventListener('keydown', keydownHandler);
+
+  // GitHub OAuth 回调处理：GitHub 不接受带 # 的 hash 回调 URL，
+  // 回调到首页 ?code=xxx&state=xxx 后，跳转到 hash 路由的回调页处理
+  console.log('[App] onMounted, 当前 URL:', window.location.href);
+  console.log('[App] window.location.search:', window.location.search);
+  const urlParams = new URLSearchParams(window.location.search);
+  const githubCode = urlParams.get('code');
+  const githubState = urlParams.get('state');
+  console.log('[App] 检测到 code:', githubCode, 'state:', githubState);
+  if (githubCode) {
+    const redirectHash = `/oauth/github/callback?code=${encodeURIComponent(
+      githubCode,
+    )}${githubState ? `&state=${encodeURIComponent(githubState)}` : ''}`;
+    console.log('[App] 用 router.replace 跳转到回调页:', redirectHash);
+    // 清除 URL 中的 query 参数，避免刷新重复处理
+    window.history.replaceState({}, document.title, window.location.pathname);
+    // 用 Vue Router 跳转，确保组件 onMounted 被触发
+    router.replace(redirectHash);
+  } else {
+    console.log('[App] 未检测到 code，正常渲染页面');
+  }
 });
 
 onBeforeUnmount(() => {
@@ -57,6 +87,78 @@ onBeforeUnmount(() => {
 });
 </script>
 <style>
+@import '@/styles/dark.css';
+
+/* ============ 全局主题：青蓝主色 ============ */
+:root {
+  --el-color-primary: #00a6ff;
+  --el-color-primary-light-3: #33b9ff;
+  --el-color-primary-light-5: #66cbff;
+  --el-color-primary-light-7: #99dcff;
+  --el-color-primary-light-8: #b3e5ff;
+  --el-color-primary-light-9: #e6f6ff;
+  --el-color-primary-dark-2: #0085cc;
+  --tk-brand-grad: linear-gradient(120deg, #00c6ff, #0072ff);
+  --tk-brand-grad-anim: linear-gradient(120deg, #00c6ff, #0072ff, #00c6ff);
+}
+
+/* 全局页面背景：顶部淡青蓝渐变的科技感底 */
+.tkdog-container {
+  background: linear-gradient(
+      180deg,
+      rgba(0, 166, 255, 0.08) 0%,
+      rgba(0, 166, 255, 0.03) 320px,
+      rgba(0, 166, 255, 0) 640px
+    ),
+    #f0f2f5;
+}
+
+/* 全局主按钮：青蓝渐变 + 光影 */
+.el-button--primary {
+  border: none;
+  background-image: var(--tk-brand-grad-anim);
+  background-size: 200% 100%;
+  box-shadow: 0 4px 14px rgba(0, 120, 255, 0.25);
+  transition: all 0.35s ease;
+}
+.el-button--primary:hover,
+.el-button--primary:focus {
+  background-position: 100% 0;
+  box-shadow: 0 6px 20px rgba(0, 140, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+/* plain 模式：保留渐变背景，文字改白色确保清晰可读 */
+.el-button--primary.is-plain {
+  color: #fff;
+}
+.el-button--primary.is-plain:hover,
+.el-button--primary.is-plain:focus {
+  color: #fff;
+}
+
+/* el-tabs：激活下划线渐变 + 激活文字品牌色 */
+.el-tabs__active-bar {
+  background: linear-gradient(90deg, #00c6ff, #0072ff);
+}
+.el-tabs__item.is-active {
+  color: var(--el-color-primary);
+}
+.el-tabs__item:hover {
+  color: var(--el-color-primary);
+}
+
+/* el-link 主色 */
+.el-link--primary {
+  --el-link-primary-text-color: var(--el-color-primary);
+}
+
+/* 滚动条：青蓝主题 */
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #7fd4ff, #4db8ff);
+  border-radius: 4px;
+}
+
 .tkdog-container {
   width: 100%;
   min-height: 100vh;
@@ -64,29 +166,89 @@ onBeforeUnmount(() => {
   flex-direction: column;
   align-items: center;
   position: relative;
+  background-color: #f0f2f5;
 }
 
 .home-nav {
   position: fixed;
-  width: 100%;
+  /* scrollbar-gutter: stable 下 Chrome 会把 fixed 元素的 width:100%/100vw 都解析成"视口-滚动槽"，
+     导致右侧槽位透出页面背景形成空隙；改用 left:0 + right:0 拉伸定位，直接铺满含滚动槽的完整视口 */
+  left: 0;
+  right: 0;
   z-index: 100;
   height: 60px;
 }
 
 .home-body {
-  padding-top: 20px;
-  width: 90%;
+  padding-top: 24px;
+  width: 100%;
+  max-width: 1680px;
   display: flex;
   justify-content: space-between;
   margin-top: 60px;
-  min-height: 60vh;
+  flex: 1;
   position: relative;
+  padding-left: 32px;
+  padding-right: 32px;
+  gap: 24px;
 }
 
 .home-bottom {
-  width: 90%;
-  margin-top: 20px;
-  margin-bottom: 20px;
+  width: 100%;
+  max-width: 1680px;
+  margin-top: 24px;
+  margin-bottom: 24px;
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
+/* 全局统一卡片样式：更精致的层次光影 */
+.el-card {
+  border-radius: 14px;
+  border: 1px solid #e4e7ed;
+  background: linear-gradient(
+      135deg,
+      rgba(0, 166, 255, 0.05) 0%,
+      rgba(0, 200, 220, 0.02) 45%,
+      rgba(255, 255, 255, 0) 100%
+    ),
+    #fff;
+  box-shadow: 0 4px 18px rgba(31, 45, 61, 0.06);
+  transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+}
+
+.el-card:hover {
+  border-color: rgba(0, 166, 255, 0.35);
+  box-shadow: 0 10px 30px rgba(0, 110, 255, 0.12);
+  transform: translateY(-2px);
+}
+
+/* 全局统一按钮圆角 */
+.el-button {
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+/* 去掉 el-tag 动画：禁用过渡、hover 位移和关闭图标旋转 */
+.el-tag {
+  transition: none !important;
+}
+
+.el-tag .el-tag__close,
+.el-tag .el-icon-close {
+  transition: none !important;
+  transform: none !important;
+}
+
+.el-tag-fade-enter-active,
+.el-tag-fade-leave-active,
+.el-tag-fade-enter-from,
+.el-tag-fade-leave-to,
+.el-tag-fade-enter-to,
+.el-tag-fade-leave-from {
+  transition: none !important;
+  transform: none !important;
+  animation: none !important;
 }
 
 /* 移动端基础响应式 */
@@ -94,10 +256,17 @@ onBeforeUnmount(() => {
   .home-body {
     width: 96%;
     flex-direction: column;
+    padding-left: 0;
+    padding-right: 0;
+    gap: 16px;
+    flex: none;
+    min-height: auto;
   }
 
   .home-bottom {
     width: 96%;
+    padding-left: 0;
+    padding-right: 0;
   }
 
   /* 首页左右布局堆叠 */
@@ -108,7 +277,7 @@ onBeforeUnmount(() => {
   }
 
   .home-right {
-    margin-top: 20px;
+    margin-top: 16px;
   }
 
   /* 题目/试卷详情：左右布局改为上下 */
@@ -119,7 +288,7 @@ onBeforeUnmount(() => {
   }
 
   .slide-container {
-    margin-top: 20px;
+    margin-top: 16px;
   }
 
   /* 答题页全宽 + 头部纵向 */
@@ -201,109 +370,21 @@ onBeforeUnmount(() => {
 }
 
 ::-webkit-scrollbar {
-  /* display: none; */
-  width: 10px;
-  height: 15px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 10px;
+  background: #c0c4cc;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #909399;
 }
 
 ::-webkit-scrollbar-track {
-  background: #fff;
-  border-radius: 10px;
-}
-
-/* ::-webkit-scrollbar-button {
-  width: 0;
-  height: 0;
-} */
-
-/* 暗色模式：覆盖主要容器背景与硬编码文字颜色（Element Plus 组件由 dark css-vars 自动适配） */
-html.dark body {
-  background-color: #141414;
-  color: #e5eaf3;
-}
-
-html.dark .nav-container,
-html.dark .home-nav {
-  background-color: #1d1e1f !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-}
-
-html.dark .tkdog-container {
-  background-color: #141414;
-}
-
-/* 暗色下：硬编码的深色文字统一调亮 */
-html.dark .question,
-html.dark .q-stem,
-html.dark .comment-text,
-html.dark .comment-user,
-html.dark .option-row,
-html.dark .option-value,
-html.dark .similar-question-text,
-html.dark .question-title,
-html.dark .answer,
-html.dark .group-question,
-html.dark .announce-title,
-html.dark .about-item {
-  color: #e5eaf3 !important;
-}
-
-/* 暗色下：浅色背景改为深色 */
-html.dark .reply-quote,
-html.dark .answer,
-html.dark .child-comment,
-html.dark .deep-reply,
-html.dark .q-type,
-html.dark .question-type,
-html.dark .subject-stats {
-  background-color: #262727 !important;
-}
-
-/* 暗色下：次级文字 */
-html.dark .comment-time,
-html.dark .option-code,
-html.dark .announce-content,
-html.dark .stats-label {
-  color: #a3a6ad !important;
-}
-
-/* 暗色下：高亮定位的评论保持可见 */
-html.dark .comment-item.highlighted {
-  background-color: #3a2f1d !important;
-}
-
-/* 暗色下：题目卡片（自定义 .card-container） */
-html.dark .card-container {
-  border-color: #3a3b3c !important;
-  box-shadow: -10px -10px 20px rgba(0, 0, 0, 0.5) inset !important;
-}
-
-/* 暗色下：首页题目卡片容器（MainTab 的 .el-table 白底）与「查看更多」链接 */
-html.dark .el-table {
-  background-color: #1d1e1f !important;
-}
-
-html.dark .more {
-  color: #a3a6ad !important;
-}
-
-/* 暗色下：登录/注册页 */
-html.dark .login-container {
-  background: #141414 !important;
-}
-
-html.dark .loginBox {
-  background-color: #1d1e1f !important;
-}
-
-html.dark .loginBox .title,
-html.dark .loginBox .sub-title {
-  color: #e5eaf3 !important;
+  background: transparent;
 }
 
 /* 打印（导出 PDF）：只保留主体内容，隐藏导航/侧栏/试题篮等 */

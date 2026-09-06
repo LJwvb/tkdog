@@ -1,139 +1,178 @@
-<template>
+﻿<template>
   <div class="hello" style="width: 100%">
-    <div v-if="activeName === 'chk'" class="search">
-      <el-form ref="from" :model="form">
-        <el-form-item label="搜索">
+    <!-- 搜索：所有页签（待审核/已审核/已删除）均可用，支持题干/题型/难度/状态组合筛选 -->
+    <el-card class="search">
+      <el-form ref="formRef" :model="form" inline>
+        <el-form-item label="关键词">
           <el-input
             v-model="form.keyword"
-            placeholder="请输入搜索的内容"
-            class="search"
+            placeholder="按题目内容搜索"
+            clearable
+          />
+        </el-form-item>
+        <el-form-item label="题型">
+          <el-select
+            v-model="form.questionType"
+            placeholder="全部题型"
+            clearable
+            style="width: 120px"
           >
-          </el-input>
+            <el-option label="单选题" value="0" />
+            <el-option label="多选题" value="1" />
+            <el-option label="判断题" value="2" />
+            <el-option label="简答题" value="3" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="难度">
+          <el-select
+            v-model="form.difficulty"
+            placeholder="全部难度"
+            clearable
+            style="width: 110px"
+          >
+            <el-option label="简单" value="0" />
+            <el-option label="中等" value="1" />
+            <el-option label="困难" value="2" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-select
+            v-model="form.state"
+            placeholder="全部状态"
+            clearable
+            style="width: 130px"
+          >
+            <el-option label="待审核" value="0" />
+            <el-option label="已审核" value="1" />
+            <el-option label="不通过" value="2" />
+            <el-option label="已删除" value="deleted" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="onSubmit">搜索</el-button>
+          <el-button @click="clearSearch">清空</el-button>
         </el-form-item>
       </el-form>
-      <el-button type="primary" style="margin-left: 20px" @click="onSubmit"
-        >搜索</el-button
-      >
-      <el-button @click="clearSearch">清空</el-button>
-    </div>
+    </el-card>
     <el-container v-if="!clickSearch">
-      <el-main style="padding: 10px">
+      <el-main style="padding: 10px 0 0 0">
         <el-card>
-          <div class="batch-bar">
-            <el-button type="success" @click="openImportDialog">
-              批量导入题目
-            </el-button>
-            <el-button @click="exportCsv">导出 CSV</el-button>
-            <el-button @click="downloadTemplate">下载导入模板</el-button>
+          <div class="tabs-row">
+            <el-tabs v-model="activeName" @tab-click="handleClick">
+              <el-tab-pane
+                key="nochk"
+                label="未审核的题目"
+                name="nochk"
+              ></el-tab-pane>
+              <el-tab-pane
+                key="chk"
+                label="已审核的题目"
+                name="chk"
+              ></el-tab-pane>
+              <el-tab-pane
+                key="deleted"
+                label="已删除的题目"
+                name="deleted"
+              ></el-tab-pane>
+            </el-tabs>
+            <div class="batch-bar">
+              <el-button type="success" @click="openImportDialog">
+                批量导入题目
+              </el-button>
+              <el-button @click="exportCsv">导出 CSV</el-button>
+              <el-button @click="downloadTemplate">下载导入模板</el-button>
+            </div>
           </div>
-          <el-tabs v-model="activeName" @tab-click="handleClick">
-            <el-tab-pane
-              key="nochk"
-              label="未审核的题目"
-              name="nochk"
-            ></el-tab-pane>
-            <el-tab-pane
-              key="chk"
-              label="已审核的题目"
-              name="chk"
-            ></el-tab-pane>
-            <el-tab-pane
-              key="deleted"
-              label="已删除的题目"
-              name="deleted"
-            ></el-tab-pane>
-          </el-tabs>
           <div v-if="NoChkQuestions?.length === 0 && activeName === 'nochk'">
             <el-empty :image-size="200" description="没有未审核题目" />
           </div>
           <div
             v-if="activeName === 'nochk'"
-            v-loading="loading"
+            v-loading="nochkLoading"
             element-loading-text="加载中..."
           >
-            <div v-for="item in NoChkQuestions" :key="item?.id">
-              <QuestionCard
-                :question="item"
-                type="nochk"
-                activeName="nochk"
-                @delete="deleteQuestion"
-                @check="check"
-                @uncheck="uncheck"
-              />
+            <VirtualList
+              :data="NoChkQuestions"
+              :height="'auto'"
+              :estimated-item-height="200"
+              :loading="nochkLoadingMore"
+              :finished="NoChkQuestions.length >= noChkTotal"
+              show-back-top
+              @load-more="loadMoreNoChk"
+              ><template #default="{ item }">
+                <QuestionCard
+                  :question="item"
+                  type="nochk"
+                  activeName="nochk"
+                  @delete="deleteQuestion"
+                  @check="check"
+                  @uncheck="uncheck"
+                /> </template
+            ></VirtualList>
+            <div v-if="noChkTotal > 0" class="list-total">
+              共 {{ noChkTotal }} 条，已加载 {{ NoChkQuestions.length }} 条
             </div>
-            <el-pagination
-              v-model:current-page="currentNoChkPage"
-              background
-              layout="slot, prev, pager, next"
-              :total="noChkTotal"
-              prev-text="上一页"
-              next-text="下一页"
-              :hide-on-single-page="true"
-              @current-change="handleNoChkCurrentChange"
-            >
-              <template #default> 共 {{ noChkTotal }} 条 </template>
-            </el-pagination>
           </div>
-          <div
-            v-if="activeName === 'chk'"
-            v-loading="loading"
-            element-loading-text="加载中..."
-          >
-            <div v-for="item in ChkQuestions" :key="item?.id">
-              <QuestionCard
-                :question="item"
-                type="chk"
-                activeName="chk"
-                @delete="deleteQuestion"
-                @edit="handleEdit"
-              />
-            </div>
-            <el-pagination
-              v-model:current-page="currentChkPage"
-              background
-              layout="slot, prev, pager, next"
-              :total="chkTotal"
-              prev-text="上一页"
-              next-text="下一页"
-              :hide-on-single-page="true"
-              @current-change="handleChkCurrentChange"
-            >
-              <template #default> 共 {{ chkTotal }} 条 </template>
-            </el-pagination>
-          </div>
+          <!-- 空状态统一前置：与未审核/试卷管理一致，避免先渲染空列表再显示空状态 -->
           <div v-if="ChkQuestions?.length === 0 && activeName === 'chk'">
             <el-empty :image-size="200" description="没有已审核题目" />
           </div>
           <div
-            v-if="activeName === 'deleted'"
-            v-loading="loading"
+            v-if="activeName === 'chk'"
+            v-loading="chkLoading"
             element-loading-text="加载中..."
           >
-            <div v-for="item in DeletedQuestions" :key="item?.id">
-              <QuestionCard
-                :question="item"
-                type="chk"
-                activeName="deleted"
-                @restore="restoreQuestionFun"
-              />
+            <VirtualList
+              :data="ChkQuestions"
+              :height="'auto'"
+              :estimated-item-height="200"
+              :loading="chkLoadingMore"
+              :finished="ChkQuestions.length >= chkTotal"
+              show-back-top
+              @load-more="loadMoreChk"
+              ><template #default="{ item }">
+                <QuestionCard
+                  :question="item"
+                  type="chk"
+                  activeName="chk"
+                  @delete="deleteQuestion"
+                  @edit="handleEdit"
+                /> </template
+            ></VirtualList>
+            <!-- 已审核列表走无限滚动加载，不再叠加分页器（两套分页会互相打架） -->
+            <div v-if="chkTotal > 0" class="list-total">
+              共 {{ chkTotal }} 条，已加载 {{ ChkQuestions.length }} 条
             </div>
-            <el-pagination
-              v-model:current-page="currentDeletedPage"
-              background
-              layout="slot, prev, pager, next"
-              :total="deletedTotal"
-              prev-text="上一页"
-              next-text="下一页"
-              :hide-on-single-page="true"
-              @current-change="handleDeletedCurrentChange"
-            >
-              <template #default> 共 {{ deletedTotal }} 条 </template>
-            </el-pagination>
           </div>
           <div
             v-if="DeletedQuestions?.length === 0 && activeName === 'deleted'"
           >
             <el-empty :image-size="200" description="没有已删除的题目" />
+          </div>
+          <div
+            v-if="activeName === 'deleted'"
+            v-loading="deletedLoading"
+            element-loading-text="加载中..."
+          >
+            <VirtualList
+              :data="DeletedQuestions"
+              :height="'auto'"
+              :estimated-item-height="200"
+              :loading="deletedLoadingMore"
+              :finished="DeletedQuestions.length >= deletedTotal"
+              show-back-top
+              @load-more="loadMoreDeleted"
+              ><template #default="{ item }">
+                <QuestionCard
+                  :question="item"
+                  type="deleted"
+                  activeName="deleted"
+                  @restore="restoreQuestionFun"
+                /> </template
+            ></VirtualList>
+            <div v-if="deletedTotal > 0" class="list-total">
+              共 {{ deletedTotal }} 条，已加载 {{ DeletedQuestions.length }} 条
+            </div>
           </div>
         </el-card>
       </el-main>
@@ -145,127 +184,131 @@
           color="#aaa"
           style="float: right"
           @click="clearSearch"
-          ><CircleClose
-        /></el-icon>
+        >
+          <CircleClose />
+        </el-icon>
         <el-empty :image-size="200" />
       </div>
       <div v-else>
-        <div v-for="item in searchData" :key="item.id">
-          <QuestionCard
-            :question="item"
-            activeName="chk"
-            :isClickSearch="true"
-          />
+        <VirtualList
+          :data="searchData"
+          :height="'auto'"
+          :estimated-item-height="200"
+          :loading="searchLoadingMore"
+          :finished="searchData.length >= searchTotal"
+          show-back-top
+          @load-more="loadMoreSearch"
+          ><template #default="{ item }">
+            <QuestionCard
+              :question="item"
+              activeName="chk"
+              :isClickSearch="true"
+            /> </template
+        ></VirtualList>
+        <div v-if="searchTotal > 0" class="list-total">
+          共 {{ searchTotal }} 条，已加载 {{ searchData.length }} 条
         </div>
-        <el-pagination
-          v-model:current-page="currentSearchPage"
-          background
-          layout="slot, prev, pager, next"
-          :total="searchTotal"
-          prev-text="上一页"
-          next-text="下一页"
-          :hide-on-single-page="true"
-          @current-change="handleSearchCurrentChange"
-        >
-          <template #default> 共 {{ searchTotal }} 条 </template>
-        </el-pagination>
       </div>
     </div>
-  </div>
-
-  <!-- 批量导入弹窗 -->
-  <el-dialog
-    v-model="importDialogVisible"
-    title="批量导入题目（JSON）"
-    width="640px"
-  >
-    <div class="import-tip">
-      <p>
-        支持单选(0)、多选(1)、判断(2)、简答(3)。每行一个 JSON
-        对象，字段如下（客观题需带 options）：
-      </p>
-      <pre class="import-sample">{{
-        `[
-  {
-    "question": "Vue 中 v-if 和 v-show 的区别？",
-    "questionType": 0,
-    "difficulty": 1,
-    "subjectID": 5,
-    "tags": "Vue,面试",
-    "options": [
+    <!-- 批量导入弹窗 -->
+    <el-dialog
+      v-model="importDialogVisible"
+      title="批量导入题目（JSON）"
+      width="640px"
+    >
+      <div class="import-tip">
+        <p>
+          支持单选(0)、多选(1)、判断(2)、简答(3)。每行一个 JSON
+          对象，字段如下（客观题需带 options）：
+        </p>
+        <pre class="import-sample">{{
+          `[
+      {
+      "question": "Vue 中 v-if 和 v-show 的区别？",
+      "questionType": 0,
+      "difficulty": 1,
+      "subjectID": 5,
+      "tags": "Vue,面试",
+      "options": [
       {"code": "A", "value": "选项A"},
       {"code": "B", "value": "选项B"}
-    ],
-    "answer": "A"
-  },
-  {
-    "question": "Vuex 是做什么的？",
-    "questionType": 3,
-    "subjectID": 5,
-    "answer": "Vuex 是 Vue 的状态管理模式..."
-  }
-]`
-      }}</pre>
-    </div>
-    <div class="import-upload">
-      <input
-        ref="fileInput"
-        type="file"
-        accept=".json,application/json"
-        @change="handleFileChange"
-      />
-      <el-button
-        type="primary"
-        :disabled="!importList.length"
-        @click="doImport"
-      >
-        确认导入（{{ importList.length }} 道）
-      </el-button>
-    </div>
-    <div v-if="importList.length" class="import-preview">
-      <div
-        v-for="(item, index) in importList"
-        :key="index"
-        class="preview-item"
-      >
-        <span class="preview-index">{{ index + 1 }}.</span>
-        <span class="preview-type">{{ typeName(item.questionType) }}</span>
-        <span class="preview-question">{{ item.question }}</span>
+      ],
+      "answer": "A"
+      },
+      {
+      "question": "Vuex 是做什么的？",
+      "questionType": 3,
+      "subjectID": 5,
+      "answer": "Vuex 是 Vue 的状态管理模式..."
+      }
+      ]`
+        }}</pre>
       </div>
-    </div>
-  </el-dialog>
+      <div class="import-upload">
+        <input
+          ref="fileInput"
+          type="file"
+          accept=".json,application/json"
+          @change="handleFileChange"
+        />
+        <el-button
+          type="primary"
+          :disabled="!importList.length"
+          @click="doImport"
+        >
+          确认导入（{{ importList.length }} 道）
+        </el-button>
+      </div>
+      <div v-if="importList.length" class="import-preview">
+        <div
+          v-for="(item, index) in importList"
+          :key="index"
+          class="preview-item"
+        >
+          <span class="preview-index">{{ index + 1 }}.</span>
+          <span class="preview-type">{{ typeName(item.questionType) }}</span>
+          <span class="preview-question">{{ item.question }}</span>
+        </div>
+      </div>
+    </el-dialog>
 
-  <!-- 编辑题目弹窗 -->
-  <el-dialog v-model="editVisible" title="编辑题目" width="640px">
-    <el-form label-width="80px">
-      <el-form-item label="题干">
-        <el-input v-model="editForm.question" type="textarea" :rows="3" />
-      </el-form-item>
-      <el-form-item label="难度">
-        <el-radio-group v-model="editForm.difficulty">
-          <el-radio label="0">简单</el-radio>
-          <el-radio label="1">中等</el-radio>
-          <el-radio label="2">困难</el-radio>
-        </el-radio-group>
-      </el-form-item>
-      <el-form-item label="标签">
-        <el-input v-model="editForm.tags" placeholder="多个标签用逗号分隔" />
-      </el-form-item>
-      <el-form-item label="答案">
-        <el-input v-model="editForm.answer" type="textarea" :rows="6" />
-      </el-form-item>
-    </el-form>
-    <template #footer>
-      <el-button @click="editVisible = false">取消</el-button>
-      <el-button type="primary" @click="saveEdit">保存</el-button>
-    </template>
-  </el-dialog>
+    <!-- 编辑题目弹窗 -->
+    <el-dialog v-model="editVisible" title="编辑题目" width="640px">
+      <el-form label-width="80px">
+        <el-form-item label="题干">
+          <el-input v-model="editForm.question" type="textarea" :rows="3" />
+        </el-form-item>
+        <el-form-item label="难度">
+          <el-radio-group v-model="editForm.difficulty">
+            <el-radio label="0">简单</el-radio>
+            <el-radio label="1">中等</el-radio>
+            <el-radio label="2">困难</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="标签">
+          <el-input v-model="editForm.tags" placeholder="多个标签用逗号分隔" />
+        </el-form-item>
+        <el-form-item label="答案">
+          <el-input v-model="editForm.answer" type="textarea" :rows="6" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="editVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveEdit">保存</el-button>
+      </template>
+    </el-dialog>
+  </div>
 </template>
 <script setup lang="ts">
 import QuestionCard from '@/components/QuestionCard/index.vue';
-import { ref, reactive, onMounted } from 'vue';
-import queryString from 'query-string';
-import { firstQueryValue, questionType, exportQuestionsToCsv } from '@/utils';
+import VirtualList from '@/components/VirtualList/index.vue';
+import { ref, reactive, onMounted, type Ref } from 'vue';
+import {
+  parseHashQuery,
+  firstQueryValue,
+  questionType,
+  exportQuestionsToCsv,
+} from '@/utils';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { CircleClose } from '@element-plus/icons-vue';
 import type { IImportQuestion, IQuestion } from '@/types';
@@ -275,7 +318,7 @@ import {
   getNoChkQuestions,
   deleteQuestions,
   chkQuestions,
-  searchQuestion,
+  searchAdminQuestions,
   importQuestions,
   updateQuestion,
   getDeletedQuestions,
@@ -287,27 +330,33 @@ interface IChkQuestion {
   chkRemarks?: string;
   activeName: string;
 }
-const { index } = queryString.parse(
-  window?.location?.href?.split('?')[1] || '',
-);
+const { index } = parseHashQuery();
 const activeName = ref(firstQueryValue(index, 'nochk'));
 //获取已审核题目
-const ChkQuestions = ref();
-const from = ref();
+const ChkQuestions = ref<IQuestion[]>([]);
+const formRef = ref();
 //获取未审核题目
-const NoChkQuestions = ref();
-const loading = ref(true);
-const currentNoChkPage = ref(1);
-const currentChkPage = ref(1);
+const NoChkQuestions = ref<IQuestion[]>([]);
+// 各列表独立的整表加载蒙层（之前共用一个 loading 会出现 A 列表加载中阻塞 B 列表滚动加载）
+const nochkLoading = ref(true);
+const chkLoading = ref(true);
+const deletedLoading = ref(false);
+const searchLoading = ref(false);
+// 已审核列表滚动加载（命名与 nochk/deleted/search 保持一致）
+const chkLoadingMore = ref(false);
+// 未审核列表滚动加载
+const nochkLoadingMore = ref(false);
 const noChkTotal = ref(0);
 const chkTotal = ref(0);
-const searchData = ref();
+const searchData = ref<IQuestion[]>([]);
 const clickSearch = ref(false);
-const currentSearchPage = ref(1);
+// 搜索结果滚动加载
+const searchLoadingMore = ref(false);
 const searchTotal = ref(0);
 // 已删除题目
 const DeletedQuestions = ref<IQuestion[]>([]);
-const currentDeletedPage = ref(1);
+// 已删除列表滚动加载
+const deletedLoadingMore = ref(false);
 const deletedTotal = ref(0);
 const deletedParams = reactive({
   currentPage: 1,
@@ -337,37 +386,85 @@ const chkParams = reactive({
 });
 const form = reactive({
   keyword: '',
+  questionType: '',
+  difficulty: '',
+  state: '',
 });
-const getSearchDataParams = reactive({
-  keyword: '',
-  currentPage: 1,
-  pageSize: 10,
-});
-const handleNoChkCurrentChange = (val: number) => {
-  nochkParams.currentPage = val;
-  // 滚到顶部
-  document.documentElement.scrollTop = 0;
-  loading.value = true;
-  getNoChkQuestion();
+// 未审核列表：滚动到底部追加下一页
+const loadMoreNoChk = async () => {
+  if (nochkLoading.value || nochkLoadingMore.value) return;
+  if (NoChkQuestions.value.length >= noChkTotal.value) return;
+  nochkLoadingMore.value = true;
+  nochkParams.currentPage += 1;
+  try {
+    await getNoChkQuestion(true);
+  } catch (err) {
+    nochkParams.currentPage -= 1;
+  } finally {
+    nochkLoadingMore.value = false;
+  }
 };
-const handleChkCurrentChange = (val: number) => {
-  chkParams.currentPage = val;
-  // 滚到顶部
-  document.documentElement.scrollTop = 0;
-  loading.value = true;
-  getAllChkQuestion();
+// 已审核列表：滚动到底部追加下一页（与分页器二选一，此处走无限滚动）
+const loadMoreChk = async () => {
+  if (chkLoading.value || chkLoadingMore.value) return;
+  if (ChkQuestions.value.length >= chkTotal.value) return;
+  chkLoadingMore.value = true;
+  chkParams.currentPage += 1;
+  try {
+    await getAllChkQuestion(true);
+  } catch (err) {
+    // 加载失败回退页码，避免页码与数据错位
+    chkParams.currentPage -= 1;
+  } finally {
+    chkLoadingMore.value = false;
+  }
 };
-const getNoChkQuestion = async () => {
-  const res = await getNoChkQuestions(nochkParams);
-  NoChkQuestions.value = res.result;
-  noChkTotal.value = res.total;
-  loading.value = false;
+// ===== 通用：分页请求（未审核/已审核/已删除三处逻辑完全同构，抽一个即可）=====
+interface IPageParams {
+  currentPage: number;
+  pageSize: number;
+}
+interface IQuestionPageRes {
+  result?: IQuestion[];
+  total?: number;
+}
+// append=true 追加下一页；否则回到第一页（首次加载 / 切回标签页 / 审核删除后刷新）
+const loadQuestions = async (
+  fetcher: (params: IPageParams) => Promise<IQuestionPageRes>,
+  params: IPageParams,
+  listRef: Ref<IQuestion[]>,
+  totalRef: Ref<number>,
+  loadingRef: Ref<boolean>,
+  append = false,
+) => {
+  if (!append) {
+    params.currentPage = 1;
+  }
+  const res = await fetcher(params);
+  const list = res?.result ?? [];
+  listRef.value = append ? [...listRef.value, ...list] : list;
+  totalRef.value = res?.total ?? 0;
+  loadingRef.value = false;
 };
-const getAllChkQuestion = async () => {
-  const res = await getAllChkQuestions(chkParams);
-  ChkQuestions.value = res.result;
-  chkTotal.value = res.total;
-  loading.value = false;
+const getNoChkQuestion = async (append = false) => {
+  await loadQuestions(
+    getNoChkQuestions,
+    nochkParams,
+    NoChkQuestions,
+    noChkTotal,
+    nochkLoading,
+    append,
+  );
+};
+const getAllChkQuestion = async (append = false) => {
+  await loadQuestions(
+    getAllChkQuestions,
+    chkParams,
+    ChkQuestions,
+    chkTotal,
+    chkLoading,
+    append,
+  );
 };
 // 导出当前标签页全部题目为 CSV
 const exportCsv = async () => {
@@ -416,17 +513,29 @@ const downloadTemplate = () => {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 };
-const getDeletedQuestion = async () => {
-  const res = await getDeletedQuestions(deletedParams);
-  DeletedQuestions.value = res.result;
-  deletedTotal.value = res.total;
-  loading.value = false;
+const getDeletedQuestion = async (append = false) => {
+  await loadQuestions(
+    getDeletedQuestions,
+    deletedParams,
+    DeletedQuestions,
+    deletedTotal,
+    deletedLoading,
+    append,
+  );
 };
-const handleDeletedCurrentChange = (val: number) => {
-  deletedParams.currentPage = val;
-  document.documentElement.scrollTop = 0;
-  loading.value = true;
-  getDeletedQuestion();
+// 已删除列表：滚动到底部追加下一页
+const loadMoreDeleted = async () => {
+  if (deletedLoading.value || deletedLoadingMore.value) return;
+  if (DeletedQuestions.value.length >= deletedTotal.value) return;
+  deletedLoadingMore.value = true;
+  deletedParams.currentPage += 1;
+  try {
+    await getDeletedQuestion(true);
+  } catch (err) {
+    deletedParams.currentPage -= 1;
+  } finally {
+    deletedLoadingMore.value = false;
+  }
 };
 const restoreQuestionFun = (id: number) => {
   restoreQuestion({ id }).then(() => {
@@ -435,51 +544,98 @@ const restoreQuestionFun = (id: number) => {
   });
 };
 const handleClick = (tab: { props: { name?: string | number } }) => {
-  loading.value = true;
   if (tab.props.name === 'nochk') {
+    nochkLoading.value = true;
     getNoChkQuestion();
   } else if (tab.props.name === 'deleted') {
+    deletedLoading.value = true;
     getDeletedQuestion();
   } else {
+    chkLoading.value = true;
     getAllChkQuestion();
   }
 };
 const onSubmit = () => {
-  if (!form.keyword) {
-    ElMessage.error('请输入搜索关键词');
+  // 允许纯条件筛选（题型/难度/状态），至少要有一项搜索条件
+  if (!form.keyword && !form.questionType && !form.difficulty && !form.state) {
+    ElMessage.error('请至少输入或选择一项搜索条件');
     return;
   }
-  loading.value = true;
-  getSearchData({ currentPage: 1 });
+  searchLoading.value = true;
+  getSearchData();
 };
 const clearSearch = () => {
   form.keyword = '';
+  form.questionType = '';
+  form.difficulty = '';
+  form.state = '';
   clickSearch.value = false;
 };
 
-const getSearchData = (val?: { currentPage: number }) => {
-  searchQuestion({
-    ...form,
-    currentPage: val ? val.currentPage : currentSearchPage.value,
-    pageSize: 10,
-  }).then((res) => {
-    searchData.value = res?.result;
-    searchTotal.value = res?.total;
-    clickSearch.value = true;
-    loading.value = false;
-  });
+const searchParams = reactive({
+  keyword: '',
+  questionType: '',
+  difficulty: '',
+  state: '',
+  currentPage: 1,
+  pageSize: 10,
+});
+// 把状态选项映射为后端的 chkState / isDeleted 参数：
+// '' 不限（含已删除）；0/1/2 = 待审核/已审核/不通过（未删除）；'deleted' 只看已删除
+const buildSearchRequest = (): Record<string, unknown> => {
+  const params: Record<string, unknown> = {
+    keyword: searchParams.keyword,
+    currentPage: searchParams.currentPage,
+    pageSize: searchParams.pageSize,
+  };
+  if (searchParams.questionType) {
+    params.questionType = searchParams.questionType;
+  }
+  if (searchParams.difficulty) {
+    params.difficulty = searchParams.difficulty;
+  }
+  if (searchParams.state === 'deleted') {
+    params.isDeleted = 1;
+  } else if (searchParams.state !== '') {
+    params.chkState = Number(searchParams.state);
+    params.isDeleted = 0;
+  }
+  return params;
 };
-const handleSearchCurrentChange = (val: number) => {
-  getSearchDataParams.currentPage = val;
-  // 滚到顶部
-  document.documentElement.scrollTop = 0;
-  loading.value = true;
-  getSearchData();
+// append=true 时把下一页追加到已有结果后面（滚动加载）
+const getSearchData = async (append = false) => {
+  if (!append) {
+    searchParams.currentPage = 1;
+  }
+  searchParams.keyword = form.keyword;
+  searchParams.questionType = form.questionType ?? '';
+  searchParams.difficulty = form.difficulty ?? '';
+  searchParams.state = form.state ?? '';
+  const res = await searchAdminQuestions(buildSearchRequest());
+  const list = res?.result ?? [];
+  searchData.value = append ? [...searchData.value, ...list] : list;
+  searchTotal.value = res?.total ?? 0;
+  clickSearch.value = true;
+  searchLoading.value = false;
+};
+// 搜索结果：滚动到底部追加下一页
+const loadMoreSearch = async () => {
+  if (searchLoading.value || searchLoadingMore.value) return;
+  if (searchData.value.length >= searchTotal.value) return;
+  searchLoadingMore.value = true;
+  searchParams.currentPage += 1;
+  try {
+    await getSearchData(true);
+  } catch (err) {
+    searchParams.currentPage -= 1;
+  } finally {
+    searchLoadingMore.value = false;
+  }
 };
 onMounted(() => {
-  getNoChkQuestion();
-  getAllChkQuestion();
-  loading.value = false;
+  // loading 由请求内部完成后置 false；这里不能提前置 false，否则首屏蒙层一闪而过
+  void getNoChkQuestion();
+  void getAllChkQuestion();
 });
 
 const deleteQuestion = (id: number, activeName: string) => {
@@ -585,79 +741,90 @@ const saveEdit = async () => {
 </script>
 
 <style scoped>
-.createPaper {
-  width: 80px;
-  height: 35px;
-  background-color: #409eff;
-  text-align: center;
-  line-height: 35px;
-  color: white;
-  float: right;
-  margin-top: -60px;
-}
-
-.logo1 {
-  width: 60px;
-  height: 60px;
-  margin-top: 25px;
-  margin-bottom: 10px;
-}
-
-.grid-content {
-  border-radius: 4px;
-  min-height: 36px;
-  border: 1px solid #ffffff;
-}
-
-.biaoqian1 {
-  padding: 0px 12px;
-  font-size: 12px;
-  background-color: #f5f5f5;
-  color: #000000;
-  height: 25px;
-  line-height: 25px;
-  border-radius: 2px;
-  margin-right: 15px;
-  margin-bottom: 10px;
-}
-
-.jiandaee {
-  color: rgba(170, 170, 170, 1);
-  font-size: 13px;
-  margin: 15px 0px;
-  margin-left: 20px;
-}
-
-.line1 {
-  width: 1px;
-  height: 15px;
-  background-color: #e6e6e6;
-  margin: 0px 20px;
-}
-
-.el-col-3 {
-  max-width: 12.5%;
-  flex: 0 0 4.5%;
-}
-
-.paperCard {
-  display: flex;
-  flex-wrap: wrap;
-}
+/* 搜索栏：吸顶于导航栏（60px）下方，与试卷管理保持一致 */
 .search {
   display: flex;
   flex-direction: row;
+  align-items: center;
+  position: sticky;
+  top: 60px;
+  z-index: 30;
+  background: var(--el-bg-color, #fff);
 }
+
+.search :deep(.el-form-item) {
+  margin-bottom: 0;
+}
+
+/* 页签吸顶：el-card / el-card__body / el-main 默认 overflow 都会截住 sticky，需全部放开 */
+.hello :deep(.el-card),
+.hello :deep(.el-card__body),
+.hello :deep(.el-main) {
+  overflow: visible;
+}
+
+.hello :deep(.el-tabs) {
+  position: sticky;
+  /* 60 导航栏 + 40 搜索栏 = 100，页签吸在搜索栏下方 */
+  top: 100px;
+  z-index: 29;
+  background: var(--el-bg-color, #fff);
+  padding-top: 6px;
+  padding-bottom: 4px;
+}
+
+.hello :deep(.el-tabs__header) {
+  margin: 0;
+}
+
 :deep(.el-loading-mask) {
   z-index: 9;
 }
-.batch-bar {
-  margin-bottom: 12px;
+
+/* tabs 与批量操作按钮同行，消除 batch-bar 独占一行造成的列表高度差（与试卷管理页对齐） */
+.tabs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
+
+.tabs-row :deep(.el-tabs) {
+  flex: 1;
+  min-width: 0;
+}
+
+.batch-bar {
+  flex-shrink: 0;
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+/* 小屏：tabs 与批量按钮纵向排列，避免横向溢出 */
+@media (max-width: 900px) {
+  .tabs-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .tabs-row :deep(.el-tabs) {
+    width: 100%;
+  }
+
+  .batch-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    white-space: normal;
+  }
+}
+
 .import-tip {
   color: #606266;
   font-size: 13px;
 }
+
 .import-sample {
   background-color: #f5f7fa;
   padding: 12px;
@@ -668,11 +835,13 @@ const saveEdit = async () => {
   max-height: 200px;
   margin: 8px 0 12px;
 }
+
 .import-upload {
   display: flex;
   align-items: center;
   gap: 12px;
 }
+
 .import-preview {
   margin-top: 12px;
   max-height: 220px;
@@ -680,6 +849,7 @@ const saveEdit = async () => {
   border: 1px solid #eee;
   border-radius: 4px;
 }
+
 .preview-item {
   display: flex;
   align-items: center;
@@ -688,10 +858,12 @@ const saveEdit = async () => {
   border-bottom: 1px solid #f0f0f0;
   font-size: 13px;
 }
+
 .preview-index {
   color: #909399;
   flex-shrink: 0;
 }
+
 .preview-type {
   flex-shrink: 0;
   font-size: 12px;
@@ -700,10 +872,18 @@ const saveEdit = async () => {
   padding: 1px 8px;
   border-radius: 3px;
 }
+
 .preview-question {
   color: #303133;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.list-total {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--el-text-color-secondary, #909399);
 }
 </style>

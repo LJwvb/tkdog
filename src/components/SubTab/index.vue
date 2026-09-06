@@ -1,17 +1,26 @@
-<template>
+﻿<template>
   <el-tabs v-model="active" class="tabs" @tab-click="tabClick">
     <div v-if="type === 'home'">
       <el-tab-pane
         v-for="(item, index) in catalogIDList"
         :key="item?.catalogID"
         :label="item?.catalogName"
-        :name="index"
+        :name="Number(item?.catalogID ?? index)"
       >
-        <div v-if="questionList.length > 0">
-          <div v-for="item in questionList" :key="item?.id">
+        <VirtualList
+          v-if="questionList.length > 0"
+          :data="questionList"
+          :height="listHeight"
+          :estimated-item-height="200"
+          :loading="loadingMore"
+          :finished="noMore"
+          :show-back-top="showBackTop"
+          @loadMore="handleLoadMore"
+        >
+          <template #default="{ item }">
             <QuestionCard :question="item" :type="props.type" />
-          </div>
-        </div>
+          </template>
+        </VirtualList>
         <el-empty v-else :image-size="200" description="暂无题目" />
         <div class="more" @click="goQuestion">前往题目页查看更多题目>>></div>
       </el-tab-pane>
@@ -23,44 +32,50 @@
         :label="typeItem.content"
         :name="typeItem.subjectID"
       >
-        <div v-if="questionList?.length > 0">
-          <div v-for="item in questionList" :key="item?.id">
+        <VirtualList
+          v-if="questionList?.length > 0"
+          :data="questionList"
+          :height="listHeight"
+          :estimated-item-height="200"
+          :loading="loadingMore"
+          :finished="noMore"
+          :show-back-top="showBackTop"
+          @loadMore="handleLoadMore"
+        >
+          <template #default="{ item }">
             <QuestionCard :question="item" :type="props.type" />
-          </div>
-        </div>
+          </template>
+        </VirtualList>
         <el-empty v-else :image-size="200" description="暂无题目" />
       </el-tab-pane>
     </div>
     <div v-else-if="type === 'userQuestions'">
-      <el-tab-pane label="我的题目" name="0">
-        <div v-if="questionList?.length > 0">
-          <div v-for="item in questionList" :key="item?.id">
+      <el-tab-pane label="我的题目" :name="0">
+        <VirtualList
+          v-if="questionList?.length > 0"
+          :data="questionList"
+          :height="listHeight"
+          :estimated-item-height="200"
+          :loading="loadingMore"
+          :finished="noMore"
+          :show-back-top="showBackTop"
+          @loadMore="handleLoadMore"
+        >
+          <template #default="{ item }">
             <QuestionCard :question="item" :type="type" />
-          </div>
-        </div>
+          </template>
+        </VirtualList>
         <el-empty v-else :image-size="200" description="没有上传题目" />
       </el-tab-pane>
     </div>
   </el-tabs>
-
-  <el-pagination
-    v-model:current-page="currentPage"
-    background
-    layout="slot, prev, pager, next"
-    :total="total"
-    prev-text="上一页"
-    next-text="下一页"
-    :hide-on-single-page="true"
-    @current-change="handleCurrentChange"
-  >
-    <template #default> 共 {{ total }} 条 </template>
-  </el-pagination>
 </template>
 <script lang="ts" setup>
 import { watchEffect, ref } from 'vue';
 import type { PropType } from 'vue';
 
 import QuestionCard from '@/components/QuestionCard/index.vue';
+import VirtualList from '@/components/VirtualList/index.vue';
 import { isNaN } from '@/utils';
 import router from '@/router';
 import type { IQuestion, ISubject } from '@/types';
@@ -87,13 +102,21 @@ const props = defineProps({
     type: String,
     default: '',
   },
-  currentPage: {
-    type: Number,
-    default: 1,
-  },
   total: {
     type: Number,
     default: 0,
+  },
+  loadingMore: {
+    type: Boolean,
+    default: false,
+  },
+  noMore: {
+    type: Boolean,
+    default: false,
+  },
+  listHeight: {
+    type: [Number, String],
+    default: 600,
   },
   catalogIDList: {
     type: Array as PropType<
@@ -105,10 +128,14 @@ const props = defineProps({
     type: Array as PropType<ISubject[]>,
     default: () => [],
   },
+  // 是否展示「回到顶部」悬浮按钮（列表内部滚动时由 VirtualList 自行处理）
+  showBackTop: {
+    type: Boolean,
+    default: false,
+  },
 });
 // 默认选中的子标签
 const active = ref<string | number>(0);
-const currentPage = ref(props.currentPage);
 watchEffect(() => {
   if (props.type === 'all') {
     active.value = props?.subjectID || 0;
@@ -127,15 +154,15 @@ const goQuestion = () => {
     },
   });
 };
-const emit = defineEmits(['tabClick', 'handleCurrentChange']);
+const emit = defineEmits(['tabClick', 'loadMore']);
 
 const tabClick = (tab: { props: { name?: string | number } }) => {
-  currentPage.value = 1;
-  // 将index传递给父组件
-  emit('tabClick', tab.props.name);
+  // 父组件按真值（catalogID / subjectID）缓存与请求，必须转 number，不能传 v-for 索引
+  emit('tabClick', Number(tab.props.name));
 };
-const handleCurrentChange = (page: number) => {
-  emit('handleCurrentChange', page);
+
+const handleLoadMore = () => {
+  emit('loadMore');
 };
 </script>
 <style scoped>

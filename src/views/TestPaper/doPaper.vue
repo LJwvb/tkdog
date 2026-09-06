@@ -1,62 +1,208 @@
-<template>
+﻿<template>
   <div v-loading="loading" class="do-paper-container">
-    <!-- 试卷标题 + 操作 -->
-    <el-card class="header-card">
+    <!-- 试卷标题 + 操作（固定顶部） -->
+    <div class="header-fixed">
       <div class="header-row">
-        <div>
-          <h2 class="paper-title">{{ paperInfo?.paper_title }}</h2>
+        <div class="header-info">
+          <div class="header-title-row">
+            <h2 class="paper-title">{{ paperInfo?.paper_title }}</h2>
+            <el-tag
+              size="small"
+              type="primary"
+              effect="plain"
+              class="paper-progress-tag"
+              >已答 {{ answeredCount }}/{{ questions.length }}</el-tag
+            >
+          </div>
           <div class="paper-meta">
-            共 {{ questions.length }} 题 · 单选/多选/判断自动判分，简答题由 AI
-            智能批改
+            <span class="meta-item">共 {{ questions.length }} 题</span>
+            <span class="meta-divider">·</span>
+            <span class="meta-item">单选 {{ typeCount(0) }} 题</span>
+            <span class="meta-divider">·</span>
+            <span class="meta-item">多选 {{ typeCount(1) }} 题</span>
+            <span class="meta-divider">·</span>
+            <span class="meta-item">判断 {{ typeCount(2) }} 题</span>
+            <span class="meta-divider">·</span>
+            <span class="meta-item">简答 {{ typeCount(3) }} 题</span>
+            <span class="meta-divider">·</span>
+            <span class="meta-item">满分 100 分</span>
           </div>
         </div>
+
         <div class="header-actions">
           <el-button @click="backToList">返回</el-button>
-          <el-button v-if="!submitted" type="primary" :loading="submitting" @click="handleSubmit">交卷</el-button>
+          <el-button
+            v-if="!submitted"
+            type="primary"
+            :loading="submitting"
+            @click="handleSubmit"
+            >交卷</el-button
+          >
         </div>
       </div>
-    </el-card>
+    </div>
 
     <!-- 答题区 -->
     <template v-if="!submitted">
-      <el-card v-for="(q, index) in questions" :key="q.id" class="question-card">
-        <div class="q-title">
-          <span class="q-index">{{ index + 1 }}.</span>
-          <span class="q-type">{{ questionType(Number(q.questionType)) }}</span>
-          <span :class="difficultyClass(q.difficulty)">{{
-            difficulty(Number(q.difficulty))
-          }}</span>
-          <span class="q-score">{{ calcQuestionScore(index) }} 分</span>
+      <div class="paper-layout">
+        <div class="paper-main">
+          <el-card
+            v-for="(q, index) in questions"
+            :id="'q-' + index"
+            :key="q.id"
+            class="question-card"
+          >
+            <div class="q-title">
+              <span class="q-index">{{ index + 1 }}.</span>
+              <span class="q-type">{{
+                questionType(Number(q.questionType))
+              }}</span>
+              <span :class="difficultyClass(q.difficulty)">{{
+                difficulty(Number(q.difficulty))
+              }}</span>
+              <span class="q-score">{{ calcQuestionScore(index) }} 分</span>
+            </div>
+            <div class="q-stem">{{ q.question }}</div>
+
+            <!-- AI 提示按钮 -->
+            <div class="hint-row">
+              <el-button
+                v-if="!hintVisible[index]"
+                type="primary"
+                plain
+                size="small"
+                :loading="hintLoading[index]"
+                @click="showHint(index, q.id)"
+              >
+                <el-icon><QuestionFilled /></el-icon>
+                <span style="margin-left: 4px">AI 提示</span>
+              </el-button>
+              <div v-if="hintVisible[index]" class="hint-box">
+                <div class="hint-title">
+                  <el-icon><MagicStick /></el-icon>
+                  <span>AI 解题提示（仅给思路，不给答案）</span>
+                </div>
+                <div class="hint-content">{{ hintMap[index] }}</div>
+                <el-button
+                  type="primary"
+                  link
+                  size="small"
+                  @click="hintVisible[index] = false"
+                  >收起提示</el-button
+                >
+              </div>
+            </div>
+
+            <!-- 单选题 -->
+            <el-radio-group
+              v-if="Number(q.questionType) === 0"
+              v-model="answers[index]"
+              class="options"
+            >
+              <el-radio
+                v-for="opt in parseOptions(q)"
+                :key="opt.code"
+                :label="opt.code"
+                class="option-item"
+              >
+                {{ opt.code }}. {{ opt.value }}
+              </el-radio>
+            </el-radio-group>
+
+            <!-- 多选题 -->
+            <el-checkbox-group
+              v-else-if="Number(q.questionType) === 1"
+              v-model="multiAnswers[index]"
+              class="options"
+            >
+              <el-checkbox
+                v-for="opt in parseOptions(q)"
+                :key="opt.code"
+                :label="opt.code"
+                class="option-item"
+              >
+                {{ opt.code }}. {{ opt.value }}
+              </el-checkbox>
+            </el-checkbox-group>
+
+            <!-- 判断题 -->
+            <el-radio-group
+              v-else-if="Number(q.questionType) === 2"
+              v-model="answers[index]"
+              class="options"
+            >
+              <el-radio
+                v-for="opt in judgeOptions(q)"
+                :key="opt.code"
+                :label="opt.code"
+                class="option-item"
+              >
+                {{ opt.code }}
+              </el-radio>
+            </el-radio-group>
+
+            <!-- 简答题输入区提示 -->
+            <el-input
+              v-else
+              v-model="answers[index]"
+              type="textarea"
+              :rows="4"
+              placeholder="请输入你的答案（简答题交卷后由 AI 智能批改）"
+            />
+          </el-card>
+
+          <div v-if="questions.length === 0 && !loading" class="empty">
+            <el-empty description="试卷暂无题目" />
+          </div>
         </div>
-        <div class="q-stem">{{ q.question }}</div>
-
-        <!-- 单选题 -->
-        <el-radio-group v-if="Number(q.questionType) === 0" v-model="answers[index]" class="options">
-          <el-radio v-for="opt in parseOptions(q)" :key="opt.code" :label="opt.code" class="option-item">
-            {{ opt.code }}. {{ opt.value }}
-          </el-radio>
-        </el-radio-group>
-
-        <!-- 多选题 -->
-        <el-checkbox-group v-else-if="Number(q.questionType) === 1" v-model="multiAnswers[index]" class="options">
-          <el-checkbox v-for="opt in parseOptions(q)" :key="opt.code" :label="opt.code" class="option-item">
-            {{ opt.code }}. {{ opt.value }}
-          </el-checkbox>
-        </el-checkbox-group>
-
-        <!-- 判断题 -->
-        <el-radio-group v-else-if="Number(q.questionType) === 2" v-model="answers[index]" class="options">
-          <el-radio v-for="opt in judgeOptions(q)" :key="opt.code" :label="opt.code" class="option-item">
-            {{ opt.code }}
-          </el-radio>
-        </el-radio-group>
-
-        <!-- 简答题输入区提示 -->
-        <el-input v-else v-model="answers[index]" type="textarea" :rows="4" placeholder="请输入你的答案（简答题交卷后由 AI 智能批改）" />
-      </el-card>
-
-      <div v-if="questions.length === 0 && !loading" class="empty">
-        <el-empty description="试卷暂无题目" />
+        <!-- 右侧固定题号预览栏 -->
+        <div class="question-nav">
+          <div class="nav-header">
+            <span class="nav-title">题目导航</span>
+            <span class="nav-progress"
+              >{{ answeredCount }}/{{ questions.length }}</span
+            >
+          </div>
+          <div class="nav-legend">
+            <span class="legend-item"
+              ><span class="legend-dot answered"></span>已答</span
+            >
+            <span class="legend-item"
+              ><span class="legend-dot unanswered"></span>未答</span
+            >
+            <span class="legend-item"
+              ><span class="legend-dot current"></span>当前</span
+            >
+          </div>
+          <div class="nav-grid">
+            <div
+              v-for="(q, index) in questions"
+              :key="q.id"
+              :class="[
+                'nav-item',
+                isAnswered(index) ? 'answered' : 'unanswered',
+                currentQuestionIndex === index ? 'current' : '',
+              ]"
+              :title="questionType(Number(q.questionType))"
+              @click="scrollToQuestion(index)"
+            >
+              <span class="nav-num">{{ index + 1 }}</span>
+              <span class="nav-type">{{
+                typeShort(Number(q.questionType))
+              }}</span>
+            </div>
+          </div>
+          <div class="nav-footer">
+            <el-button
+              type="primary"
+              size="small"
+              :loading="submitting"
+              style="width: 100%"
+              @click="handleSubmit"
+              >交卷</el-button
+            >
+          </div>
+        </div>
       </div>
     </template>
 
@@ -73,8 +219,14 @@
             <div class="ai-progress-title">
               AI 正在批改简答题（{{ aiDoneCount }} / {{ aiTotalCount }}）
             </div>
-            <el-progress :percentage="aiTotalCount ? (aiDoneCount / aiTotalCount) * 100 : 0
-              " :stroke-width="10" :show-text="false" class="ai-progress-bar" />
+            <el-progress
+              :percentage="
+                aiTotalCount ? (aiDoneCount / aiTotalCount) * 100 : 0
+              "
+              :stroke-width="10"
+              :show-text="false"
+              class="ai-progress-bar"
+            />
             <div class="ai-progress-status">{{ aiStatusText }}</div>
           </div>
         </div>
@@ -83,34 +235,140 @@
       <el-card class="result-card">
         <div class="result-summary">
           <div class="score">{{ result?.score }}</div>
-          <div class="score-label">
-            得分（满分 100，按题数动态计分）
-          </div>
+          <div class="score-label">得分（满分 100，按题数动态计分）</div>
           <div class="stat-line">
-            共 {{ result?.questionNum }} 题 · 满分 100 ·
-            答对 {{ result?.correctNum }} · 答错 {{ result?.wrongNum }}
+            共 {{ result?.questionNum }} 题 · 满分 100 · 答对
+            {{ result?.correctNum }} · 答错 {{ result?.wrongNum }}
           </div>
           <el-button type="primary" @click="backToList">返回试卷列表</el-button>
         </div>
       </el-card>
 
-      <el-card v-for="(d, index) in result?.detail" :key="d.questionId" class="review-card">
+      <el-card v-if="submitted" class="ai-report-entry">
+        <div class="ai-report-head">
+          <span class="ai-badge">AI</span>
+          <div class="ai-report-txt">
+            <div class="ai-report-title">AI 整卷分析报告</div>
+            <div class="ai-report-desc">
+              基于本次作答逐题分析知识掌握与薄弱点，仅首次生成，之后秒回缓存
+            </div>
+          </div>
+          <el-button
+            type="primary"
+            :loading="reportLoading"
+            @click="handleAiReport"
+          >
+            {{ reportData ? '查看报告' : '生成报告' }}
+          </el-button>
+        </div>
+      </el-card>
+
+      <el-dialog
+        v-model="reportVisible"
+        width="760px"
+        class="ai-report-dialog"
+        :close-on-click-modal="false"
+      >
+        <template #header>
+          <div class="ai-report-dialog-head">
+            <span class="ai-badge">AI</span>
+            <span>整卷分析报告</span>
+            <span v-if="reportData?.fromCache" class="ai-cache-tag"
+              >缓存命中</span
+            >
+          </div>
+        </template>
+        <div v-if="reportLoading" class="ai-report-loading">
+          <el-icon class="is-loading" :size="26"
+            ><i class="el-icon-loading"
+          /></el-icon>
+          <div>AI 正在逐题分析本次作答，首次生成约需 10~20 秒…</div>
+        </div>
+        <div v-else-if="reportData" class="ai-report-body">
+          <div class="ai-summary">{{ reportData.summary }}</div>
+          <div v-if="reportData.stats" class="ai-stats">
+            <div class="ai-stat">
+              <b>{{ reportData.stats.score }}</b
+              ><span>得分</span>
+            </div>
+            <div class="ai-stat">
+              <b>{{ reportData.stats.correctNum }}</b
+              ><span>答对</span>
+            </div>
+            <div class="ai-stat">
+              <b>{{ reportData.stats.wrongNum }}</b
+              ><span>答错</span>
+            </div>
+            <div class="ai-stat">
+              <b>{{ reportData.stats.subjectiveNum }}</b
+              ><span>主观题</span>
+            </div>
+          </div>
+          <div v-if="reportData.knowledgeAreas?.length" class="ai-sec">
+            <div class="ai-sec-title">知识点掌握</div>
+            <div
+              v-for="(k, i) in reportData.knowledgeAreas"
+              :key="i"
+              class="ai-knowledge"
+            >
+              <div class="ai-knowledge-row">
+                <span class="ai-knowledge-name">{{ k.name }}</span>
+                <span class="ai-knowledge-val">{{ k.mastery }}% 掌握</span>
+              </div>
+              <div class="ai-bar">
+                <i
+                  :style="{
+                    width:
+                      Math.max(0, Math.min(100, Number(k.mastery) || 0)) + '%',
+                  }"
+                ></i>
+              </div>
+            </div>
+          </div>
+          <div v-if="reportData.strengths?.length" class="ai-sec">
+            <div class="ai-sec-title">优势</div>
+            <ul class="ai-list ai-ok">
+              <li v-for="(t, i) in reportData.strengths" :key="i">{{ t }}</li>
+            </ul>
+          </div>
+          <div v-if="reportData.weakPoints?.length" class="ai-sec">
+            <div class="ai-sec-title">薄弱点</div>
+            <ul class="ai-list ai-warn">
+              <li v-for="(t, i) in reportData.weakPoints" :key="i">{{ t }}</li>
+            </ul>
+          </div>
+          <div v-if="reportData.suggestions?.length" class="ai-sec">
+            <div class="ai-sec-title">提升建议</div>
+            <ol class="ai-list ai-plan">
+              <li v-for="(t, i) in reportData.suggestions" :key="i">{{ t }}</li>
+            </ol>
+          </div>
+        </div>
+      </el-dialog>
+
+      <el-card
+        v-for="(d, index) in result?.detail"
+        :key="d.questionId"
+        class="review-card"
+      >
         <div class="q-title">
           <span class="q-index">{{ index + 1 }}.</span>
-          <span :class="[
-            'q-result',
-            d.isCorrect === 1
-              ? 'ok'
-              : d.isCorrect === 0
+          <span
+            :class="[
+              'q-result',
+              d.isCorrect === 1
+                ? 'ok'
+                : d.isCorrect === 0
                 ? 'bad'
                 : aiJudging[d.questionId]
-                  ? 'ai-judging'
-                  : aiResults[d.questionId]
-                    ? aiResults[d.questionId].isCorrect
-                      ? 'ok'
-                      : 'bad'
-                    : 'sub',
-          ]">
+                ? 'ai-judging'
+                : aiResults[d.questionId]
+                ? aiResults[d.questionId].isCorrect
+                  ? 'ok'
+                  : 'bad'
+                : 'sub',
+            ]"
+          >
             <template v-if="d.isCorrect !== null">
               {{ d.isCorrect === 1 ? '回答正确' : '回答错误' }}
             </template>
@@ -160,10 +418,12 @@
         <!-- AI 批改结果：分数 + 评语 -->
         <div v-if="aiResults[d.questionId]" class="ai-result-box">
           <div class="ai-result-header">
-            <span :class="[
-              'ai-score',
-              aiResults[d.questionId].isCorrect ? 'pass' : 'fail',
-            ]">
+            <span
+              :class="[
+                'ai-score',
+                aiResults[d.questionId].isCorrect ? 'pass' : 'fail',
+              ]"
+            >
               {{
                 earnedScore(
                   aiResults[d.questionId].score || 0,
@@ -186,12 +446,17 @@
           </div>
           <div class="answer-body">
             <!-- eslint-disable vue/no-v-html -->
-            <span v-html="formatAnswerWithValues(
-              d.questionType,
-              d.correctAnswer,
-              d.questionDetail,
-            )
-              "></span>
+            <span
+              v-html="
+                sanitizeHtml(
+                  formatAnswerWithValues(
+                    d.questionType,
+                    d.correctAnswer,
+                    d.questionDetail,
+                  ),
+                )
+              "
+            ></span>
             <!-- eslint-enable vue/no-v-html -->
           </div>
         </div>
@@ -201,18 +466,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import queryString from 'query-string';
-import { getPaperDetail, submitPaper, aiJudgeAnswer } from '@/services';
+import { QuestionFilled, MagicStick } from '@element-plus/icons-vue';
+import {
+  getPaperDetail,
+  submitPaper,
+  aiJudgeAnswer,
+  aiJudgeBatch,
+  aiPaperReport,
+  getRecordDetail,
+  aiHint,
+} from '@/services';
 import { setWaterMark, removeWatermark } from '@/utils/waterMark';
 import {
+  parseHashQuery,
   questionType,
   difficulty,
   firstQueryValue,
   formatAnswerWithValues,
+  sanitizeHtml,
 } from '@/utils';
 import type { IQuestion, ISubmitPaperResult, IAiJudgeResult } from '@/types';
 
@@ -228,9 +503,7 @@ interface IOption {
 
 const router = useRouter();
 const store = useStore();
-const { paperID } = queryString.parse(
-  window?.location?.href?.split('?')[1] || '',
-);
+const { paperID, recordId } = parseHashQuery();
 
 // 当前登录用户（考试水印显示真实身份，用于追溯截图来源）
 const username = computed(() => store.state.userData?.username || 'tkdog');
@@ -241,6 +514,10 @@ const switchCount = ref(0);
 
 const loading = ref(true);
 const submitting = ref(false);
+// AI 答题提示
+const hintLoading = ref<Record<number, boolean>>({});
+const hintVisible = ref<Record<number, boolean>>({});
+const hintMap = ref<Record<number, string>>({});
 const submitted = ref(false);
 const questions = ref<IQuestion[]>([]);
 // 难度权重：简单(0)=1、中等(1)=2、困难(2)=3
@@ -253,7 +530,7 @@ const questionScores = computed(() => {
   const totalWeight = weights.reduce((s, w) => s + w, 0) || qs.length || 1;
   const ideals = weights.map((w) => (100 * w) / totalWeight);
   const bases = ideals.map((v) => Math.floor(v));
-  let remainder = 100 - bases.reduce((s, b) => s + b, 0);
+  const remainder = 100 - bases.reduce((s, b) => s + b, 0);
   const order = ideals
     .map((v, i) => ({ i, frac: v - bases[i] }))
     .sort((a, b) => b.frac - a.frac);
@@ -262,8 +539,7 @@ const questionScores = computed(() => {
   }
   return bases;
 });
-const calcQuestionScore = (index: number) =>
-  questionScores.value[index] ?? 0;
+const calcQuestionScore = (index: number) => questionScores.value[index] ?? 0;
 // 难度标签配色：简单绿、中等橙、困难红
 const difficultyClass = (difficulty: number | string) => {
   const d = Number(difficulty);
@@ -276,6 +552,64 @@ const paperInfo = ref<IPaperDetailInfo>({});
 const answers = ref<string[]>([]);
 const multiAnswers = ref<string[][]>([]);
 const result = ref<ISubmitPaperResult | null>(null);
+
+// ===== 右侧题号导航栏 =====
+const currentQuestionIndex = ref(0);
+// 判断某题是否已作答
+const isAnswered = (index: number) => {
+  const q = questions.value[index];
+  if (!q) return false;
+  const type = Number(q.questionType);
+  if (type === 1) {
+    // 多选题
+    return (
+      Array.isArray(multiAnswers.value[index]) &&
+      multiAnswers.value[index].length > 0
+    );
+  }
+  // 单选/判断/简答
+  return Boolean(
+    answers.value[index] && String(answers.value[index]).trim() !== '',
+  );
+};
+// 已答题数
+const answeredCount = computed(
+  () => questions.value.filter((_, i) => isAnswered(i)).length,
+);
+// 题型简称
+const typeShort = (type: number) => {
+  if (type === 0) return '单选';
+  if (type === 1) return '多选';
+  if (type === 2) return '判断';
+  return '简答';
+};
+// 统计某题型数量
+const typeCount = (type: number) =>
+  questions.value.filter((q) => Number(q.questionType) === type).length;
+// 滚动到指定题目
+const scrollToQuestion = (index: number) => {
+  currentQuestionIndex.value = index;
+  const el = document.getElementById('q-' + index);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
+// 监听滚动，更新当前题目
+let scrollHandler: (() => void) | null = null;
+const setupScrollListener = () => {
+  scrollHandler = () => {
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    let current = 0;
+    for (let i = 0; i < questions.value.length; i++) {
+      const el = document.getElementById('q-' + i);
+      if (el && el.offsetTop - 100 <= scrollTop) {
+        current = i;
+      }
+    }
+    currentQuestionIndex.value = current;
+  };
+  window.addEventListener('scroll', scrollHandler, { passive: true });
+};
 
 // ===== AI 批改简答题 =====
 // 各题 AI 批改结果（questionId -> 结果）
@@ -331,6 +665,7 @@ const stopAiStatusLoop = () => {
 };
 
 // 交卷后自动逐题批改简答题（串行，避免并发打爆大模型接口）
+// 交卷后批量批改简答题（一次调用搞定所有主观题，省 N-1 次网络往返）
 const runAiJudging = async () => {
   const pending = (result.value?.detail ?? []).filter(
     (d) => d.isCorrect === null,
@@ -341,49 +676,55 @@ const runAiJudging = async () => {
     questionId: d.questionId,
     userAnswer: d.userAnswer ?? '',
   }));
+  // 标记所有题为批改中（进度展示用）
+  aiJudging.value = {};
+  for (const d of pending) {
+    aiJudging.value[d.questionId] = true;
+  }
   startAiStatusLoop();
 
-  while (aiPendingList.value.length > 0 && !aiStopped) {
-    const item = aiPendingList.value[0];
-    aiJudging.value = { ...aiJudging.value, [item.questionId]: true };
-    try {
-      const res = await aiJudgeAnswer({
-        questionId: item.questionId,
-        userAnswer: item.userAnswer,
-        recordId: result.value?.recordId,
-      });
-      if (res?.available) {
+  try {
+    const res = await aiJudgeBatch({
+      recordId: result.value?.recordId,
+      items: pending.map((d) => ({
+        questionId: d.questionId,
+        userAnswer: d.userAnswer ?? '',
+      })),
+    });
+    if (res?.available && res.results) {
+      for (const r of res.results) {
         aiResults.value = {
           ...aiResults.value,
-          [item.questionId]: res,
+          [r.questionId]: {
+            available: true,
+            score: r.score,
+            comment: r.comment,
+            isCorrect: r.isCorrect,
+          },
         };
-        // AI 判分已落库，同步刷新整卷得分/对错/主观题统计
-        if (res.stats && result.value) {
-          result.value = {
-            ...result.value,
-            score: res.stats.score,
-            correctNum: res.stats.correctNum,
-            wrongNum: res.stats.wrongNum,
-            subjectiveNum: res.stats.subjectiveNum,
-          };
-        }
-      } else if (res?.message) {
-        ElMessage.warning(res.message);
-        // AI 不可用时整批停止（清空队列隐藏进度卡），避免每题重复弹提示
-        aiPendingList.value = [];
-        break;
       }
-    } catch {
-      // 单题失败：跳过继续批后面的题，不打断整体流程
-    } finally {
-      aiJudging.value = { ...aiJudging.value, [item.questionId]: false };
-      aiPendingList.value = aiPendingList.value.slice(1);
+      // 批量判分已落库，同步刷新整卷得分/对错/主观题统计
+      if (res.stats && result.value) {
+        result.value = {
+          ...result.value,
+          score: res.stats.score,
+          correctNum: res.stats.correctNum,
+          wrongNum: res.stats.wrongNum,
+          subjectiveNum: res.stats.subjectiveNum,
+        };
+      }
+      if (!aiStopped) {
+        ElMessage.success('AI 批改完成');
+      }
+    } else if (res?.message) {
+      ElMessage.warning(res.message);
     }
-  }
-
-  stopAiStatusLoop();
-  if (!aiStopped && Object.keys(aiResults.value).length > 0) {
-    ElMessage.success('AI 批改完成');
+  } catch {
+    // 批量失败：不打断整体流程，用户可对照参考答案自行复核
+  } finally {
+    aiJudging.value = {};
+    aiPendingList.value = [];
+    stopAiStatusLoop();
   }
 };
 
@@ -418,17 +759,73 @@ const formatAnswer = (answer: string | undefined): string => {
   return String(answer);
 };
 
+// ===== AI 整卷分析报告 =====
+const reportLoading = ref(false);
+const reportVisible = ref(false);
+const reportData = ref<any>(null);
+
+const handleAiReport = async () => {
+  if (reportData.value) {
+    reportVisible.value = true;
+    return;
+  }
+  if (!result.value?.recordId) {
+    ElMessage.warning('缺少交卷记录，无法生成报告');
+    return;
+  }
+  reportLoading.value = true;
+  try {
+    const res = await aiPaperReport({ recordId: result.value.recordId });
+    if (!res.available) {
+      ElMessage.warning(res.message || 'AI 暂不可用，请稍后再试');
+      return;
+    }
+    reportData.value = res;
+    reportVisible.value = true;
+  } catch {
+    ElMessage.error('报告生成失败，请稍后重试');
+  } finally {
+    reportLoading.value = false;
+  }
+};
+
 const backToList = () => {
-  router.push({ path: '/testPaper' });
+  // 优先返回上一页（通常是试卷详情页）
+  if (window.history.length > 1) {
+    router.back();
+  } else {
+    // 没有历史记录时，带 paperID 跳回试卷详情页
+    const paperId = firstQueryValue(paperID);
+    router.push({
+      path: '/testPaper/paperDetail',
+      query: { paperID: paperId },
+    });
+  }
 };
 
 const loadPaper = async () => {
   const paperId = firstQueryValue(paperID);
+  const recordIdVal = firstQueryValue(recordId);
   if (!paperId) {
     loading.value = false;
     return;
   }
   try {
+    // 历史记录回看模式：通过 recordId 加载已交卷的答题详情
+    if (recordIdVal) {
+      const res = await getRecordDetail({ recordId: recordIdVal });
+      if (res) {
+        questions.value = res.questions ?? [];
+        paperInfo.value = (res.paperInfo as IPaperDetailInfo) ?? {};
+        result.value = res.result;
+        submitted.value = true;
+        answers.value = questions.value.map(() => '');
+        multiAnswers.value = questions.value.map(() => []);
+        // 历史记录模式：自动生成并展示 AI 报告
+        nextTick(() => handleAiReport());
+      }
+      return;
+    }
     const res = await getPaperDetail({ paperId, forTest: true });
     questions.value = res?.questions ?? [];
     paperInfo.value = (res?.paperInfo as IPaperDetailInfo) ?? {};
@@ -485,8 +882,32 @@ const handleSubmit = async () => {
   }
 };
 
+// AI 提示：只给解题思路，不给答案
+const showHint = async (index: number, questionId: number) => {
+  if (hintLoading.value[index]) return;
+  if (hintMap.value[index]) {
+    hintVisible.value[index] = true;
+    return;
+  }
+  hintLoading.value[index] = true;
+  try {
+    const res = await aiHint({ questionId: Number(questionId) });
+    if (res.available && res.hint) {
+      hintMap.value[index] = res.hint;
+      hintVisible.value[index] = true;
+    } else {
+      ElMessage.warning(res.message || 'AI 提示生成失败');
+    }
+  } catch (e) {
+    ElMessage.error('AI 提示请求失败');
+  } finally {
+    hintLoading.value[index] = false;
+  }
+};
+
 onMounted(() => {
   loadPaper();
+  setupScrollListener();
   // 考试页启用带守护的水印：水印携带用户名/ID（可追溯），
   // MutationObserver 防删除，切屏时计数并弹窗告警
   setWaterMark(username.value, `ID:${userId.value}`, {
@@ -500,6 +921,9 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  if (scrollHandler) {
+    window.removeEventListener('scroll', scrollHandler);
+  }
   // 离开页面：停止 AI 批改循环
   aiStopped = true;
   stopAiStatusLoop();
@@ -511,8 +935,12 @@ onUnmounted(() => {
 
 <style scoped>
 .do-paper-container {
-  width: 80%;
+  width: 92%;
+  max-width: 1600px;
   margin: 0 auto;
+  /* 顶部 header 是 position:fixed，统一在外层补偿高度。
+     放在这里而不是 .paper-layout，交卷后的结果区才能同样避开遮挡 */
+  padding-top: 90px;
   padding-bottom: 40px;
 }
 
@@ -537,7 +965,7 @@ onUnmounted(() => {
 
 .header-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
 .question-card {
@@ -614,6 +1042,160 @@ onUnmounted(() => {
 
 .result-card {
   margin-bottom: 16px;
+}
+
+/* ===== AI 整卷分析报告 ===== */
+.ai-report-entry {
+  margin-bottom: 16px;
+  border: 1px solid rgba(64, 158, 255, 0.25);
+  background: linear-gradient(
+    135deg,
+    rgba(64, 158, 255, 0.06),
+    rgba(103, 194, 58, 0.04)
+  );
+}
+.ai-report-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ai-badge {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 15px;
+  color: #fff;
+  background: linear-gradient(135deg, #409eff, #36cfc9);
+}
+.ai-report-txt {
+  flex: 1;
+  min-width: 0;
+}
+.ai-report-title {
+  font-weight: 700;
+  font-size: 15px;
+}
+.ai-report-desc {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  margin-top: 2px;
+}
+.ai-report-dialog-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 16px;
+}
+.ai-cache-tag {
+  font-size: 11px;
+  color: #67c23a;
+  border: 1px solid rgba(103, 194, 58, 0.4);
+  border-radius: 8px;
+  padding: 1px 8px;
+  background: rgba(103, 194, 58, 0.08);
+}
+.ai-report-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 0;
+  color: var(--el-text-color-secondary);
+}
+.ai-report-body {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+.ai-summary {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--el-text-color-primary);
+  background: rgba(64, 158, 255, 0.06);
+  border-left: 3px solid #409eff;
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin-bottom: 14px;
+}
+.ai-stats {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.ai-stat {
+  flex: 1;
+  text-align: center;
+  background: var(--el-fill-color-light);
+  border-radius: 10px;
+  padding: 10px 0;
+}
+.ai-stat b {
+  display: block;
+  font-size: 22px;
+  color: #409eff;
+}
+.ai-stat span {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
+.ai-sec {
+  margin-bottom: 14px;
+}
+.ai-sec-title {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: var(--el-text-color-primary);
+}
+.ai-knowledge {
+  margin-bottom: 8px;
+}
+.ai-knowledge-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 3px;
+}
+.ai-knowledge-name {
+  color: var(--el-text-color-primary);
+}
+.ai-knowledge-val {
+  color: var(--el-text-color-secondary);
+}
+.ai-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--el-fill-color);
+  overflow: hidden;
+}
+.ai-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #409eff, #36cfc9);
+  transition: width 0.4s;
+}
+.ai-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: var(--el-text-color-regular);
+}
+.ai-list.ai-ok li::marker {
+  color: #67c23a;
+}
+.ai-list.ai-warn li::marker {
+  color: #e6a23c;
+}
+.ai-list.ai-plan li::marker {
+  color: #409eff;
 }
 
 .result-summary {
@@ -718,10 +1300,12 @@ onUnmounted(() => {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: conic-gradient(from 0deg,
-      #409eff 0%,
-      #79bbff 25%,
-      transparent 60%);
+  background: conic-gradient(
+    from 0deg,
+    #409eff 0%,
+    #79bbff 25%,
+    transparent 60%
+  );
   animation: ai-spin 1.1s linear infinite;
   -webkit-mask: radial-gradient(circle, transparent 60%, #000 61%);
   mask: radial-gradient(circle, transparent 60%, #000 61%);
@@ -747,7 +1331,6 @@ onUnmounted(() => {
 }
 
 @keyframes ai-pulse {
-
   0%,
   100% {
     opacity: 1;
@@ -837,7 +1420,6 @@ onUnmounted(() => {
 }
 
 @keyframes ai-bounce {
-
   0%,
   80%,
   100% {
@@ -889,5 +1471,256 @@ onUnmounted(() => {
   color: #606266;
   font-size: 14px;
   line-height: 1.7;
+}
+
+/* ===== 右侧固定题号导航栏 ===== */
+.paper-layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.paper-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.question-nav {
+  width: 240px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 150px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e4e7ed;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  padding: 16px;
+  max-height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.nav-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.nav-progress {
+  font-size: 13px;
+  color: #409eff;
+  font-weight: 600;
+}
+
+.nav-legend {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: #909399;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.legend-dot.answered {
+  background: #67c23a;
+}
+
+.legend-dot.unanswered {
+  background: #f0f2f5;
+  border: 1px solid #dcdfe6;
+}
+
+.legend-dot.current {
+  background: #409eff;
+}
+
+.nav-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 4px;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.nav-item .nav-num {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.nav-item .nav-type {
+  font-size: 10px;
+  margin-top: 2px;
+  opacity: 0.8;
+}
+
+/* 未答 */
+.nav-item.unanswered {
+  background: #f5f7fa;
+  color: #909399;
+  border-color: #e4e7ed;
+}
+
+.nav-item.unanswered:hover {
+  background: #ecf5ff;
+  color: #409eff;
+  border-color: #b3d8ff;
+}
+
+/* 已答 */
+.nav-item.answered {
+  background: #f0f9eb;
+  color: #67c23a;
+  border-color: #c2e7b0;
+}
+
+.nav-item.answered:hover {
+  background: #e1f3d8;
+}
+
+/* 当前 */
+.nav-item.current {
+  background: #409eff !important;
+  color: #fff !important;
+  border-color: #409eff !important;
+  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.4);
+  transform: scale(1.05);
+}
+
+.nav-footer {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #ebeef5;
+}
+
+/* 答题页容器宽度已在上方 .do-paper-container 统一定义，此处不再重复 */
+
+@media (max-width: 1000px) {
+  .question-nav {
+    display: none;
+  }
+}
+
+/* ===== 固定顶部 header ===== */
+.header-fixed {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #ebeef5;
+}
+.header-fixed .header-row {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 12px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.header-fixed .header-info {
+  flex: 1;
+  min-width: 0;
+}
+.header-fixed .paper-title {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.header-fixed .paper-meta {
+  color: #909399;
+  font-size: 13px;
+}
+/* 固定 header 的高度补偿已移到 .do-paper-container，覆盖答题区与结果区 */
+
+/* 增强的固定 header 样式 */
+.header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.paper-progress-tag {
+  flex-shrink: 0;
+}
+.paper-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+}
+.meta-item {
+  font-size: 13px;
+  color: #606266;
+}
+.meta-divider {
+  margin: 0 8px;
+  color: #dcdfe6;
+  font-size: 12px;
+}
+.hint-row {
+  margin: 10px 0;
+}
+.hint-box {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 1px solid #7dd3fc;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-top: 8px;
+}
+.hint-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: #0369a1;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+.hint-content {
+  color: #0c4a6e;
+  line-height: 1.7;
+  font-size: 14px;
+  white-space: pre-wrap;
 }
 </style>

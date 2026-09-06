@@ -23,7 +23,7 @@
       </div>
       <div class="watermark">{{ name }}</div>
     </el-card>
-    <div v-if="store.state.userData.isAdmin">
+    <div v-if="store.state.userData.isAdmin" class="admin-actions">
       <el-button
         v-if="activeNames === 'deleted'"
         type="success"
@@ -127,12 +127,13 @@ const goPaperDetail = () => {
 <style scoped>
 .test-paper-container {
   position: relative;
-  height: 100%;
+  width: 100%;
+  min-height: 180px;
 }
 .container {
   position: relative;
   cursor: pointer;
-  height: 100%;
+  min-height: 180px;
 }
 
 .test-title {

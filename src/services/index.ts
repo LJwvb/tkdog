@@ -1,4 +1,6 @@
-import { request } from '@/utils/request';
+﻿import { request } from '@/utils/request';
+import axios from 'axios';
+import { ElMessage } from 'element-plus';
 import type {
   IRankingList,
   IGetQuestionsParams,
@@ -61,8 +63,13 @@ import type {
 // 排行榜接口（type: all/week/month）
 export function getRankList(
   type: 'all' | 'week' | 'month' = 'all',
-): Promise<IRankingList[]> {
-  return request<IRankingList[]>('GET', `/getRankingList?type=${type}`);
+  page = 1,
+  pageSize = 20,
+): Promise<{ list: IRankingList[]; total: number; hasMore: boolean }> {
+  return request<{ list: IRankingList[]; total: number; hasMore: boolean }>(
+    'GET',
+    `/getRankingList?type=${type}&page=${page}&pageSize=${pageSize}`,
+  );
 }
 
 // 获取未审核的题目接口
@@ -79,6 +86,15 @@ export function getAllChkQuestions(
   params: IPagedParams,
 ): Promise<IChkQuestions> {
   return request<IChkQuestions>('POST', '/getAllChkQuestions', {
+    data: params,
+  });
+}
+
+// 管理端题目搜索接口（题干/题型/难度/审核状态/已删除等条件组合，覆盖全部状态）
+export function searchAdminQuestions(
+  params: Record<string, unknown>,
+): Promise<IGetQuestionsReturn> {
+  return request<IGetQuestionsReturn>('POST', '/searchAdminQuestions', {
     data: params,
   });
 }
@@ -146,6 +162,29 @@ export function likeQuestion(params: ILikeQuestionParams): Promise<void> {
   return request<void>('POST', '/likeQuestions', { data: params });
 }
 
+// AI 解题解析
+export function aiAnalyze(params: { questionId: number }): Promise<{
+  available: boolean;
+  message?: string;
+  summary?: string;
+  points?: string[];
+  thinking?: string[];
+  pitfall?: string;
+  template?: string;
+}> {
+  return request('POST', '/aiAnalyze', { data: params, timeout: 60000 });
+}
+
+// AI 答题提示（只给思路，不给答案）
+export function aiHint(params: { questionId: number }): Promise<{
+  available: boolean;
+  message?: string;
+  hint?: string;
+  fromCache?: boolean;
+}> {
+  return request('POST', '/aiHint', { data: params, timeout: 60000 });
+}
+
 // 题目取消点赞接口
 export function unlikeQuestion(
   params: ICancelLikeQuestionParams,
@@ -211,13 +250,8 @@ export async function uploadImage(
   channel = 'common',
 ): Promise<string> {
   const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-  const ALLOWED_EXT = [ 'jpg', 'jpeg', 'png', 'gif', 'webp' ];
-  const ALLOWED_MIME = [
-    'image/jpeg',
-    'image/png',
-    'image/gif',
-    'image/webp',
-  ];
+  const ALLOWED_EXT = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+  const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
   const ext = (file.name.split('.').pop() || '').toLowerCase();
   if (!ALLOWED_EXT.includes(ext)) {
     throw new Error('仅支持 jpg/png/gif/webp 格式的图片');
@@ -444,9 +478,17 @@ export function getUserUploadQues(
   });
 }
 
-// 获取用户列表（分页）
+// 获取用户列表（分页 + 搜索 + 排序 + 角色筛选）
 export function getUserList(
-  params: Partial<IPagedParams>,
+  params: Partial<IPagedParams> & {
+    username?: string;
+    userId?: string | number;
+    phone?: string;
+    email?: string;
+    orderBy?: string;
+    orderDir?: string;
+    role?: 'admin' | 'user';
+  },
 ): Promise<{ result: IUserListItem[]; total: number }> {
   return request<{ result: IUserListItem[]; total: number }>(
     'POST',
@@ -494,30 +536,64 @@ export function editAdminPassword(
   return request<void>('POST', '/editAdminPassword', { data: params });
 }
 
-// 评论接口
-export function addComment(params: Record<string, unknown>): Promise<void> {
-  return request<void>('POST', '/addComment', { data: params });
+// 评论接口（返回完整响应，含 message，用于区分"评论成功"和"待审核"）
+export function addComment(
+  params: Record<string, unknown>,
+): Promise<{ message?: string }> {
+  return axios
+    .post('/api/addComment', params, { withCredentials: true })
+    .then((res) => {
+      const body = res.data || {};
+      if (body.success === false || (body.code !== 200 && body.code !== 0)) {
+        ElMessage.error(body.message || '评论失败');
+        return Promise.reject(body);
+      }
+      return body;
+    })
+    .catch((err) => {
+      if (!err?.response?.data?.message) {
+        ElMessage.error(err?.message || '网络请求失败');
+      }
+      return Promise.reject(err);
+    });
 }
 
-// 获取评论接口（顶层评论分页，result 为当前页评论树，total 为顶层评论总数）
-export function getCommentList(
-  params: Record<string, unknown>,
-): Promise<{ result: IComment[]; total: number }> {
-  return request<{ result: IComment[]; total: number }>(
-    'GET',
-    '/getCommentList',
-    { params },
-  );
+// 获取评论接口（顶层评论分页，result 为当前页评论树，total 为顶层评论总数；
+// 管理端传 groupPage/groupPageSize 时按「题目组」分页，返回 totalGroups 组总数）
+export function getCommentList(params: Record<string, unknown>): Promise<{
+  result: IComment[];
+  total: number;
+  totalGroups?: number;
+}> {
+  return request<{
+    result: IComment[];
+    total: number;
+    totalGroups?: number;
+  }>('GET', '/getCommentList', { params });
 }
 
 // 点赞评论
-export function likeComment(params: { commentId: number }): Promise<void> {
-  return request<void>('POST', '/likeComment', { data: params });
+//   后端返回 { added: boolean }：true=真新增点赞；false=已点过（幂等但未新增）
+export function likeComment(params: {
+  commentId: number;
+}): Promise<{ added?: boolean; removed?: boolean }> {
+  return request<{ added?: boolean; removed?: boolean }>(
+    'POST',
+    '/likeComment',
+    { data: params },
+  );
 }
 
 // 取消点赞评论
-export function unlikeComment(params: { commentId: number }): Promise<void> {
-  return request<void>('POST', '/unlikeComment', { data: params });
+//   后端返回 { removed: boolean }：true=真删了一条；false=本来就没点（幂等）
+export function unlikeComment(params: {
+  commentId: number;
+}): Promise<{ added?: boolean; removed?: boolean }> {
+  return request<{ added?: boolean; removed?: boolean }>(
+    'POST',
+    '/unlikeComment',
+    { data: params },
+  );
 }
 
 // 置顶/取消置顶评论（管理员）
@@ -551,6 +627,62 @@ export function submitPaper(
 }
 
 // AI 批改简答题（大模型响应慢，单独放宽超时；recordId 用于落库并重算成绩）
+// ===== AI 三大功能 =====
+// 1. 整卷 AI 分析报告（交卷后按 recordId 生成，落库缓存）
+export function aiPaperReport(params: { recordId: number }): Promise<{
+  available: boolean;
+  message?: string;
+  fromCache?: boolean;
+  summary?: string;
+  knowledgeAreas?: { name: string; mastery: number; comment?: string }[];
+  strengths?: string[];
+  weakPoints?: string[];
+  suggestions?: string[];
+  stats?: {
+    score: number;
+    correctNum: number;
+    wrongNum: number;
+    subjectiveNum: number;
+    durationMin?: number;
+  };
+}> {
+  return request('POST', '/aiPaperReport', { data: params, timeout: 60000 });
+}
+
+// 2. AI 个人学习报告（按用户聚合，落库缓存）
+export function aiLearningReport(): Promise<{
+  available: boolean;
+  message?: string;
+  fromCache?: boolean;
+  skillProfile?: { name: string; level: string; comment: string }[];
+  strengths?: string[];
+  weakPoints?: string[];
+  suggestions?: string[];
+  stats?: {
+    papers: number;
+    accuracy: number;
+    answered: number;
+    favorites: number;
+  };
+}> {
+  return request('POST', '/aiLearningReport', { data: {}, timeout: 60000 });
+}
+
+// 3. AI 智能组卷建议（按条件从题库推荐题目组合）
+export function aiPaperSuggest(params: {
+  subjectID?: number | string;
+  difficulty?: number | string;
+  counts: { single: number; multiple: number; judge: number; essay: number };
+  tags?: string[];
+}): Promise<{
+  available: boolean;
+  message?: string;
+  questionIds?: number[];
+  reason?: string;
+}> {
+  return request('POST', '/aiPaperSuggest', { data: params, timeout: 60000 });
+}
+
 export function aiJudgeAnswer(params: {
   questionId: number;
   userAnswer: string;
@@ -562,9 +694,54 @@ export function aiJudgeAnswer(params: {
   });
 }
 
+// 批量 AI 判分（交卷时所有简答题一次调用，省 N-1 次网络往返）
+export function aiJudgeBatch(params: {
+  recordId?: number;
+  items: Array<{ questionId: number; userAnswer: string }>;
+}): Promise<{
+  available: boolean;
+  message?: string;
+  results?: Array<{
+    questionId: number;
+    score: number;
+    comment: string;
+    isCorrect: boolean;
+  }>;
+  stats?: {
+    correctNum: number;
+    wrongNum: number;
+    subjectiveNum: number;
+    score: number;
+    questionNum?: number;
+  };
+}> {
+  return request('POST', '/aiJudgeBatch', { data: params, timeout: 120_000 });
+}
+
 // 我的答题记录
 export function getMyPaperRecords(): Promise<IPaperRecord[]> {
   return request<IPaperRecord[]>('POST', '/getMyPaperRecords');
+}
+
+// 答题记录详情（回看某次答题）
+export function getRecordDetail(params: {
+  recordId: number | string;
+}): Promise<{
+  paperInfo: any;
+  questions: any[];
+  result: any;
+}> {
+  return request('POST', '/getRecordDetail', { data: params });
+}
+
+// 积分兑换 AI 额度（10积分=1次）
+export function exchangeAiCredit(params: { count: number }): Promise<{
+  cost: number;
+  gained: number;
+  remaining: number;
+  credit: number;
+}> {
+  return request('POST', '/exchangeAiCredit', { data: params });
 }
 
 // 答题统计
@@ -703,9 +880,13 @@ export function restoreAnnouncement(params: { id: number }): Promise<void> {
   return request<void>('POST', '/restoreAnnouncement', { data: params });
 }
 
-// 标签统计（管理员）
-export function getTagStats(): Promise<ITagStat[]> {
-  return request<ITagStat[]>('POST', '/getTagStats', { data: {} });
+// 标签统计（管理员），支持分页
+export function getTagStats(params: {
+  currentPage: number;
+  pageSize: number;
+  keyword?: string;
+}): Promise<{ result: ITagStat[]; total: number }> {
+  return request('POST', '/getTagStats', { data: params });
 }
 
 // 重命名标签（管理员）
@@ -727,7 +908,14 @@ export function approveComment(params: { id: number }): Promise<void> {
 }
 
 // 纠错反馈列表（管理员）
-export function getFeedbackList(params: IPagedParams): Promise<{
+export function getFeedbackList(
+  params: IPagedParams & {
+    content?: string;
+    username?: string;
+    question?: string;
+    isResolved?: '' | 0 | 1;
+  },
+): Promise<{
   result: IQuestionFeedback[];
   total: number;
 }> {
@@ -761,4 +949,19 @@ export function getMyFeedback(params: IPagedParams): Promise<{
 // 未处理反馈数量（管理员角标）
 export function getUnresolvedFeedbackCount(): Promise<{ count: number }> {
   return request<{ count: number }>('POST', '/getUnresolvedFeedbackCount');
+}
+
+// ==================== GitHub OAuth 第三方登录 ====================
+
+// 获取 GitHub 授权页 URL（返回 authUrl，前端跳转）
+export function getGithubAuthUrl(): Promise<{ authUrl: string }> {
+  return request<{ authUrl: string }>('GET', '/oauth/github');
+}
+
+// GitHub OAuth 回调处理（用 code 换登录态，返回用户信息）
+export function githubCallback(params: {
+  code: string;
+  state: string;
+}): Promise<any> {
+  return request<any>('POST', '/oauth/github/callback', { data: params });
 }

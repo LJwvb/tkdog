@@ -1,9 +1,14 @@
 import queryString from 'query-string';
 import { nextTick, onMounted, onActivated } from 'vue';
+import DOMPurify from 'dompurify';
 
-export const queryObj = queryString.parse(
-  window?.location?.href?.split('?')[1] || '',
-);
+export const parseHashQuery = () => {
+  const hash = window?.location?.hash || '';
+  const queryStr = hash.includes('?') ? hash.split('?')[1] : '';
+  return queryString.parse(queryStr || '');
+};
+
+export const queryObj = parseHashQuery();
 
 /**
  * query-string 解析出的值可能是 string、string[] 或 null。
@@ -16,6 +21,41 @@ export const firstQueryValue = (
   if (typeof value === 'string') return value;
   if (Array.isArray(value)) return value.find((v) => v != null) ?? fallback;
   return fallback;
+};
+
+/**
+ * 渲染库内富文本（题干/答案/解析）前统一过一遍 DOMPurify，
+ * 防止后端被绕过后注入 <script> / 危险事件属性。
+ * 默认白名单仅保留排版标签，去掉 a/img/script/style/on* 属性。
+ */
+const SANITIZE_CONFIG = {
+  ALLOWED_TAGS: [
+    'p',
+    'br',
+    'strong',
+    'em',
+    'u',
+    's',
+    'code',
+    'pre',
+    'ul',
+    'ol',
+    'li',
+    'blockquote',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'span',
+    'div',
+  ],
+  ALLOWED_ATTR: [],
+};
+export const sanitizeHtml = (html: string | null | undefined): string => {
+  if (!html) return '';
+  return DOMPurify.sanitize(String(html), SANITIZE_CONFIG);
 };
 
 export const questionType = (questionType: number) => {
@@ -87,17 +127,19 @@ export const reviewingCardTip = (
     chkState?: number;
     updateTime?: string;
     updateUser?: string;
-    creator?: string;
+    creator_id?: number;
   },
-  currentUsername?: string,
+  currentUserId?: number,
 ): string => {
   if (
     Number(q.chkState) === 0 &&
     q.updateTime &&
-    q.creator !== currentUsername
+    Number(q.creator_id) !== Number(currentUserId)
   ) {
     const who = q.updateUser || '用户';
-    return `${who} 已于 ${transitionTime(q.updateTime)} 二次编辑了题目，还在审核中`;
+    return `${who} 已于 ${transitionTime(
+      q.updateTime,
+    )} 二次编辑了题目，还在审核中`;
   }
   return '';
 };
@@ -312,3 +354,29 @@ export function exportQuestionsToCsv(
   URL.revokeObjectURL(url);
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
+
+/**
+ * 取 el-table 真正可滚动的 body 容器。
+ *
+ * element-plus 升到 2.14 后 el-table 改用显式 expose（白名单里没有 bodyWrapper），
+ * 直接读 tableRef.value.bodyWrapper 会是 undefined，管理端表格的滚动加载会静默失效。
+ * 这里按优先级兜底：暴露的 bodyWrapper → 内部 $refs → DOM 查询，
+ * 并只在候选元素确实溢出时才采用（数据不足一屏时高度还没撑开）。
+ */
+export function getTableScrollBody(tableRef: unknown): HTMLElement | null {
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const t = tableRef as any;
+  if (!t) return null;
+  const candidates: HTMLElement[] = [
+    t.bodyWrapper,
+    t.$refs?.bodyWrapper,
+    t.$el?.querySelector?.('.el-table__body-wrapper'),
+    t.$el?.querySelector?.('.el-table__body-wrapper .el-scrollbar__wrap'),
+    t.$el?.querySelector?.('.el-scrollbar__wrap'),
+  ].filter(Boolean);
+  const scrollable = candidates.find(
+    (el) => el.scrollHeight - el.clientHeight > 1,
+  );
+  return scrollable || candidates[0] || null;
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+}

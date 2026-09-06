@@ -34,11 +34,22 @@
             />
           </div>
         </el-form-item>
-        <el-form-item label="手机号">
-          <el-input disabled :placeholder="phone" />
+        <el-form-item label="手机号" prop="phone">
+          <el-input
+            v-model="ruleForm.phone"
+            maxlength="11"
+            placeholder="请输入手机号"
+          />
+          <div class="field-tip">
+            手机号是登录账号，修改后下次请用新手机号登录
+          </div>
         </el-form-item>
-        <el-form-item label="用户名">
-          <el-input :placeholder="username" disabled />
+        <el-form-item label="用户名" prop="username">
+          <el-input
+            v-model="ruleForm.username"
+            maxlength="20"
+            placeholder="请输入用户名"
+          />
         </el-form-item>
         <el-form-item label="邮箱" prop="email" placeholder="请输入邮箱">
           <el-input v-model="ruleForm.email" />
@@ -116,12 +127,26 @@ const props = defineProps({
 const { dialogVisible } = toRefs(props);
 
 const ruleForm = reactive({
+  phone: store.state.userData.phone,
+  username: store.state.userData.username,
   email: store.state.userData.email,
   sex: store.state.userData.sex,
   personalIntroduction: store.state.userData.personalIntroduction,
 });
 
 const rules = reactive<FormRules>({
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 2, max: 20, message: '用户名长度 2-20 个字符', trigger: 'blur' },
+  ],
+  phone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    {
+      pattern: /^1[3-9]\d{9}$/,
+      message: '请输入正确的手机号',
+      trigger: 'blur',
+    },
+  ],
   email: [
     { required: false, message: '请输入邮箱', trigger: 'blur' },
     { type: 'email', message: '请输入正确的邮箱', trigger: 'blur' },
@@ -138,7 +163,6 @@ const submitForm = async (formEl: FormInstance | undefined) => {
     if (valid) {
       const params = {
         ...ruleForm,
-        phone: phone,
         avatar: avatarPreview.value,
       };
 
@@ -159,6 +183,8 @@ const submitForm = async (formEl: FormInstance | undefined) => {
 const resetForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return;
   formEl.resetFields();
+  ruleForm.phone = store.state.userData.phone;
+  ruleForm.username = store.state.userData.username;
   ruleForm.email = '';
   ruleForm.sex = '';
   ruleForm.personalIntroduction = '';
@@ -189,6 +215,12 @@ const handleClose = (done: () => void) => {
 }
 .tag {
   margin-right: 5px;
+}
+.field-tip {
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.4;
+  margin-top: 2px;
 }
 .avatar-uploader {
   display: flex;

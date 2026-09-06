@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <el-form
     ref="ruleFormRef"
     :model="ruleForm"
@@ -163,6 +163,7 @@ const nextStep = () => {
   color: var(--el-color-warning) !important;
 }
 .next-step {
-  margin-top: 8px;
+  margin-top: 24px;
+  float: right;
 }
 </style>

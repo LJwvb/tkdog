@@ -1,4 +1,4 @@
-import {
+﻿import {
   createRouter,
   createWebHashHistory,
   type RouteRecordRaw,
@@ -119,6 +119,9 @@ const routes: RouteRecordRaw[] = [
     name: 'user',
     meta: { requireAuth: true },
     component: () => import('@/views/Personal/user.vue'),
+    // user.vue 只负责渲染左侧菜单 + <router-view>，
+    // 直接访问 /user 时必须重定向到默认子页，否则右侧内容区是空的
+    redirect: { name: 'userInfo' },
     children: [
       {
         path: 'UserInfo',
@@ -184,10 +187,28 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/ProblemInfo/index.vue'),
   },
   {
+    // 用户协议：对所有人开放
+    path: '/agreement',
+    name: 'agreement',
+    component: () => import('@/views/Agreement/index.vue'),
+  },
+  {
+    // 隐私政策：对所有人开放
+    path: '/privacy',
+    name: 'privacy',
+    component: () => import('@/views/Agreement/index.vue'),
+  },
+  {
     // 用户登录页：对所有人开放
     path: '/Login',
     name: 'Login',
     component: () => import('@/views/login/Login.vue'),
+  },
+  {
+    // GitHub OAuth 回调页：对所有人开放
+    path: '/oauth/github/callback',
+    name: 'GithubCallback',
+    component: () => import('@/views/oauth/GithubCallback.vue'),
   },
   {
     path: '/:pathMatch(.*)*',
@@ -201,9 +222,9 @@ const router = createRouter({
 });
 
 router.beforeEach((to, _from, next) => {
-  // 登录态以后端 session 为准，前端只做 UI 拦截
+  // 登录态以 JWT Token 为准，前端只做 UI 拦截
   const userData = store.state.userData;
-  const isLoggedIn = Boolean(userData?.phone);
+  const isLoggedIn = Boolean((userData as any)?.token);
   const isAdmin = Boolean(userData?.isAdmin);
 
   // 需要登录的路由：未登录重定向到登录页
