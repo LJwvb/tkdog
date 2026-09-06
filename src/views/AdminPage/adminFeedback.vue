@@ -58,7 +58,6 @@
             stripe
             height="calc(100vh - 410px)"
             empty-text=""
-            @scroll="handleTableScroll"
           >
             <el-table-column prop="id" label="ID" width="70" />
             <el-table-column
@@ -159,30 +158,38 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick, reactive } from 'vue';
+import { ref, onMounted, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { getFeedbackList, resolveFeedback } from '@/services';
-import { transitionTime, getTableScrollBody } from '@/utils';
+import { transitionTime } from '@/utils';
+import { useInfiniteTable } from '@/composables/useInfiniteTable';
 import type { IQuestionFeedback } from '@/types';
 
 const router = useRouter();
-const list = ref<IQuestionFeedback[]>([]);
 const feedbackTableRef = ref();
-const loading = ref(true);
-const loadingMore = ref(false);
-const noMore = ref(false);
-const currentPage = ref(1);
-const total = ref(0);
 const searchForm = reactive({
   content: '',
   username: '',
   question: '',
-  isResolved: '',
+  isResolved: '' as '' | 0 | 1,
 });
 const resolveVisible = ref(false);
 const resolveRemark = ref('');
 const currentRow = ref<IQuestionFeedback | null>(null);
+
+const { list, total, loading, noMore, reset } =
+  useInfiniteTable<IQuestionFeedback>(
+    (params) =>
+      getFeedbackList({
+        ...params,
+        content: searchForm.content,
+        username: searchForm.username,
+        question: searchForm.question,
+        isResolved: searchForm.isResolved,
+      }),
+    { pageSize: 10, tableRef: feedbackTableRef },
+  );
 
 const typeName = (type: string) => {
   switch (type) {
@@ -204,68 +211,17 @@ const resolveTip = (row: unknown) => {
   return parts.join('；') || '已处理';
 };
 
-const load = async (append = false) => {
-  if (loadingMore.value) return;
-  loadingMore.value = true;
-  loading.value = !append;
-  const res = await getFeedbackList({
-    currentPage: currentPage.value,
-    pageSize: 10,
-    ...searchForm,
-  });
-  if (append) {
-    list.value = [...list.value, ...(res?.result ?? [])];
-  } else {
-    list.value = res?.result ?? [];
-  }
-  total.value = res?.total ?? 0;
-  noMore.value = list.value.length >= total.value;
-  loadingMore.value = false;
-  loading.value = false;
-  // 首屏/加载后若数据不满一屏（无滚动空间），自动继续加载下一页，直到撑满或到底
-  nextTick(() => {
-    const body = getTableScrollBody(feedbackTableRef.value);
-    if (
-      body &&
-      !noMore.value &&
-      !loadingMore.value &&
-      body.scrollHeight <= body.clientHeight + 50
-    ) {
-      currentPage.value++;
-      load(true);
-    }
-  });
-};
-
 const onSearch = () => {
-  currentPage.value = 1;
-  list.value = [];
-  noMore.value = false;
-  load();
+  void reset();
 };
 const onReset = () => {
   searchForm.content = '';
   searchForm.username = '';
   searchForm.question = '';
   searchForm.isResolved = '';
-  currentPage.value = 1;
-  list.value = [];
-  noMore.value = false;
-  load();
+  void reset();
 };
-const handleTableScroll = () => {
-  const body = getTableScrollBody(feedbackTableRef.value);
-  if (!body) return;
-  const { scrollTop, clientHeight, scrollHeight } = body;
-  if (
-    scrollTop + clientHeight >= scrollHeight - 50 &&
-    !loadingMore.value &&
-    !noMore.value
-  ) {
-    currentPage.value++;
-    load(true);
-  }
-};
+
 const goQuestion = (id: number) => {
   router.push({
     path: '/problemInfo',
@@ -288,10 +244,12 @@ const doResolve = async () => {
   ElMessage.success('已标记处理');
   resolveVisible.value = false;
   currentRow.value = null;
-  load();
+  void reset();
 };
 
-onMounted(load);
+onMounted(() => {
+  void reset();
+});
 </script>
 
 <style scoped>

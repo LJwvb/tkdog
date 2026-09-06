@@ -48,6 +48,8 @@
             link
             size="small"
             :type="liked ? 'warning' : 'primary'"
+            :loading="liking"
+            :disabled="liking"
             @click="toggleLike"
           >
             {{ liked ? '已赞' : '赞' }}
@@ -422,14 +424,40 @@ const imageList = computed(() => {
 });
 
 // 点赞/取消点赞评论
+//   - 加 liking 守卫防双发（避免乐观锁 + 后端幂等双重失误）
+//   - 严格按后端返回的 added/removed 同步 likeCount，不做无脑 ±1
+//   - catch 错误回滚本地状态（含 liked 与 likeCount）保持 UI 与服务端一致
+const liking = ref(false);
 const toggleLike = async () => {
-  if (liked.value) {
-    await unlikeComment({ commentId: props.comment.id });
-  } else {
-    await likeComment({ commentId: props.comment.id });
+  if (liking.value) return;
+  liking.value = true;
+  const prevLiked = liked.value;
+  const prevCount = likeCount.value;
+  const wantLike = !prevLiked;
+  // 乐观更新
+  liked.value = wantLike;
+  likeCount.value = prevCount + (wantLike ? 1 : -1);
+  try {
+    const res = wantLike
+      ? await likeComment({ commentId: props.comment.id })
+      : await unlikeComment({ commentId: props.comment.id });
+    // 后端仅在「真新增/真删除」时更新计数，幂等情况下保持当前显示
+    if (wantLike && res && res.added === false) {
+      // 重复点赞被服务端吃掉：本地的 +1 是错的，回滚
+      likeCount.value = prevCount;
+    } else if (!wantLike && res && res.removed === false) {
+      // 本来就没点赞，本地 -1 是错的，回滚
+      likeCount.value = prevCount;
+    }
+  } catch (err) {
+    // 网络/服务端错误：完整回滚到点击前状态
+    liked.value = prevLiked;
+    likeCount.value = prevCount;
+    // eslint-disable-next-line no-console
+    console.error('toggleLike 失败:', err);
+  } finally {
+    liking.value = false;
   }
-  liked.value = !liked.value;
-  likeCount.value += liked.value ? 1 : -1;
 };
 
 const submitReply = async () => {

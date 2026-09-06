@@ -4,7 +4,7 @@
       <el-icon>
         <School />
       </el-icon>
-      <span>面试狗 · 在线面试刷题平台</span>
+      <span>题库狗 · 在线面试刷题平台</span>
     </div>
     <div class="space">
       <el-icon>
@@ -16,7 +16,7 @@
       <el-icon>
         <Stamp />
       </el-icon>
-      <span>© 2026 面试狗</span>
+      <span>© 2026 题库狗</span>
     </div>
   </div>
 </template>

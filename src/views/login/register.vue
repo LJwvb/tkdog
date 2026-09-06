@@ -159,8 +159,8 @@ const rules = {
     { required: true, message: '密码不能为空', trigger: 'blur' },
     {
       min: 6,
-      max: 16,
-      message: '密码长度必须是6-16位之间',
+      max: 20,
+      message: '密码长度必须是6-20位之间',
       trigger: 'blur',
     },
   ],

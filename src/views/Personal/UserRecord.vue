@@ -61,10 +61,18 @@
           </span>
         </div>
       </template>
-      <el-table v-if="records.length" :data="records" stripe class="record-table" @row-click="goToDetail">
+      <el-table
+        v-if="records.length"
+        :data="records"
+        stripe
+        class="record-table"
+        @row-click="goToDetail"
+      >
         <el-table-column prop="paper_title" label="试卷" min-width="200">
           <template #default="{ row }">
-            <span class="paper-link">{{ row.paper_title || `试卷 #${row.paper_id}` }}</span>
+            <span class="paper-link">{{
+              row.paper_title || `试卷 #${row.paper_id}`
+            }}</span>
           </template>
         </el-table-column>
         <el-table-column label="得分" width="110" align="center">

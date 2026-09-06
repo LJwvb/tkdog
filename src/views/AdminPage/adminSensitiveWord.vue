@@ -24,11 +24,10 @@
           <el-table
             ref="wordTableRef"
             v-loading="loading"
-            :data="wordList"
+            :data="list"
             stripe
             height="calc(100vh - 372px)"
             empty-text=""
-            @scroll="handleTableScroll"
           >
             <el-table-column prop="id" label="ID" width="80" />
             <el-table-column prop="word" label="违禁词" min-width="200" />
@@ -57,7 +56,7 @@
 
             <template #empty>
               <el-empty
-                v-if="!loading && wordList.length === 0"
+                v-if="!loading && list.length === 0"
                 :image-size="160"
                 description="暂无违禁词"
               />
@@ -65,7 +64,7 @@
           </el-table>
 
           <div v-if="total > 0" class="list-total">
-            共 {{ total }} 条，已加载 {{ wordList.length }} 条
+            共 {{ total }} 条，已加载 {{ list.length }} 条
           </div>
         </el-tab-pane>
         <el-tab-pane label="已删除违禁词" name="deleted">
@@ -156,7 +155,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
   getSensitiveWords,
@@ -165,61 +164,43 @@ import {
   getDeletedSensitiveWords,
   restoreSensitiveWord,
 } from '@/services';
-import { transitionTime, getTableScrollBody } from '@/utils';
+import { transitionTime } from '@/utils';
+import { useInfiniteTable } from '@/composables/useInfiniteTable';
 import type { ISensitiveWord } from '@/types';
 
-const wordList = ref<ISensitiveWord[]>([]);
-const loading = ref(true);
-const loadingMore = ref(false);
-const noMore = ref(false);
-const currentPage = ref(1);
-const total = ref(0);
-const pageSize = 50;
-const activeTab = ref('normal');
-const deletedWords = ref<ISensitiveWord[]>([]);
-const deletedLoading = ref(false);
-const deletedPage = ref(1);
-const deletedTotal = ref(0);
+const PAGE_SIZE = 50;
+// deleted tab 仍走传统 el-pagination，需独立 pageSize 引用
+const pageSize = PAGE_SIZE;
+
+const wordTableRef = ref();
 const keyword = ref('');
+const activeTab = ref('normal');
 const dialogVisible = ref(false);
 const form = reactive({
   word: '',
   level: 1,
 });
 
-const load = async (append = false) => {
-  loading.value = true;
-  const res = await getSensitiveWords({
-    currentPage: currentPage.value,
-    pageSize,
-    keyword: keyword.value,
-  });
-  if (append) {
-    wordList.value = [...wordList.value, ...(res?.result ?? [])];
-  } else {
-    wordList.value = res?.result ?? [];
-  }
-  total.value = res?.total ?? 0;
-  noMore.value = wordList.value.length >= total.value;
-  loading.value = false;
+/**
+ * 「违禁词列表」tab：滚动追加 + 不足一屏自动补屏
+ * 「已删除违禁词」tab：仍保留传统 el-pagination（数据量小，且不需要滚动追加）
+ */
+const { list, total, loading, reset } = useInfiniteTable<ISensitiveWord>(
+  (params) =>
+    getSensitiveWords({
+      ...params,
+      keyword: keyword.value,
+    }),
+  { pageSize: PAGE_SIZE, tableRef: wordTableRef },
+);
 
-  // 内容不足一屏时自动加载下一页，直到出现滚动条或加载完
-  if (!noMore.value) {
-    nextTick(() => {
-      setTimeout(() => {
-        const body = getTableScrollBody(wordTableRef.value);
-        if (body && body.scrollHeight <= body.clientHeight + 10) {
-          currentPage.value++;
-          load(true);
-        }
-      }, 50);
-    });
-  }
-};
+const deletedWords = ref<ISensitiveWord[]>([]);
+const deletedLoading = ref(false);
+const deletedPage = ref(1);
+const deletedTotal = ref(0);
 
 const handleSearch = () => {
-  currentPage.value = 1;
-  load();
+  void reset();
 };
 
 const openDialog = () => {
@@ -237,7 +218,7 @@ const handleAdd = async () => {
   await addSensitiveWord({ word, level: form.level });
   ElMessage.success('添加成功');
   dialogVisible.value = false;
-  load();
+  void reset();
 };
 
 const handleDelete = (row: unknown) => {
@@ -249,7 +230,7 @@ const handleDelete = (row: unknown) => {
   }).then(() => {
     deleteSensitiveWord({ id: r.id }).then(() => {
       ElMessage.success('删除成功');
-      load();
+      void reset();
     });
   });
 };
@@ -258,7 +239,7 @@ const loadDeleted = async () => {
   deletedLoading.value = true;
   const res = await getDeletedSensitiveWords({
     currentPage: deletedPage.value,
-    pageSize,
+    pageSize: PAGE_SIZE,
   });
   deletedWords.value = res?.result ?? [];
   deletedTotal.value = res?.total ?? 0;
@@ -275,7 +256,7 @@ const handleRestore = (row: unknown) => {
   restoreSensitiveWord({ id: r.id }).then(() => {
     ElMessage.success('已恢复');
     loadDeleted();
-    load();
+    void reset();
   });
 };
 
@@ -285,47 +266,8 @@ const handleTabChange = (name: string | number) => {
   }
 };
 
-const wordTableRef = ref();
-let scrollBodyEl: HTMLElement | null = null;
-
-const handleTableScroll = () => {
-  if (!scrollBodyEl) return;
-  const { scrollTop, clientHeight, scrollHeight } = scrollBodyEl;
-  if (
-    scrollTop + clientHeight >= scrollHeight - 50 &&
-    !loadingMore.value &&
-    !noMore.value
-  ) {
-    currentPage.value++;
-    loadingMore.value = true;
-    load(true).then(() => (loadingMore.value = false));
-  }
-};
-
-const bindTableScroll = () => {
-  if (scrollBodyEl) {
-    scrollBodyEl.removeEventListener('scroll', handleTableScroll);
-  }
-  scrollBodyEl = getTableScrollBody(wordTableRef.value);
-  if (scrollBodyEl) {
-    scrollBodyEl.addEventListener('scroll', handleTableScroll, {
-      passive: true,
-    });
-  }
-};
-
 onMounted(() => {
-  load();
-  nextTick(() => {
-    setTimeout(bindTableScroll, 100);
-  });
-});
-
-onUnmounted(() => {
-  if (scrollBodyEl) {
-    scrollBodyEl.removeEventListener('scroll', handleTableScroll);
-    scrollBodyEl = null;
-  }
+  void reset();
 });
 </script>
 

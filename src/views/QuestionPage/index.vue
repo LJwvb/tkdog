@@ -167,7 +167,6 @@ const currentSearchPage = ref(store.state.searchHistory?.currentPage || 1);
 const total = ref(0);
 const searchTotal = ref(0);
 const subjectIDList = ref();
-const searchPaginationClick = ref(false);
 const pageSize = 10;
 
 // 每个科目的数据缓存，切换 tab 时不重新请求
@@ -387,13 +386,8 @@ onMounted(() => {
   }
 });
 watchEffect(() => {
-  if (
-    isClickSearch === 'true' &&
-    store.state.searchHistory &&
-    !searchPaginationClick.value
-  ) {
+  if (isClickSearch === 'true' && store.state.searchHistory) {
     clickSearch.value = true;
-    searchPaginationClick.value = false;
     const searchHistory = store.state.searchHistory;
     form.keyword = searchHistory.keyword;
     form.questionType = searchHistory.questionType;

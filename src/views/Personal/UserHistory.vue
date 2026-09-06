@@ -42,7 +42,10 @@ const currentPage = ref(1);
 const total = ref(0);
 const pageSize = 10;
 
-const ids = store.state.browseTopicsId.join(',');
+// store.state.browseTopicsId 可能因尚未初始化为 undefined，必须兜底为数组，否则 .join 抛错
+const ids = (
+  Array.isArray(store.state.browseTopicsId) ? store.state.browseTopicsId : []
+).join(',');
 
 const likeTopicsIdParams = reactive({
   type: 'user',

@@ -88,7 +88,7 @@
           </div>
           <div
             v-if="activeName === 'nochk'"
-            v-loading="loading"
+            v-loading="nochkLoading"
             element-loading-text="加载中..."
           >
             <VirtualList
@@ -119,7 +119,7 @@
           </div>
           <div
             v-if="activeName === 'chk'"
-            v-loading="loading"
+            v-loading="chkLoading"
             element-loading-text="加载中..."
           >
             <VirtualList
@@ -151,7 +151,7 @@
           </div>
           <div
             v-if="activeName === 'deleted'"
-            v-loading="loading"
+            v-loading="deletedLoading"
             element-loading-text="加载中..."
           >
             <VirtualList
@@ -337,7 +337,11 @@ const ChkQuestions = ref<IQuestion[]>([]);
 const formRef = ref();
 //获取未审核题目
 const NoChkQuestions = ref<IQuestion[]>([]);
-const loading = ref(true);
+// 各列表独立的整表加载蒙层（之前共用一个 loading 会出现 A 列表加载中阻塞 B 列表滚动加载）
+const nochkLoading = ref(true);
+const chkLoading = ref(true);
+const deletedLoading = ref(false);
+const searchLoading = ref(false);
 // 已审核列表滚动加载（命名与 nochk/deleted/search 保持一致）
 const chkLoadingMore = ref(false);
 // 未审核列表滚动加载
@@ -388,7 +392,7 @@ const form = reactive({
 });
 // 未审核列表：滚动到底部追加下一页
 const loadMoreNoChk = async () => {
-  if (loading.value || nochkLoadingMore.value) return;
+  if (nochkLoading.value || nochkLoadingMore.value) return;
   if (NoChkQuestions.value.length >= noChkTotal.value) return;
   nochkLoadingMore.value = true;
   nochkParams.currentPage += 1;
@@ -402,7 +406,7 @@ const loadMoreNoChk = async () => {
 };
 // 已审核列表：滚动到底部追加下一页（与分页器二选一，此处走无限滚动）
 const loadMoreChk = async () => {
-  if (loading.value || chkLoadingMore.value) return;
+  if (chkLoading.value || chkLoadingMore.value) return;
   if (ChkQuestions.value.length >= chkTotal.value) return;
   chkLoadingMore.value = true;
   chkParams.currentPage += 1;
@@ -430,6 +434,7 @@ const loadQuestions = async (
   params: IPageParams,
   listRef: Ref<IQuestion[]>,
   totalRef: Ref<number>,
+  loadingRef: Ref<boolean>,
   append = false,
 ) => {
   if (!append) {
@@ -439,7 +444,7 @@ const loadQuestions = async (
   const list = res?.result ?? [];
   listRef.value = append ? [...listRef.value, ...list] : list;
   totalRef.value = res?.total ?? 0;
-  loading.value = false;
+  loadingRef.value = false;
 };
 const getNoChkQuestion = async (append = false) => {
   await loadQuestions(
@@ -447,6 +452,7 @@ const getNoChkQuestion = async (append = false) => {
     nochkParams,
     NoChkQuestions,
     noChkTotal,
+    nochkLoading,
     append,
   );
 };
@@ -456,6 +462,7 @@ const getAllChkQuestion = async (append = false) => {
     chkParams,
     ChkQuestions,
     chkTotal,
+    chkLoading,
     append,
   );
 };
@@ -512,12 +519,13 @@ const getDeletedQuestion = async (append = false) => {
     deletedParams,
     DeletedQuestions,
     deletedTotal,
+    deletedLoading,
     append,
   );
 };
 // 已删除列表：滚动到底部追加下一页
 const loadMoreDeleted = async () => {
-  if (loading.value || deletedLoadingMore.value) return;
+  if (deletedLoading.value || deletedLoadingMore.value) return;
   if (DeletedQuestions.value.length >= deletedTotal.value) return;
   deletedLoadingMore.value = true;
   deletedParams.currentPage += 1;
@@ -536,12 +544,14 @@ const restoreQuestionFun = (id: number) => {
   });
 };
 const handleClick = (tab: { props: { name?: string | number } }) => {
-  loading.value = true;
   if (tab.props.name === 'nochk') {
+    nochkLoading.value = true;
     getNoChkQuestion();
   } else if (tab.props.name === 'deleted') {
+    deletedLoading.value = true;
     getDeletedQuestion();
   } else {
+    chkLoading.value = true;
     getAllChkQuestion();
   }
 };
@@ -551,7 +561,7 @@ const onSubmit = () => {
     ElMessage.error('请至少输入或选择一项搜索条件');
     return;
   }
-  loading.value = true;
+  searchLoading.value = true;
   getSearchData();
 };
 const clearSearch = () => {
@@ -606,11 +616,11 @@ const getSearchData = async (append = false) => {
   searchData.value = append ? [...searchData.value, ...list] : list;
   searchTotal.value = res?.total ?? 0;
   clickSearch.value = true;
-  loading.value = false;
+  searchLoading.value = false;
 };
 // 搜索结果：滚动到底部追加下一页
 const loadMoreSearch = async () => {
-  if (loading.value || searchLoadingMore.value) return;
+  if (searchLoading.value || searchLoadingMore.value) return;
   if (searchData.value.length >= searchTotal.value) return;
   searchLoadingMore.value = true;
   searchParams.currentPage += 1;

@@ -313,7 +313,7 @@ const rules = ref({
   ],
   password: [
     { required: true, message: '密码不能为空', trigger: 'blur' },
-    { min: 6, max: 16, message: '密码必须在6-16位之间', trigger: 'blur' },
+    { min: 6, max: 20, message: '密码必须在6-20位之间', trigger: 'blur' },
   ],
   code: [{ required: true, message: '验证码不能为空', trigger: 'blur' }],
 });

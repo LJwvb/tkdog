@@ -215,60 +215,104 @@
         </div>
       </el-card>
 
-      <el-card class="ai-report-entry" v-if="submitted">
+      <el-card v-if="submitted" class="ai-report-entry">
         <div class="ai-report-head">
           <span class="ai-badge">AI</span>
           <div class="ai-report-txt">
             <div class="ai-report-title">AI 整卷分析报告</div>
-            <div class="ai-report-desc">基于本次作答逐题分析知识掌握与薄弱点，仅首次生成，之后秒回缓存</div>
+            <div class="ai-report-desc">
+              基于本次作答逐题分析知识掌握与薄弱点，仅首次生成，之后秒回缓存
+            </div>
           </div>
-          <el-button type="primary" :loading="reportLoading" @click="handleAiReport">
+          <el-button
+            type="primary"
+            :loading="reportLoading"
+            @click="handleAiReport"
+          >
             {{ reportData ? '查看报告' : '生成报告' }}
           </el-button>
         </div>
       </el-card>
 
-      <el-dialog v-model="reportVisible" width="760px" class="ai-report-dialog" :close-on-click-modal="false">
+      <el-dialog
+        v-model="reportVisible"
+        width="760px"
+        class="ai-report-dialog"
+        :close-on-click-modal="false"
+      >
         <template #header>
           <div class="ai-report-dialog-head">
             <span class="ai-badge">AI</span>
             <span>整卷分析报告</span>
-            <span v-if="reportData?.fromCache" class="ai-cache-tag">缓存命中</span>
+            <span v-if="reportData?.fromCache" class="ai-cache-tag"
+              >缓存命中</span
+            >
           </div>
         </template>
         <div v-if="reportLoading" class="ai-report-loading">
-          <el-icon class="is-loading" :size="26"><i class="el-icon-loading" /></el-icon>
+          <el-icon class="is-loading" :size="26"
+            ><i class="el-icon-loading"
+          /></el-icon>
           <div>AI 正在逐题分析本次作答，首次生成约需 10~20 秒…</div>
         </div>
         <div v-else-if="reportData" class="ai-report-body">
           <div class="ai-summary">{{ reportData.summary }}</div>
           <div v-if="reportData.stats" class="ai-stats">
-            <div class="ai-stat"><b>{{ reportData.stats.score }}</b><span>得分</span></div>
-            <div class="ai-stat"><b>{{ reportData.stats.correctNum }}</b><span>答对</span></div>
-            <div class="ai-stat"><b>{{ reportData.stats.wrongNum }}</b><span>答错</span></div>
-            <div class="ai-stat"><b>{{ reportData.stats.subjectiveNum }}</b><span>主观题</span></div>
+            <div class="ai-stat">
+              <b>{{ reportData.stats.score }}</b
+              ><span>得分</span>
+            </div>
+            <div class="ai-stat">
+              <b>{{ reportData.stats.correctNum }}</b
+              ><span>答对</span>
+            </div>
+            <div class="ai-stat">
+              <b>{{ reportData.stats.wrongNum }}</b
+              ><span>答错</span>
+            </div>
+            <div class="ai-stat">
+              <b>{{ reportData.stats.subjectiveNum }}</b
+              ><span>主观题</span>
+            </div>
           </div>
           <div v-if="reportData.knowledgeAreas?.length" class="ai-sec">
             <div class="ai-sec-title">知识点掌握</div>
-            <div v-for="(k, i) in reportData.knowledgeAreas" :key="i" class="ai-knowledge">
+            <div
+              v-for="(k, i) in reportData.knowledgeAreas"
+              :key="i"
+              class="ai-knowledge"
+            >
               <div class="ai-knowledge-row">
                 <span class="ai-knowledge-name">{{ k.name }}</span>
                 <span class="ai-knowledge-val">{{ k.mastery }}% 掌握</span>
               </div>
-              <div class="ai-bar"><i :style="{ width: Math.max(0, Math.min(100, Number(k.mastery) || 0)) + '%' }"></i></div>
+              <div class="ai-bar">
+                <i
+                  :style="{
+                    width:
+                      Math.max(0, Math.min(100, Number(k.mastery) || 0)) + '%',
+                  }"
+                ></i>
+              </div>
             </div>
           </div>
           <div v-if="reportData.strengths?.length" class="ai-sec">
             <div class="ai-sec-title">优势</div>
-            <ul class="ai-list ai-ok"><li v-for="(t, i) in reportData.strengths" :key="i">{{ t }}</li></ul>
+            <ul class="ai-list ai-ok">
+              <li v-for="(t, i) in reportData.strengths" :key="i">{{ t }}</li>
+            </ul>
           </div>
           <div v-if="reportData.weakPoints?.length" class="ai-sec">
             <div class="ai-sec-title">薄弱点</div>
-            <ul class="ai-list ai-warn"><li v-for="(t, i) in reportData.weakPoints" :key="i">{{ t }}</li></ul>
+            <ul class="ai-list ai-warn">
+              <li v-for="(t, i) in reportData.weakPoints" :key="i">{{ t }}</li>
+            </ul>
           </div>
           <div v-if="reportData.suggestions?.length" class="ai-sec">
             <div class="ai-sec-title">提升建议</div>
-            <ol class="ai-list ai-plan"><li v-for="(t, i) in reportData.suggestions" :key="i">{{ t }}</li></ol>
+            <ol class="ai-list ai-plan">
+              <li v-for="(t, i) in reportData.suggestions" :key="i">{{ t }}</li>
+            </ol>
           </div>
         </div>
       </el-dialog>
@@ -375,10 +419,12 @@
             <!-- eslint-disable vue/no-v-html -->
             <span
               v-html="
-                formatAnswerWithValues(
-                  d.questionType,
-                  d.correctAnswer,
-                  d.questionDetail,
+                sanitizeHtml(
+                  formatAnswerWithValues(
+                    d.questionType,
+                    d.correctAnswer,
+                    d.questionDetail,
+                  ),
                 )
               "
             ></span>
@@ -395,7 +441,14 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { getPaperDetail, submitPaper, aiJudgeAnswer, aiJudgeBatch, aiPaperReport, getRecordDetail } from '@/services';
+import {
+  getPaperDetail,
+  submitPaper,
+  aiJudgeAnswer,
+  aiJudgeBatch,
+  aiPaperReport,
+  getRecordDetail,
+} from '@/services';
 import { setWaterMark, removeWatermark } from '@/utils/waterMark';
 import {
   parseHashQuery,
@@ -403,6 +456,7 @@ import {
   difficulty,
   firstQueryValue,
   formatAnswerWithValues,
+  sanitizeHtml,
 } from '@/utils';
 import type { IQuestion, ISubmitPaperResult, IAiJudgeResult } from '@/types';
 
@@ -936,7 +990,11 @@ onUnmounted(() => {
 .ai-report-entry {
   margin-bottom: 16px;
   border: 1px solid rgba(64, 158, 255, 0.25);
-  background: linear-gradient(135deg, rgba(64, 158, 255, 0.06), rgba(103, 194, 58, 0.04));
+  background: linear-gradient(
+    135deg,
+    rgba(64, 158, 255, 0.06),
+    rgba(103, 194, 58, 0.04)
+  );
 }
 .ai-report-head {
   display: flex;

@@ -28,7 +28,6 @@
             stripe
             height="calc(100vh - 410px)"
             empty-text=""
-            @scroll="handleTableScroll"
           >
             <el-table-column
               prop="tag"
@@ -91,101 +90,33 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { getTagStats, renameTag, deleteTag } from '@/services';
-import { getTableScrollBody } from '@/utils';
+import { useInfiniteTable } from '@/composables/useInfiniteTable';
 import type { ITagStat } from '@/types';
 
-const PAGE_SIZE = 50;
-
-const list = ref<ITagStat[]>([]);
+const tagTableRef = ref();
 const keyword = ref('');
-const total = ref(0);
-const currentPage = ref(1);
-const loading = ref(true);
-const loadingMore = ref(false);
 const renameVisible = ref(false);
 const currentTag = ref('');
 const newTag = ref('');
 
-// append=true 追加下一页；否则回到第一页（首次加载 / 重命名删除后刷新）
-const load = async (append = false) => {
-  if (!append) {
-    currentPage.value = 1;
-    loading.value = true;
-  } else {
-    loadingMore.value = true;
-  }
-  try {
-    const res = await getTagStats({
-      currentPage: currentPage.value,
-      pageSize: PAGE_SIZE,
+const { list, total, loading, reset } = useInfiniteTable<ITagStat>(
+  (params) =>
+    getTagStats({
+      ...params,
       keyword: keyword.value,
-    });
-    const rows = res?.result ?? [];
-    total.value = res?.total ?? 0;
-    list.value = append ? [...list.value, ...rows] : rows;
-  } finally {
-    loading.value = false;
-    loadingMore.value = false;
-    // 数据就绪后重新绑定滚动容器（表格内部滚动条此时才出现）
-    nextTick(() => {
-      setTimeout(bindTableScroll, 100);
-      // 数据不满一屏（无滚动空间）时自动继续加载下一页，直到撑满或到底
-      setTimeout(() => {
-        if (
-          scrollBodyEl &&
-          list.value.length < total.value &&
-          !loadingMore.value &&
-          scrollBodyEl.scrollHeight <= scrollBodyEl.clientHeight + 50
-        ) {
-          currentPage.value += 1;
-          void load(true);
-        }
-      }, 200);
-    });
-  }
-};
+    }),
+  { pageSize: 50, tableRef: tagTableRef },
+);
 
 const onSearch = () => {
-  currentPage.value = 1;
-  list.value = [];
-  load();
+  void reset();
 };
 const onReset = () => {
   keyword.value = '';
-  currentPage.value = 1;
-  list.value = [];
-  load();
-};
-
-const tagTableRef = ref();
-let scrollBodyEl: HTMLElement | null = null;
-
-const handleTableScroll = () => {
-  if (!scrollBodyEl) return;
-  const { scrollTop, clientHeight, scrollHeight } = scrollBodyEl;
-  if (
-    scrollTop + clientHeight >= scrollHeight - 50 &&
-    !loadingMore.value &&
-    list.value.length < total.value
-  ) {
-    currentPage.value += 1;
-    void load(true);
-  }
-};
-
-const bindTableScroll = () => {
-  if (scrollBodyEl) {
-    scrollBodyEl.removeEventListener('scroll', handleTableScroll);
-  }
-  scrollBodyEl = getTableScrollBody(tagTableRef.value);
-  if (scrollBodyEl) {
-    scrollBodyEl.addEventListener('scroll', handleTableScroll, {
-      passive: true,
-    });
-  }
+  void reset();
 };
 
 const openRename = (row: unknown) => {
@@ -204,7 +135,7 @@ const doRename = async () => {
   await renameTag({ oldTag: currentTag.value, newTag: fresh });
   ElMessage.success('重命名成功');
   renameVisible.value = false;
-  load();
+  void reset();
 };
 
 const handleDelete = (row: unknown) => {
@@ -220,17 +151,13 @@ const handleDelete = (row: unknown) => {
   ).then(() => {
     deleteTag({ tag: r.tag }).then(() => {
       ElMessage.success('删除成功');
-      load();
+      void reset();
     });
   });
 };
 
-onMounted(load);
-onUnmounted(() => {
-  if (scrollBodyEl) {
-    scrollBodyEl.removeEventListener('scroll', handleTableScroll);
-    scrollBodyEl = null;
-  }
+onMounted(() => {
+  void reset();
 });
 </script>
 

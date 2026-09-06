@@ -59,8 +59,16 @@
           >:{{ userInfo?.integral ?? 0 }}
         </div>
         <div class="ai-credit-row">
-          <span>AI 额度：<b>{{ userInfo?.ai_credit ?? 0 }}</b> 次</span>
-          <el-button size="small" type="primary" plain @click="showExchange = true">积分兑换</el-button>
+          <span
+            >AI 额度：<b>{{ userInfo?.ai_credit ?? 0 }}</b> 次</span
+          >
+          <el-button
+            size="small"
+            type="primary"
+            plain
+            @click="showExchange = true"
+            >积分兑换</el-button
+          >
         </div>
         <div class="level">
           等级：
@@ -123,24 +131,34 @@
         <div>最后登录时间：{{ transitionTime(userInfo?.last_login_time) }}</div>
       </div>
     </el-card>
-
   </div>
 
   <!-- 积分兑换 AI 额度弹窗 -->
   <el-dialog v-model="showExchange" title="积分兑换 AI 额度" width="400px">
     <div class="exchange-info">
-      <p>当前积分：<b>{{ userInfo?.integral ?? 0 }}</b></p>
-      <p>当前 AI 额度：<b>{{ userInfo?.ai_credit ?? 0 }}</b> 次</p>
+      <p>
+        当前积分：<b>{{ userInfo?.integral ?? 0 }}</b>
+      </p>
+      <p>
+        当前 AI 额度：<b>{{ userInfo?.ai_credit ?? 0 }}</b> 次
+      </p>
       <p class="exchange-rate">兑换比例：10 积分 = 1 次 AI 额度</p>
       <div class="exchange-count">
         <span>兑换数量：</span>
-        <el-input-number v-model="exchangeCount" :min="1" :max="100" size="small" />
+        <el-input-number
+          v-model="exchangeCount"
+          :min="1"
+          :max="100"
+          size="small"
+        />
         <span class="exchange-cost">= {{ exchangeCount * 10 }} 积分</span>
       </div>
     </div>
     <template #footer>
       <el-button @click="showExchange = false">取消</el-button>
-      <el-button type="primary" :loading="exchanging" @click="doExchange">确认兑换</el-button>
+      <el-button type="primary" :loading="exchanging" @click="doExchange"
+        >确认兑换</el-button
+      >
     </template>
   </el-dialog>
 
@@ -151,7 +169,13 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useStore } from 'vuex';
 import { ElMessage } from 'element-plus';
 import { transitionTime } from '@/utils/index';
-import { getUserInfo, checkin, getCheckinInfo, setDailyGoal, exchangeAiCredit } from '@/services';
+import {
+  getUserInfo,
+  checkin,
+  getCheckinInfo,
+  setDailyGoal,
+  exchangeAiCredit,
+} from '@/services';
 import EditUserInfo from '@/components/EditUserInfo/index.vue';
 import { Female, Male, Warning } from '@element-plus/icons-vue';
 const store = useStore();

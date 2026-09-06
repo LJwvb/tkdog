@@ -57,7 +57,7 @@
           <div
             v-if="isDetailType"
             class="question-detail"
-            v-html="questionDetail.questionDetail"
+            v-html="sanitizeHtml(questionDetail.questionDetail)"
           />
           <!-- eslint-enable vue/no-v-html -->
           <div v-else-if="isChoiceType" class="single-choice">
@@ -83,10 +83,12 @@
             v-show="answerOpen"
             class="answer"
             v-html="
-              formatAnswerWithValues(
-                questionDetail.questionType,
-                questionDetail.answer,
-                questionDetail.questionDetail,
+              sanitizeHtml(
+                formatAnswerWithValues(
+                  questionDetail.questionType,
+                  questionDetail.answer,
+                  questionDetail.questionDetail,
+                ),
               )
             "
           />
@@ -442,7 +444,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive, onMounted, watchEffect, watch, nextTick } from 'vue';
+import {
+  ref,
+  computed,
+  reactive,
+  onMounted,
+  watchEffect,
+  watch,
+  nextTick,
+} from 'vue';
 import { ElMessage } from 'element-plus';
 import {
   Star,
@@ -482,6 +492,7 @@ import {
   transitionTime,
   firstQueryValue,
   formatAnswerWithValues,
+  sanitizeHtml,
 } from '@/utils';
 import type { IComment, IQuestion } from '@/types';
 import router from '@/router';
@@ -494,7 +505,9 @@ const {
   from: fromPage,
 } = parseHashQuery();
 // id 必须响应式：相似题目/浏览器前进后退切换题目时，组件复用而路由 query 变化
-const id = computed(() => firstQueryValue(router.currentRoute.value.query.id) || '');
+const id = computed(
+  () => firstQueryValue(router.currentRoute.value.query.id) || '',
+);
 
 // AI 解题思路：收起/展开 + 首次展开自动加载
 const aiOpen = ref(false);
@@ -561,10 +574,12 @@ const handleLocate = (id: number) => {
 
 // 获取store中的用户信息
 const userData = store.state.userData;
-// 获取用户喜欢的题目id
-const likeTopicsId = Array.isArray(userData?.likeTopicsId)
-  ? userData?.likeTopicsId
-  : userData?.likeTopicsId?.split(',') || [];
+// 获取用户喜欢的题目id（统一转成字符串数组，避免 number/string 混用导致 includes 失效）
+const likeTopicsId: string[] = (
+  Array.isArray(userData?.likeTopicsId)
+    ? userData?.likeTopicsId
+    : userData?.likeTopicsId?.split(',') || []
+).map(String);
 // 获取题目详情
 const questionDetail = ref({} as IQuestion);
 // 相似题目
@@ -648,8 +663,8 @@ const recordBrowse = (qid: number) => {
 
 // 获取题目详情
 const getDailyQuestion = async (value?: number) => {
-  // 判断喜欢的题目中是否包含当前题目id
-  if (likeTopicsId?.includes(value || id.value)) {
+  // 判断喜欢的题目中是否包含当前题目id（统一按字符串比较）
+  if (likeTopicsId.includes(String(value ?? id.value))) {
     isClickLike.value = true;
   } else {
     isClickLike.value = false;
@@ -690,11 +705,11 @@ const like = () => {
         (Number(questionDetail.value.likes_num) || 0) - 1,
         0,
       );
-      // 删除喜欢的题目id
-      likeTopicsId.splice(
-        likeTopicsId.indexOf(String(questionDetail.value.id)),
-        1,
-      );
+      // 删除喜欢的题目id（indexOf 为 -1 时 splice 会误删最后一个元素，必须先判断）
+      const likeIdx = likeTopicsId.indexOf(String(questionDetail.value.id));
+      if (likeIdx !== -1) {
+        likeTopicsId.splice(likeIdx, 1);
+      }
       store.commit('setUserData', {
         ...userData,
         likeTopicsId,
@@ -715,8 +730,11 @@ const like = () => {
       // 同步更新详情页获赞数
       questionDetail.value.likes_num =
         (Number(questionDetail.value.likes_num) || 0) + 1;
-      // 添加喜欢的题目id
-      likeTopicsId.push(String(questionDetail.value.id));
+      // 添加喜欢的题目id（防重复）
+      const likeId = String(questionDetail.value.id);
+      if (!likeTopicsId.includes(likeId)) {
+        likeTopicsId.push(likeId);
+      }
       store.commit('setUserData', {
         ...userData,
         likeTopicsId,

@@ -40,10 +40,12 @@
             <div
               v-if="item.answer"
               v-html="
-                formatAnswerWithValues(
-                  item.questionType,
-                  item.answer,
-                  item.questionDetail,
+                sanitizeHtml(
+                  formatAnswerWithValues(
+                    item.questionType,
+                    item.answer,
+                    item.questionDetail,
+                  ),
                 )
               "
             ></div>
@@ -103,6 +105,7 @@ import {
   exportPaperToWord,
   parsePaperOptions,
   formatAnswerWithValues,
+  sanitizeHtml,
 } from '@/utils';
 import type { IQuestion } from '@/types';
 import {

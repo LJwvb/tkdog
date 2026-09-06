@@ -63,10 +63,14 @@
                 style="width: 100%"
                 height="calc(100vh - 464px)"
                 empty-text=""
-                @scroll="handleTableScroll"
                 @sort-change="handleSortChange"
               >
-                <el-table-column prop="userId" label="用户id" width="80" sortable="custom" />
+                <el-table-column
+                  prop="userId"
+                  label="用户id"
+                  width="80"
+                  sortable="custom"
+                />
                 <el-table-column prop="name" label="用户名昵称" />
                 <el-table-column prop="phone" label="电话" />
                 <el-table-column prop="email" label="邮箱" />
@@ -106,16 +110,50 @@
                     <div>{{ transitionTime(scope.row.last_login_time) }}</div>
                   </template>
                 </el-table-column>
-                <el-table-column prop="integral" label="积分" width="80" sortable="custom" />
-                <el-table-column prop="ai_credit" label="AI额度" width="80" sortable="custom" />
-                <el-table-column prop="credit_exchanged" label="已兑积分" width="90" sortable="custom" />
+                <el-table-column
+                  prop="integral"
+                  label="积分"
+                  width="80"
+                  sortable="custom"
+                />
+                <el-table-column
+                  prop="ai_credit"
+                  label="AI额度"
+                  width="80"
+                  sortable="custom"
+                />
+                <el-table-column
+                  prop="credit_exchanged"
+                  label="已兑积分"
+                  width="90"
+                  sortable="custom"
+                />
                 <el-table-column label="最后打卡" width="110">
                   <template #default="scope">
-                    <div>{{ scope.row.last_checkin_date ? transitionTime(scope.row.last_checkin_date).slice(0, 10) : '-' }}</div>
+                    <div>
+                      {{
+                        scope.row.last_checkin_date
+                          ? transitionTime(scope.row.last_checkin_date).slice(
+                              0,
+                              10,
+                            )
+                          : '-'
+                      }}
+                    </div>
                   </template>
                 </el-table-column>
-                <el-table-column prop="consecutive_days" label="连续打卡" width="90" sortable="custom" />
-                <el-table-column prop="total_checkin" label="累计打卡" width="90" sortable="custom" />
+                <el-table-column
+                  prop="consecutive_days"
+                  label="连续打卡"
+                  width="90"
+                  sortable="custom"
+                />
+                <el-table-column
+                  prop="total_checkin"
+                  label="累计打卡"
+                  width="90"
+                  sortable="custom"
+                />
                 <el-table-column fixed="right" label="操作" width="120">
                   <template #default="scope">
                     <div class="operation">
@@ -127,7 +165,7 @@
                         >编辑</el-button
                       >
                       <el-button
-                        v-if="scope.row.role === undefined"
+                        v-if="scope.row.role !== 0"
                         type="danger"
                         size="small"
                         @click="deleteUserFun(scope.row.userId)"
@@ -165,7 +203,12 @@
                 <el-table-column fixed="right" label="操作" width="120">
                   <template #default="scope">
                     <div class="operation">
-                      <el-button type="primary" size="small" @click="editPassword(scope.row)">编辑</el-button>
+                      <el-button
+                        type="primary"
+                        size="small"
+                        @click="editPassword(scope.row)"
+                        >编辑</el-button
+                      >
                     </div>
                   </template>
                 </el-table-column>
@@ -240,7 +283,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { ref, onMounted, reactive, nextTick } from 'vue';
+import { ref, onMounted, reactive } from 'vue';
 import {
   getUserList,
   deleteUser,
@@ -248,34 +291,60 @@ import {
   getDeletedUsers,
   restoreUser,
 } from '@/services';
-import {
-  transitionSex,
-  transitionTime,
-  getTableScrollBody,
-} from '@/utils/index';
+import { transitionSex, transitionTime } from '@/utils/index';
+import { useInfiniteTable } from '@/composables/useInfiniteTable';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import type { FormInstance, FormRules } from 'element-plus';
 import type { IUserListItem } from '@/types';
 
-const userInfo = ref<IUserListItem[]>([]);
-const currentPage = ref(1);
-const total = ref(0);
-const pageSize = 20;
+const PAGE_SIZE = 20;
+const userTableRef = ref();
+
 const searchForm = reactive({
   username: '',
   userId: '',
   phone: '',
   email: '',
 });
-const userTableRef = ref();
-const loadingMore = ref(false);
-const noMore = ref(false);
 const activeTab = ref('normal');
 const sortField = ref('');
 const sortOrder = ref('');
+
+/**
+ * 「普通用户 / 管理员」tab 共享：滚动追加 + 不足一屏自动补屏。
+ * fetcher 闭包内自动捕获当前 searchForm / sortField / sortOrder / activeTab，
+ * 调用方只需 reset() 触发重置即可。
+ */
+const {
+  list: userInfo,
+  total,
+  loading,
+  reset,
+} = useInfiniteTable<IUserListItem>(
+  async (params) => {
+    const res = await getUserList({
+      ...params,
+      pageSize: PAGE_SIZE,
+      ...searchForm,
+      orderBy: sortField.value,
+      orderDir: sortOrder.value,
+      role:
+        activeTab.value === 'admin'
+          ? 'admin'
+          : activeTab.value === 'normal'
+          ? 'user'
+          : undefined,
+    });
+    // 用户列表兼容「name / username」两种返回字段，统一映射到 name 列
+    (res?.result ?? []).forEach((item: IUserListItem) => {
+      item.name = item.username || item.name;
+    });
+    return res;
+  },
+  { pageSize: PAGE_SIZE, tableRef: userTableRef },
+);
+
 const deletedUsers = ref<IUserListItem[]>([]);
-// 首次加载 / 刷新列表时的整表蒙层（滚动追加走 loadingMore，不叠整表蒙层）
-const loading = ref(false);
 const deletedLoading = ref(false);
 const dialogVisibleEditPassword = ref(false);
 const ruleFormRef = ref<FormInstance>();
@@ -299,85 +368,27 @@ const rules = reactive<FormRules>({
   ],
 });
 
-const handleSortChange = ({ prop, order }) => {
-  sortField.value = order ? prop : '';
+const handleSortChange = ({
+  prop,
+  order,
+}: {
+  prop: string | null;
+  order: 'ascending' | 'descending' | null;
+}) => {
+  sortField.value = order && prop ? prop : '';
   sortOrder.value = order || '';
-  currentPage.value = 1;
-  userInfo.value = [];
-  noMore.value = false;
-  getUser(false);
+  void reset();
 };
 
-const getUser = async (append = false) => {
-  if (loadingMore.value) return;
-  loadingMore.value = true;
-  // 只有非追加（首次 / 切 tab / 删除后刷新）才显示整表蒙层，滚动追加不闪蒙层
-  if (!append) loading.value = true;
-  try {
-    const res = await getUserList({
-      currentPage: currentPage.value,
-      pageSize,
-      ...searchForm,
-      orderBy: sortField.value,
-      orderDir: sortOrder.value,
-      role: activeTab.value === 'admin' ? 'admin' : activeTab.value === 'normal' ? 'user' : undefined,
-    });
-    (res?.result ?? []).forEach((item: IUserListItem) => {
-      item.name = item?.username || item?.name;
-      // 积分由后端按统一公式实时计算返回，前端不再自行拼装，避免与用户端不一致
-    });
-    if (append) {
-      userInfo.value = [...userInfo.value, ...(res?.result ?? [])];
-    } else {
-      userInfo.value = res?.result ?? [];
-    }
-    total.value = res?.total ?? 0;
-    noMore.value = userInfo.value.length >= total.value;
-  } finally {
-    // 失败也必须复位：否则蒙层卡死，且 loadingMore 常驻会导致滚动加载永久失效
-    loadingMore.value = false;
-    loading.value = false;
-  }
-  // 数据不满一屏（无滚动空间）时自动继续加载下一页，直到撑满或到底
-  nextTick(() => {
-    const body = getTableScrollBody(userTableRef.value);
-    if (
-      body &&
-      !noMore.value &&
-      !loadingMore.value &&
-      body.scrollHeight <= body.clientHeight + 50
-    ) {
-      currentPage.value++;
-      getUser(true);
-    }
-  });
-};
 const onSearch = () => {
-  currentPage.value = 1;
-  userInfo.value = [];
-  getUser();
+  void reset();
 };
 const onReset = () => {
   searchForm.username = '';
   searchForm.userId = '';
   searchForm.phone = '';
   searchForm.email = '';
-  currentPage.value = 1;
-  userInfo.value = [];
-  getUser();
-};
-const handleTableScroll = () => {
-  const body = getTableScrollBody(userTableRef.value);
-  if (!body) return;
-  const { scrollTop, clientHeight, scrollHeight } = body;
-  if (
-    scrollTop + clientHeight >= scrollHeight - 50 &&
-    !loadingMore.value &&
-    !noMore.value
-  ) {
-    currentPage.value++;
-    getUser(true);
-  }
+  void reset();
 };
 const deleteUserFun = (id: number) => {
   ElMessageBox.confirm(
@@ -391,13 +402,14 @@ const deleteUserFun = (id: number) => {
   ).then(() => {
     deleteUser({ userId: id }).then(() => {
       ElMessage.success('删除成功');
-      getUser();
+      void reset();
     });
   });
 };
-const editPassword = (val: { id?: number }) => {
+const editPassword = (val: { id?: number; userId?: number }) => {
   dialogVisibleEditPassword.value = true;
-  isAdmin.value = val.id ?? '';
+  // 管理员列表行只带 userId（= admin 表主键 id），需回退取值，否则修改密码时 id 为空导致失败
+  isAdmin.value = val.id ?? val.userId ?? '';
 };
 const cancel = () => {
   dialogVisibleEditPassword.value = false;
@@ -423,7 +435,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
 
         dialogVisibleEditPassword.value = false;
         resetForm(formEl);
-        getUser();
+        void reset();
       });
     } else {
       return;
@@ -443,23 +455,21 @@ const restoreUserFun = (userId: number | string) => {
   restoreUser({ userId }).then(() => {
     ElMessage.success('已恢复');
     getDeletedUserList();
-    getUser();
+    void reset();
   });
 };
 const handleTabChange = (name: string | number) => {
   if (name === 'deleted') {
     getDeletedUserList();
   } else {
-    currentPage.value = 1;
-    userInfo.value = [];
-    noMore.value = false;
+    // 切回 normal / admin tab 时重置排序并触发刷新
     sortField.value = '';
     sortOrder.value = '';
-    getUser();
+    void reset();
   }
 };
 onMounted(() => {
-  getUser();
+  void reset();
 });
 </script>
 

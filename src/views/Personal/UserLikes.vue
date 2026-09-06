@@ -49,9 +49,15 @@ const pageSize = 10;
 
 const ids = store.state.userData?.likeTopicsId;
 
+// store.state.userData?.likeTopicsId 按 Vuex 类型契约是 string（形如 ",1,2,3"，
+// 后端 service/user.ts 用首字符 ',' 作为"首个元素占位"，前端再剥掉）。
+// 未登录/未初始化时为 undefined，统一兜底成 ''。
+// 注：保留 Array.isArray 判断是为了万一未来 Vuex state 被规范化成数组时也能兼容。
 const idsStr = Array.isArray(ids)
-  ? ids?.slice(1).join(',')
-  : ids?.replace(/(^,*)/g, '');
+  ? ids.slice(1).join(',')
+  : typeof ids === 'string'
+  ? ids.replace(/(^,*)/g, '')
+  : '';
 const likeTopicsIdParams = reactive({
   type: 'user',
   ids: idsStr,

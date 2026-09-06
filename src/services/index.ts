@@ -466,9 +466,17 @@ export function getUserUploadQues(
   });
 }
 
-// 获取用户列表（分页）
+// 获取用户列表（分页 + 搜索 + 排序 + 角色筛选）
 export function getUserList(
-  params: Partial<IPagedParams>,
+  params: Partial<IPagedParams> & {
+    username?: string;
+    userId?: string | number;
+    phone?: string;
+    email?: string;
+    orderBy?: string;
+    orderDir?: string;
+    role?: 'admin' | 'user';
+  },
 ): Promise<{ result: IUserListItem[]; total: number }> {
   return request<{ result: IUserListItem[]; total: number }>(
     'POST',
@@ -536,13 +544,27 @@ export function getCommentList(params: Record<string, unknown>): Promise<{
 }
 
 // 点赞评论
-export function likeComment(params: { commentId: number }): Promise<void> {
-  return request<void>('POST', '/likeComment', { data: params });
+//   后端返回 { added: boolean }：true=真新增点赞；false=已点过（幂等但未新增）
+export function likeComment(params: {
+  commentId: number;
+}): Promise<{ added?: boolean; removed?: boolean }> {
+  return request<{ added?: boolean; removed?: boolean }>(
+    'POST',
+    '/likeComment',
+    { data: params },
+  );
 }
 
 // 取消点赞评论
-export function unlikeComment(params: { commentId: number }): Promise<void> {
-  return request<void>('POST', '/unlikeComment', { data: params });
+//   后端返回 { removed: boolean }：true=真删了一条；false=本来就没点（幂等）
+export function unlikeComment(params: {
+  commentId: number;
+}): Promise<{ added?: boolean; removed?: boolean }> {
+  return request<{ added?: boolean; removed?: boolean }>(
+    'POST',
+    '/unlikeComment',
+    { data: params },
+  );
 }
 
 // 置顶/取消置顶评论（管理员）
@@ -587,7 +609,13 @@ export function aiPaperReport(params: { recordId: number }): Promise<{
   strengths?: string[];
   weakPoints?: string[];
   suggestions?: string[];
-  stats?: { score: number; correctNum: number; wrongNum: number; subjectiveNum: number; durationMin?: number };
+  stats?: {
+    score: number;
+    correctNum: number;
+    wrongNum: number;
+    subjectiveNum: number;
+    durationMin?: number;
+  };
 }> {
   return request('POST', '/aiPaperReport', { data: params, timeout: 60000 });
 }
@@ -601,7 +629,12 @@ export function aiLearningReport(): Promise<{
   strengths?: string[];
   weakPoints?: string[];
   suggestions?: string[];
-  stats?: { papers: number; accuracy: number; answered: number; favorites: number };
+  stats?: {
+    papers: number;
+    accuracy: number;
+    answered: number;
+    favorites: number;
+  };
 }> {
   return request('POST', '/aiLearningReport', { data: {}, timeout: 60000 });
 }
@@ -639,8 +672,19 @@ export function aiJudgeBatch(params: {
 }): Promise<{
   available: boolean;
   message?: string;
-  results?: Array<{ questionId: number; score: number; comment: string; isCorrect: boolean }>;
-  stats?: { correctNum: number; wrongNum: number; subjectiveNum: number; score: number; questionNum?: number };
+  results?: Array<{
+    questionId: number;
+    score: number;
+    comment: string;
+    isCorrect: boolean;
+  }>;
+  stats?: {
+    correctNum: number;
+    wrongNum: number;
+    subjectiveNum: number;
+    score: number;
+    questionNum?: number;
+  };
 }> {
   return request('POST', '/aiJudgeBatch', { data: params, timeout: 120_000 });
 }
@@ -662,9 +706,12 @@ export function getRecordDetail(params: {
 }
 
 // 积分兑换 AI 额度（10积分=1次）
-export function exchangeAiCredit(params: {
-  count: number;
-}): Promise<{ cost: number; gained: number; remaining: number; credit: number }> {
+export function exchangeAiCredit(params: { count: number }): Promise<{
+  cost: number;
+  gained: number;
+  remaining: number;
+  credit: number;
+}> {
   return request('POST', '/exchangeAiCredit', { data: params });
 }
 
@@ -832,7 +879,14 @@ export function approveComment(params: { id: number }): Promise<void> {
 }
 
 // 纠错反馈列表（管理员）
-export function getFeedbackList(params: IPagedParams): Promise<{
+export function getFeedbackList(
+  params: IPagedParams & {
+    content?: string;
+    username?: string;
+    question?: string;
+    isResolved?: '' | 0 | 1;
+  },
+): Promise<{
   result: IQuestionFeedback[];
   total: number;
 }> {

@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { parseHashQuery } from '@/utils';
 import { useStore } from 'vuex';
@@ -60,9 +60,19 @@ const next = () => {
   if (active.value++ > 1) active.value = 0;
 };
 const prev = () => {
-  if (active.value-- < 0) active.value = 1;
+  // 边界保护：步骤 0 再点上一步会出现 active=-1 的空白页
+  if (active.value > 0) active.value--;
 };
+// 清理倒计时（setInterval 必须用 clearInterval，且组件卸载时也要清理，避免卸载后仍跳转路由）
+const clearCountdown = () => {
+  if (timer) {
+    clearInterval(timer);
+    timer = undefined;
+  }
+};
+onUnmounted(clearCountdown);
 const goTestPaper = () => {
+  clearCountdown();
   if (store.state.userData.isAdmin) {
     router.push({
       path: '/adminQuestion',
@@ -73,7 +83,6 @@ const goTestPaper = () => {
   } else {
     router.push('/questionPage');
   }
-  clearTimeout(timer);
 };
 const done = () => {
   getPaperQuestion({
@@ -93,10 +102,12 @@ const done = () => {
         type: 'success',
         duration: 1000,
       });
-      // 倒计时5s
+      // 倒计时5s（先清掉可能存在的旧倒计时，避免重复触发）
+      clearCountdown();
       let count = 5;
       timer = setInterval(() => {
-        if (count === 1) {
+        if (count === 0) {
+          clearCountdown();
           if (store.state.userData.isAdmin) {
             router.push('/adminTestPaper');
             store.commit('setActiveMenuIndex', '3');
@@ -104,7 +115,7 @@ const done = () => {
             router.push('/user/UserTestPaper');
             store.commit('setActiveMenuIndex', '4');
           }
-          clearInterval(timer);
+          return;
         }
         ElMessage({
           message: `试卷创建成功,${count}秒后跳转到试卷列表`,
@@ -114,8 +125,11 @@ const done = () => {
         count--;
       }, 1000);
     })
-    .catch(() => {
-      error.value = true;
+    .catch((err) => {
+      // fourStep 的 error 声明为 Object 并读取 error.message，传布尔会导致失败原因丢失
+      error.value = {
+        message: err?.message || '创建试卷失败，请稍后重试',
+      };
     });
 };
 </script>

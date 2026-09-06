@@ -209,11 +209,6 @@
         <span>标签管理</span>
       </el-menu-item>
     </el-menu>
-    <!-- <el-input placeholder="请输入搜索的内容" size="large" class="search">
-      <template #append>
-        <el-button :icon="Search" size="large" />
-      </template>
-    </el-input> -->
     <div class="left">
       <el-button type="primary" class="upload" @click="toAddSubject">
         上传

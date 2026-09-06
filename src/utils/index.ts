@@ -1,5 +1,6 @@
 import queryString from 'query-string';
 import { nextTick, onMounted, onActivated } from 'vue';
+import DOMPurify from 'dompurify';
 
 export const parseHashQuery = () => {
   const hash = window?.location?.hash || '';
@@ -20,6 +21,41 @@ export const firstQueryValue = (
   if (typeof value === 'string') return value;
   if (Array.isArray(value)) return value.find((v) => v != null) ?? fallback;
   return fallback;
+};
+
+/**
+ * 渲染库内富文本（题干/答案/解析）前统一过一遍 DOMPurify，
+ * 防止后端被绕过后注入 <script> / 危险事件属性。
+ * 默认白名单仅保留排版标签，去掉 a/img/script/style/on* 属性。
+ */
+const SANITIZE_CONFIG = {
+  ALLOWED_TAGS: [
+    'p',
+    'br',
+    'strong',
+    'em',
+    'u',
+    's',
+    'code',
+    'pre',
+    'ul',
+    'ol',
+    'li',
+    'blockquote',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'span',
+    'div',
+  ],
+  ALLOWED_ATTR: [],
+};
+export const sanitizeHtml = (html: string | null | undefined): string => {
+  if (!html) return '';
+  return DOMPurify.sanitize(String(html), SANITIZE_CONFIG);
 };
 
 export const questionType = (questionType: number) => {

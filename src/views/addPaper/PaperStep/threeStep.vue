@@ -50,7 +50,11 @@
         <el-button type="success" :loading="picking" @click="doPick">
           抽题并加入
         </el-button>
-        <el-button type="primary" :loading="suggesting" @click="handleAiSuggest">
+        <el-button
+          type="primary"
+          :loading="suggesting"
+          @click="handleAiSuggest"
+        >
           <span class="ai-suggest-badge">AI</span> 智能组卷
         </el-button>
       </el-form-item>
@@ -73,21 +77,31 @@
       </div>
     </template>
     <div v-if="suggesting" class="ai-report-loading">
-      <el-icon class="is-loading" :size="26"><i class="el-icon-loading" /></el-icon>
+      <el-icon class="is-loading" :size="26"
+        ><i class="el-icon-loading"
+      /></el-icon>
       <div>AI 正在根据科目、难度与题型组合推荐题目，约需 3~10 秒…</div>
     </div>
     <div v-else-if="suggestData" class="ai-suggest-body">
       <div class="ai-suggest-reason">{{ suggestData.reason }}</div>
-      <div v-for="(q, i) in suggestData.questions" :key="q.id" class="ai-suggest-item">
+      <div
+        v-for="(q, i) in suggestData.questions"
+        :key="q.id"
+        class="ai-suggest-item"
+      >
         <div class="ai-suggest-item-head">
           <span class="ai-suggest-idx">{{ i + 1 }}</span>
-          <span class="ai-suggest-type">{{ questionTypeName(q.questionType) }}</span>
+          <span class="ai-suggest-type">{{
+            questionTypeName(q.questionType)
+          }}</span>
           <span class="ai-suggest-diff">难度{{ q.difficulty ?? 0 }}</span>
         </div>
-        <div class="ai-suggest-q" v-html="q.question"></div>
+        <div class="ai-suggest-q" v-html="sanitizeHtml(q.question)"></div>
       </div>
       <div class="ai-suggest-actions">
-        <el-button type="primary" @click="addSuggestQuestions">加入试卷</el-button>
+        <el-button type="primary" @click="addSuggestQuestions"
+          >加入试卷</el-button
+        >
         <el-button @click="suggestVisible = false">取消</el-button>
       </div>
     </div>
@@ -123,7 +137,13 @@
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import QuestionCard from '@/components/QuestionCard/index.vue';
-import { randomPickQuestions, getSubjectList, aiPaperSuggest, getQuestionList } from '@/services';
+import { sanitizeHtml } from '@/utils';
+import {
+  randomPickQuestions,
+  getSubjectList,
+  aiPaperSuggest,
+  getQuestionList,
+} from '@/services';
 import { ElMessage } from 'element-plus';
 import type { ISubject, IQuestion } from '@/types';
 import router from '@/router';
@@ -185,7 +205,9 @@ const doPick = async () => {
 // ===== AI 智能组卷 =====
 const suggesting = ref(false);
 const suggestVisible = ref(false);
-const suggestData = ref<{ reason: string; questions: IQuestion[] } | null>(null);
+const suggestData = ref<{ reason: string; questions: IQuestion[] } | null>(
+  null,
+);
 
 const questionTypeName = (t: number | string) => {
   const names = ['单选', '多选', '判断', '简答'];
@@ -237,7 +259,9 @@ const addSuggestQuestions = () => {
   if (!suggestData.value) return;
   const existing = store.state.selectedTopic as IQuestion[];
   const existingIds = new Set(existing.map((q) => q.id));
-  const fresh = suggestData.value.questions.filter((q) => !existingIds.has(q.id));
+  const fresh = suggestData.value.questions.filter(
+    (q) => !existingIds.has(q.id),
+  );
   store.commit('setSelectedTopic', [...existing, ...fresh]);
   ElMessage.success(`已加入 ${fresh.length} 道推荐题目`);
   suggestVisible.value = false;
