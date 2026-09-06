@@ -1,14 +1,13 @@
-<template>
+﻿<template>
   <div class="hello" style="width: 100%">
     <!-- 搜索：所有页签（待审核/已审核/已删除）均可用，支持题干/题型/难度/状态组合筛选 -->
-    <div class="search">
-      <el-form ref="from" :model="form" inline>
+    <el-card class="search">
+      <el-form ref="formRef" :model="form" inline>
         <el-form-item label="关键词">
           <el-input
             v-model="form.keyword"
             placeholder="按题目内容搜索"
             clearable
-            class="search"
           />
         </el-form-item>
         <el-form-item label="题型">
@@ -54,34 +53,36 @@
           <el-button @click="clearSearch">清空</el-button>
         </el-form-item>
       </el-form>
-    </div>
+    </el-card>
     <el-container v-if="!clickSearch">
-      <el-main style="padding: 10px">
+      <el-main style="padding: 10px 0 0 0">
         <el-card>
-          <div class="batch-bar">
-            <el-button type="success" @click="openImportDialog">
-              批量导入题目
-            </el-button>
-            <el-button @click="exportCsv">导出 CSV</el-button>
-            <el-button @click="downloadTemplate">下载导入模板</el-button>
+          <div class="tabs-row">
+            <el-tabs v-model="activeName" @tab-click="handleClick">
+              <el-tab-pane
+                key="nochk"
+                label="未审核的题目"
+                name="nochk"
+              ></el-tab-pane>
+              <el-tab-pane
+                key="chk"
+                label="已审核的题目"
+                name="chk"
+              ></el-tab-pane>
+              <el-tab-pane
+                key="deleted"
+                label="已删除的题目"
+                name="deleted"
+              ></el-tab-pane>
+            </el-tabs>
+            <div class="batch-bar">
+              <el-button type="success" @click="openImportDialog">
+                批量导入题目
+              </el-button>
+              <el-button @click="exportCsv">导出 CSV</el-button>
+              <el-button @click="downloadTemplate">下载导入模板</el-button>
+            </div>
           </div>
-          <el-tabs v-model="activeName" @tab-click="handleClick">
-            <el-tab-pane
-              key="nochk"
-              label="未审核的题目"
-              name="nochk"
-            ></el-tab-pane>
-            <el-tab-pane
-              key="chk"
-              label="已审核的题目"
-              name="chk"
-            ></el-tab-pane>
-            <el-tab-pane
-              key="deleted"
-              label="已删除的题目"
-              name="deleted"
-            ></el-tab-pane>
-          </el-tabs>
           <div v-if="NoChkQuestions?.length === 0 && activeName === 'nochk'">
             <el-empty :image-size="200" description="没有未审核题目" />
           </div>
@@ -112,6 +113,10 @@
               共 {{ noChkTotal }} 条，已加载 {{ NoChkQuestions.length }} 条
             </div>
           </div>
+          <!-- 空状态统一前置：与未审核/试卷管理一致，避免先渲染空列表再显示空状态 -->
+          <div v-if="ChkQuestions?.length === 0 && activeName === 'chk'">
+            <el-empty :image-size="200" description="没有已审核题目" />
+          </div>
           <div
             v-if="activeName === 'chk'"
             v-loading="loading"
@@ -121,7 +126,7 @@
               :data="ChkQuestions"
               :height="'auto'"
               :estimated-item-height="200"
-              :loading="loadingMore"
+              :loading="chkLoadingMore"
               :finished="ChkQuestions.length >= chkTotal"
               show-back-top
               @load-more="loadMoreChk"
@@ -139,8 +144,10 @@
               共 {{ chkTotal }} 条，已加载 {{ ChkQuestions.length }} 条
             </div>
           </div>
-          <div v-if="ChkQuestions?.length === 0 && activeName === 'chk'">
-            <el-empty :image-size="200" description="没有已审核题目" />
+          <div
+            v-if="DeletedQuestions?.length === 0 && activeName === 'deleted'"
+          >
+            <el-empty :image-size="200" description="没有已删除的题目" />
           </div>
           <div
             v-if="activeName === 'deleted'"
@@ -158,7 +165,7 @@
               ><template #default="{ item }">
                 <QuestionCard
                   :question="item"
-                  type="chk"
+                  type="deleted"
                   activeName="deleted"
                   @restore="restoreQuestionFun"
                 /> </template
@@ -166,11 +173,6 @@
             <div v-if="deletedTotal > 0" class="list-total">
               共 {{ deletedTotal }} 条，已加载 {{ DeletedQuestions.length }} 条
             </div>
-          </div>
-          <div
-            v-if="DeletedQuestions?.length === 0 && activeName === 'deleted'"
-          >
-            <el-empty :image-size="200" description="没有已删除的题目" />
           </div>
         </el-card>
       </el-main>
@@ -208,21 +210,19 @@
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- 批量导入弹窗 -->
-  <el-dialog
-    v-model="importDialogVisible"
-    title="批量导入题目（JSON）"
-    width="640px"
-  >
-    <div class="import-tip">
-      <p>
-        支持单选(0)、多选(1)、判断(2)、简答(3)。每行一个 JSON
-        对象，字段如下（客观题需带 options）：
-      </p>
-      <pre class="import-sample">{{
-        `[
+    <!-- 批量导入弹窗 -->
+    <el-dialog
+      v-model="importDialogVisible"
+      title="批量导入题目（JSON）"
+      width="640px"
+    >
+      <div class="import-tip">
+        <p>
+          支持单选(0)、多选(1)、判断(2)、简答(3)。每行一个 JSON
+          对象，字段如下（客观题需带 options）：
+        </p>
+        <pre class="import-sample">{{
+          `[
       {
       "question": "Vue 中 v-if 和 v-show 的区别？",
       "questionType": 0,
@@ -242,66 +242,67 @@
       "answer": "Vuex 是 Vue 的状态管理模式..."
       }
       ]`
-      }}</pre>
-    </div>
-    <div class="import-upload">
-      <input
-        ref="fileInput"
-        type="file"
-        accept=".json,application/json"
-        @change="handleFileChange"
-      />
-      <el-button
-        type="primary"
-        :disabled="!importList.length"
-        @click="doImport"
-      >
-        确认导入（{{ importList.length }} 道）
-      </el-button>
-    </div>
-    <div v-if="importList.length" class="import-preview">
-      <div
-        v-for="(item, index) in importList"
-        :key="index"
-        class="preview-item"
-      >
-        <span class="preview-index">{{ index + 1 }}.</span>
-        <span class="preview-type">{{ typeName(item.questionType) }}</span>
-        <span class="preview-question">{{ item.question }}</span>
+        }}</pre>
       </div>
-    </div>
-  </el-dialog>
+      <div class="import-upload">
+        <input
+          ref="fileInput"
+          type="file"
+          accept=".json,application/json"
+          @change="handleFileChange"
+        />
+        <el-button
+          type="primary"
+          :disabled="!importList.length"
+          @click="doImport"
+        >
+          确认导入（{{ importList.length }} 道）
+        </el-button>
+      </div>
+      <div v-if="importList.length" class="import-preview">
+        <div
+          v-for="(item, index) in importList"
+          :key="index"
+          class="preview-item"
+        >
+          <span class="preview-index">{{ index + 1 }}.</span>
+          <span class="preview-type">{{ typeName(item.questionType) }}</span>
+          <span class="preview-question">{{ item.question }}</span>
+        </div>
+      </div>
+    </el-dialog>
 
-  <!-- 编辑题目弹窗 -->
-  <el-dialog v-model="editVisible" title="编辑题目" width="640px">
-    <el-form label-width="80px">
-      <el-form-item label="题干">
-        <el-input v-model="editForm.question" type="textarea" :rows="3" />
-      </el-form-item>
-      <el-form-item label="难度">
-        <el-radio-group v-model="editForm.difficulty">
-          <el-radio label="0">简单</el-radio>
-          <el-radio label="1">中等</el-radio>
-          <el-radio label="2">困难</el-radio>
-        </el-radio-group>
-      </el-form-item>
-      <el-form-item label="标签">
-        <el-input v-model="editForm.tags" placeholder="多个标签用逗号分隔" />
-      </el-form-item>
-      <el-form-item label="答案">
-        <el-input v-model="editForm.answer" type="textarea" :rows="6" />
-      </el-form-item>
-    </el-form>
-    <template #footer>
-      <el-button @click="editVisible = false">取消</el-button>
-      <el-button type="primary" @click="saveEdit">保存</el-button>
-    </template>
-  </el-dialog>
+    <!-- 编辑题目弹窗 -->
+    <el-dialog v-model="editVisible" title="编辑题目" width="640px">
+      <el-form label-width="80px">
+        <el-form-item label="题干">
+          <el-input v-model="editForm.question" type="textarea" :rows="3" />
+        </el-form-item>
+        <el-form-item label="难度">
+          <el-radio-group v-model="editForm.difficulty">
+            <el-radio label="0">简单</el-radio>
+            <el-radio label="1">中等</el-radio>
+            <el-radio label="2">困难</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="标签">
+          <el-input v-model="editForm.tags" placeholder="多个标签用逗号分隔" />
+        </el-form-item>
+        <el-form-item label="答案">
+          <el-input v-model="editForm.answer" type="textarea" :rows="6" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="editVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveEdit">保存</el-button>
+      </template>
+    </el-dialog>
+  </div>
 </template>
 <script setup lang="ts">
 import QuestionCard from '@/components/QuestionCard/index.vue';
 import VirtualList from '@/components/VirtualList/index.vue';
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, type Ref } from 'vue';
 import {
   parseHashQuery,
   firstQueryValue,
@@ -333,11 +334,12 @@ const { index } = parseHashQuery();
 const activeName = ref(firstQueryValue(index, 'nochk'));
 //获取已审核题目
 const ChkQuestions = ref<IQuestion[]>([]);
-const from = ref();
+const formRef = ref();
 //获取未审核题目
 const NoChkQuestions = ref<IQuestion[]>([]);
 const loading = ref(true);
-const loadingMore = ref(false);
+// 已审核列表滚动加载（命名与 nochk/deleted/search 保持一致）
+const chkLoadingMore = ref(false);
 // 未审核列表滚动加载
 const nochkLoadingMore = ref(false);
 const noChkTotal = ref(0);
@@ -400,9 +402,9 @@ const loadMoreNoChk = async () => {
 };
 // 已审核列表：滚动到底部追加下一页（与分页器二选一，此处走无限滚动）
 const loadMoreChk = async () => {
-  if (loading.value || loadingMore.value) return;
+  if (loading.value || chkLoadingMore.value) return;
   if (ChkQuestions.value.length >= chkTotal.value) return;
-  loadingMore.value = true;
+  chkLoadingMore.value = true;
   chkParams.currentPage += 1;
   try {
     await getAllChkQuestion(true);
@@ -410,40 +412,52 @@ const loadMoreChk = async () => {
     // 加载失败回退页码，避免页码与数据错位
     chkParams.currentPage -= 1;
   } finally {
-    loadingMore.value = false;
+    chkLoadingMore.value = false;
   }
+};
+// ===== 通用：分页请求（未审核/已审核/已删除三处逻辑完全同构，抽一个即可）=====
+interface IPageParams {
+  currentPage: number;
+  pageSize: number;
+}
+interface IQuestionPageRes {
+  result?: IQuestion[];
+  total?: number;
+}
+// append=true 追加下一页；否则回到第一页（首次加载 / 切回标签页 / 审核删除后刷新）
+const loadQuestions = async (
+  fetcher: (params: IPageParams) => Promise<IQuestionPageRes>,
+  params: IPageParams,
+  listRef: Ref<IQuestion[]>,
+  totalRef: Ref<number>,
+  append = false,
+) => {
+  if (!append) {
+    params.currentPage = 1;
+  }
+  const res = await fetcher(params);
+  const list = res?.result ?? [];
+  listRef.value = append ? [...listRef.value, ...list] : list;
+  totalRef.value = res?.total ?? 0;
+  loading.value = false;
 };
 const getNoChkQuestion = async (append = false) => {
-  // 非追加（首次加载/切回标签页/审核后刷新）时回到第一页，
-  // 否则会停留在上次滚动加载到的页码，列表只剩那一页数据
-  if (!append) {
-    nochkParams.currentPage = 1;
-  }
-  const res = await getNoChkQuestions(nochkParams);
-  const list = res?.result ?? [];
-  if (append) {
-    NoChkQuestions.value = [...NoChkQuestions.value, ...list];
-  } else {
-    NoChkQuestions.value = list;
-  }
-  noChkTotal.value = res?.total ?? 0;
-  loading.value = false;
+  await loadQuestions(
+    getNoChkQuestions,
+    nochkParams,
+    NoChkQuestions,
+    noChkTotal,
+    append,
+  );
 };
 const getAllChkQuestion = async (append = false) => {
-  // 非追加（首次加载/切回标签页/删除后刷新）时回到第一页，
-  // 否则会停留在上次滚动加载到的页码，导致列表只剩那一页数据
-  if (!append) {
-    chkParams.currentPage = 1;
-  }
-  const res = await getAllChkQuestions(chkParams);
-  const list = res?.result ?? [];
-  if (append) {
-    ChkQuestions.value = [...ChkQuestions.value, ...list];
-  } else {
-    ChkQuestions.value = list;
-  }
-  chkTotal.value = res?.total ?? 0;
-  loading.value = false;
+  await loadQuestions(
+    getAllChkQuestions,
+    chkParams,
+    ChkQuestions,
+    chkTotal,
+    append,
+  );
 };
 // 导出当前标签页全部题目为 CSV
 const exportCsv = async () => {
@@ -493,19 +507,13 @@ const downloadTemplate = () => {
   URL.revokeObjectURL(url);
 };
 const getDeletedQuestion = async (append = false) => {
-  // 非追加时回到第一页，避免停留在上次滚动到的页码
-  if (!append) {
-    deletedParams.currentPage = 1;
-  }
-  const res = await getDeletedQuestions(deletedParams);
-  const list = res?.result ?? [];
-  if (append) {
-    DeletedQuestions.value = [...DeletedQuestions.value, ...list];
-  } else {
-    DeletedQuestions.value = list;
-  }
-  deletedTotal.value = res?.total ?? 0;
-  loading.value = false;
+  await loadQuestions(
+    getDeletedQuestions,
+    deletedParams,
+    DeletedQuestions,
+    deletedTotal,
+    append,
+  );
 };
 // 已删除列表：滚动到底部追加下一页
 const loadMoreDeleted = async () => {
@@ -615,9 +623,9 @@ const loadMoreSearch = async () => {
   }
 };
 onMounted(() => {
-  getNoChkQuestion();
-  getAllChkQuestion();
-  loading.value = false;
+  // loading 由请求内部完成后置 false；这里不能提前置 false，否则首屏蒙层一闪而过
+  void getNoChkQuestion();
+  void getAllChkQuestion();
 });
 
 const deleteQuestion = (id: number, activeName: string) => {
@@ -723,77 +731,83 @@ const saveEdit = async () => {
 </script>
 
 <style scoped>
-.createPaper {
-  width: 80px;
-  height: 35px;
-  background-color: #409eff;
-  text-align: center;
-  line-height: 35px;
-  color: white;
-  float: right;
-  margin-top: -60px;
-}
-
-.logo1 {
-  width: 60px;
-  height: 60px;
-  margin-top: 25px;
-  margin-bottom: 10px;
-}
-
-.grid-content {
-  border-radius: 4px;
-  min-height: 36px;
-  border: 1px solid #ffffff;
-}
-
-.biaoqian1 {
-  padding: 0px 12px;
-  font-size: 12px;
-  background-color: #f5f5f5;
-  color: #000000;
-  height: 25px;
-  line-height: 25px;
-  border-radius: 2px;
-  margin-right: 15px;
-  margin-bottom: 10px;
-}
-
-.jiandaee {
-  color: rgba(170, 170, 170, 1);
-  font-size: 13px;
-  margin: 15px 0px;
-  margin-left: 20px;
-}
-
-.line1 {
-  width: 1px;
-  height: 15px;
-  background-color: #e6e6e6;
-  margin: 0px 20px;
-}
-
-.el-col-3 {
-  max-width: 12.5%;
-  flex: 0 0 4.5%;
-}
-
-.paperCard {
-  display: flex;
-  flex-wrap: wrap;
-}
-
+/* 搜索栏：吸顶于导航栏（60px）下方，与试卷管理保持一致 */
 .search {
   display: flex;
   flex-direction: row;
+  align-items: center;
+  position: sticky;
+  top: 60px;
+  z-index: 30;
+  background: var(--el-bg-color, #fff);
+}
+
+.search :deep(.el-form-item) {
+  margin-bottom: 0;
+}
+
+/* 页签吸顶：el-card / el-card__body / el-main 默认 overflow 都会截住 sticky，需全部放开 */
+.hello :deep(.el-card),
+.hello :deep(.el-card__body),
+.hello :deep(.el-main) {
+  overflow: visible;
+}
+
+.hello :deep(.el-tabs) {
+  position: sticky;
+  /* 60 导航栏 + 40 搜索栏 = 100，页签吸在搜索栏下方 */
+  top: 100px;
+  z-index: 29;
+  background: var(--el-bg-color, #fff);
+  padding-top: 6px;
+  padding-bottom: 4px;
+}
+
+.hello :deep(.el-tabs__header) {
+  margin: 0;
 }
 
 :deep(.el-loading-mask) {
   z-index: 9;
 }
 
+/* tabs 与批量操作按钮同行，消除 batch-bar 独占一行造成的列表高度差（与试卷管理页对齐） */
+.tabs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tabs-row :deep(.el-tabs) {
+  flex: 1;
+  min-width: 0;
+}
+
 .batch-bar {
-  margin-bottom: 12px;
+  flex-shrink: 0;
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+/* 小屏：tabs 与批量按钮纵向排列，避免横向溢出 */
+@media (max-width: 900px) {
+  .tabs-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .tabs-row :deep(.el-tabs) {
+    width: 100%;
+  }
+
+  .batch-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    white-space: normal;
+  }
 }
 
 .import-tip {

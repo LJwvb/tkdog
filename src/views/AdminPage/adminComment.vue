@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="comments-list">
     <el-card :body-style="{ padding: '0 20px 20px' }">
       <template #header>
@@ -8,185 +8,226 @@
       </template>
 
       <el-tabs v-model="activeTab" @tab-change="handleTabChange">
-      <el-tab-pane label="评论列表" name="normal">
-        <div v-loading="loading">
-          <el-collapse v-if="groups.length" v-model="activeGroups">
-            <el-collapse-item
-              v-for="group in pagedGroups"
-              :key="group.question_id"
-              :name="group.question_id"
+        <el-tab-pane label="评论列表" name="normal">
+          <div v-loading="loading">
+            <el-collapse
+              v-if="groups.length"
+              v-model="activeGroups"
+              class="collapse-scroll"
             >
-              <template #title>
-                <div class="group-title">
-                  <span class="group-question">{{ group.question_title }}</span>
-                  <el-tag
-                    v-if="pendingCount(group) > 0"
-                    size="small"
-                    type="warning"
-                    >{{ pendingCount(group) }} 条待审核</el-tag
-                  >
-                  <el-tag size="small" type="info"
-                    >{{ group.comments.length }} 条</el-tag
-                  >
-                </div>
-              </template>
-              <el-table
-                :data="group.comments"
-                style="width: 100%"
-                :row-class-name="rowClassName"
+              <el-collapse-item
+                v-for="group in pagedGroups"
+                :key="group.question_id"
+                :name="group.question_id"
               >
-                <el-table-column prop="id" label="ID" width="70" />
-                <el-table-column prop="username" label="用户" width="140">
-                  <template #default="scope">
-                    <div class="user-cell">
-                      <el-avatar :size="24" :src="scope.row.avatar" />
-                      <span style="margin-left: 6px">{{
-                        scope.row.username
-                      }}</span>
-                    </div>
-                  </template>
-                </el-table-column>
-                <el-table-column label="评论内容" min-width="280">
-                  <template #default="scope">
-                    <div
-                      v-if="scope.row.reply_to_content"
-                      class="reply-quote"
-                      title="点击定位到被回复的评论"
-                      @click="locateParent(scope.row)"
-                    >
-                      回复 @{{ scope.row.reply_username }}：{{
-                        scope.row.reply_to_content
-                      }}
-                    </div>
-                    <div class="comment-text">{{ scope.row.content }}</div>
-                  </template>
-                </el-table-column>
-                <el-table-column label="类型" width="90" align="center">
-                  <template #default="scope">
-                    <el-tag v-if="scope.row.parent_id" size="small" type="info"
-                      >回复</el-tag
-                    >
-                    <el-tag v-else size="small">评论</el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column label="状态" width="100" align="center">
-                  <template #default="scope">
+                <template #title>
+                  <div class="group-title">
+                    <span class="group-question">{{
+                      group.question_title
+                    }}</span>
                     <el-tag
-                      v-if="scope.row.status === 0"
+                      v-if="pendingCount(group) > 0"
                       size="small"
                       type="warning"
-                      >待审核</el-tag
+                      >{{ pendingCount(group) }} 条待审核</el-tag
                     >
-                    <el-tag v-else size="small" type="success">已通过</el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column label="评论时间" width="170">
-                  <template #default="scope">
-                    {{ transitionTime(scope.row.create_time) }}
-                  </template>
-                </el-table-column>
-                <el-table-column label="操作" width="230">
-                  <template #default="scope">
-                    <el-button
-                      v-if="scope.row.status === 0"
-                      size="small"
-                      type="success"
-                      @click="handleApprove(scope.row)"
-                      >通过</el-button
+                    <el-tag size="small" type="info"
+                      >{{ group.comments.length }} 条</el-tag
                     >
-                    <el-button
-                      v-if="!scope.row.parent_id"
-                      size="small"
-                      :type="scope.row.is_pinned ? 'warning' : 'info'"
-                      @click="handlePin(scope.row)"
-                      >{{
-                        scope.row.is_pinned ? '取消置顶' : '置顶'
-                      }}</el-button
-                    >
-                    <el-button
-                      size="small"
-                      type="danger"
-                      @click="handleDelete(scope.row)"
-                      >删除</el-button
-                    >
-                  </template>
-                </el-table-column>
-              </el-table>
-            </el-collapse-item>
-          </el-collapse>
-          <el-empty
-            v-if="!loading && groups.length === 0"
-            :image-size="200"
-            description="暂无评论数据"
-          />
-          <div v-if="groups.length > 0" class="list-total">
-            共 {{ groups.length }} 组，第 {{ currentPage }} / {{ Math.ceil(groups.length / groupPageSize) }} 页
+                  </div>
+                </template>
+                <el-table
+                  :data="visibleComments(group)"
+                  style="width: 100%"
+                  :row-class-name="rowClassName"
+                >
+                  <el-table-column prop="id" label="ID" width="70" />
+                  <el-table-column prop="username" label="用户" width="140">
+                    <template #default="scope">
+                      <div class="user-cell">
+                        <el-avatar :size="24" :src="scope.row.avatar" />
+                        <span style="margin-left: 6px">{{
+                          scope.row.username
+                        }}</span>
+                      </div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="评论内容" min-width="280">
+                    <template #default="scope">
+                      <div
+                        v-if="scope.row.reply_to_content"
+                        class="reply-quote"
+                        title="点击定位到被回复的评论"
+                        @click="locateParent(scope.row)"
+                      >
+                        回复 @{{ scope.row.reply_username }}：{{
+                          scope.row.reply_to_content
+                        }}
+                      </div>
+                      <div class="comment-text">{{ scope.row.content }}</div>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="类型" width="90" align="center">
+                    <template #default="scope">
+                      <el-tag
+                        v-if="scope.row.parent_id"
+                        size="small"
+                        type="info"
+                        >回复</el-tag
+                      >
+                      <el-tag v-else size="small">评论</el-tag>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="状态" width="100" align="center">
+                    <template #default="scope">
+                      <el-tag
+                        v-if="scope.row.status === 0"
+                        size="small"
+                        type="warning"
+                        >待审核</el-tag
+                      >
+                      <el-tag v-else size="small" type="success">已通过</el-tag>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="评论时间" width="170">
+                    <template #default="scope">
+                      {{ transitionTime(scope.row.create_time) }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="操作" width="230">
+                    <template #default="scope">
+                      <el-button
+                        v-if="scope.row.status === 0"
+                        size="small"
+                        type="success"
+                        @click="handleApprove(scope.row)"
+                        >通过</el-button
+                      >
+                      <el-button
+                        v-if="!scope.row.parent_id"
+                        size="small"
+                        :type="scope.row.is_pinned ? 'warning' : 'info'"
+                        @click="handlePin(scope.row)"
+                        >{{
+                          scope.row.is_pinned ? '取消置顶' : '置顶'
+                        }}</el-button
+                      >
+                      <el-button
+                        size="small"
+                        type="danger"
+                        @click="handleDelete(scope.row)"
+                        >删除</el-button
+                      >
+                    </template>
+                  </el-table-column>
+                </el-table>
+                <div
+                  v-if="
+                    group.comments.length > DEFAULT_PREVIEW &&
+                    !expandedFull.has(group.question_id)
+                  "
+                  class="group-expand"
+                >
+                  <el-button
+                    size="small"
+                    type="primary"
+                    plain
+                    @click="expandGroup(group.question_id)"
+                  >
+                    展开全部 {{ group.comments.length }} 条评论
+                  </el-button>
+                </div>
+              </el-collapse-item>
+            </el-collapse>
+            <el-empty
+              v-if="!loading && groups.length === 0"
+              :image-size="200"
+              description="暂无评论数据"
+            />
+            <div v-if="groups.length > 0" class="list-total">
+              共 {{ totalGroups }} 组，第 {{ currentPage }} /
+              {{ Math.ceil(totalGroups / groupPageSize) }} 页
+            </div>
+            <el-pagination
+              v-if="groups.length > 0"
+              v-model:current-page="currentPage"
+              background
+              layout="prev, pager, next, jumper"
+              :total="totalGroups"
+              :page-size="groupPageSize"
+              prev-text="上一页"
+              next-text="下一页"
+              :hide-on-single-page="true"
+              style="margin-top: 16px; justify-content: center"
+              @current-change="handlePageChange"
+            />
           </div>
-          <el-pagination
-            v-if="groups.length > 0"
-            v-model:current-page="currentPage"
-            background
-            layout="prev, pager, next, jumper"
-            :total="groups.length"
-            :page-size="groupPageSize"
-            prev-text="上一页"
-            next-text="下一页"
-            :hide-on-single-page="true"
-            style="margin-top: 16px; justify-content: center"
-            @current-change="handlePageChange"
-          />
-        </div>
-      </el-tab-pane>
-      <el-tab-pane label="已删除评论" name="deleted">
-        <el-table
-          v-loading="deletedLoading"
-          :data="deletedComments"
-          style="width: 100%"
-        >
-          <el-table-column prop="id" label="ID" width="70" />
-          <el-table-column prop="username" label="用户" width="140">
-            <template #default="scope">
-              <div class="user-cell">
-                <el-avatar :size="24" :src="scope.row.avatar" />
-                <span style="margin-left: 6px">{{ scope.row.username }}</span>
-              </div>
+        </el-tab-pane>
+        <el-tab-pane label="已删除评论" name="deleted">
+          <el-table
+            v-loading="deletedLoading"
+            :data="deletedComments"
+            style="width: 100%"
+            height="calc(100vh - 363px)"
+            empty-text=""
+          >
+            <el-table-column prop="id" label="ID" width="70" />
+            <el-table-column prop="username" label="用户" width="140">
+              <template #default="scope">
+                <div class="user-cell">
+                  <el-avatar :size="24" :src="scope.row.avatar" />
+                  <span style="margin-left: 6px">{{ scope.row.username }}</span>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column
+              label="对应题目"
+              min-width="220"
+              show-overflow-tooltip
+            >
+              <template #default="scope">
+                <el-link
+                  type="primary"
+                  :underline="false"
+                  @click="goQuestion(scope.row.question_id)"
+                >
+                  {{ scope.row.question_title || '（题目已删除）' }}
+                </el-link>
+              </template>
+            </el-table-column>
+            <el-table-column label="评论内容" min-width="280">
+              <template #default="scope">
+                <div class="comment-text">{{ scope.row.content }}</div>
+              </template>
+            </el-table-column>
+            <el-table-column label="类型" width="90" align="center">
+              <template #default="scope">
+                <el-tag v-if="scope.row.parent_id" size="small" type="info"
+                  >回复</el-tag
+                >
+                <el-tag v-else size="small">评论</el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="评论时间" width="170">
+              <template #default="scope">
+                {{ transitionTime(scope.row.create_time) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="100" align="center">
+              <template #default="scope">
+                <el-button
+                  size="small"
+                  type="success"
+                  @click="handleRestore(scope.row)"
+                  >恢复</el-button
+                >
+              </template>
+            </el-table-column>
+            <template #empty>
+              <el-empty :image-size="160" description="暂无已删除评论" />
             </template>
-          </el-table-column>
-          <el-table-column label="评论内容" min-width="280">
-            <template #default="scope">
-              <div class="comment-text">{{ scope.row.content }}</div>
-            </template>
-          </el-table-column>
-          <el-table-column label="类型" width="90" align="center">
-            <template #default="scope">
-              <el-tag v-if="scope.row.parent_id" size="small" type="info"
-                >回复</el-tag
-              >
-              <el-tag v-else size="small">评论</el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="评论时间" width="170">
-            <template #default="scope">
-              {{ transitionTime(scope.row.create_time) }}
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" width="100" align="center">
-            <template #default="scope">
-              <el-button
-                size="small"
-                type="success"
-                @click="handleRestore(scope.row)"
-                >恢复</el-button
-              >
-            </template>
-          </el-table-column>
-        </el-table>
-        <el-empty
-          v-if="!deletedLoading && deletedComments.length === 0"
-          :image-size="200"
-          description="没有已删除的评论"
-        />
-      </el-tab-pane>
+          </el-table>
+        </el-tab-pane>
       </el-tabs>
     </el-card>
     <BackToTop />
@@ -195,8 +236,8 @@
 
 <script lang="ts" setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
+import { useRouter } from 'vue-router';
 import BackToTop from '@/components/BackToTop/index.vue';
-import { Loading } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
   getCommentList,
@@ -208,6 +249,8 @@ import {
 } from '@/services';
 import { transitionTime } from '@/utils';
 import type { IComment } from '@/types';
+
+const router = useRouter();
 
 interface CommentGroup {
   question_id: number;
@@ -224,17 +267,34 @@ const highlightRowId = ref<number | null>(null);
 // 按题目分组分页：每页展示的分组数
 const groupPageSize = 10;
 const currentPage = ref(1);
+const totalGroups = ref(0);
 // 已删除评论（恢复用）
 const activeTab = ref('normal');
 const deletedComments = ref<IComment[]>([]);
 const deletedLoading = ref(false);
-const pagedGroups = computed(() => {
-  const start = (currentPage.value - 1) * groupPageSize;
-  return groups.value.slice(start, start + groupPageSize);
-});
+// 后端已按组分页，当前页数据即 groups 本身
+const pagedGroups = computed(() => groups.value);
+
+// 组内评论预览条数：超过时默认只渲染前 N 条，点击「展开全部」后再渲染全量
+const DEFAULT_PREVIEW = 10;
+const expandedFull = ref<Set<number>>(new Set());
+const visibleComments = (group: CommentGroup) => {
+  const list = group.comments;
+  if (expandedFull.value.has(group.question_id)) return list;
+  return list.slice(0, DEFAULT_PREVIEW);
+};
+const expandGroup = (qid: number) => {
+  expandedFull.value = new Set(expandedFull.value).add(qid);
+};
+// 翻页时清空「展开全部」状态，避免旧页残留
+const resetExpanded = () => {
+  expandedFull.value = new Set();
+};
 
 const handlePageChange = (page: number) => {
   currentPage.value = page;
+  resetExpanded();
+  getComments(page);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
@@ -252,9 +312,13 @@ const locateParent = (row: { parent_id?: number }) => {
   });
 };
 
-// 取评论所属题目ID（用于分组）
-const getQid = (row: IComment): number => {
-  return (row as { question_id?: number }).question_id ?? 0;
+// 跳转到题目详情（管理端视角）
+const goQuestion = (id: number) => {
+  if (!id) return;
+  router.push({
+    path: '/problemInfo',
+    query: { id, type: 'admin', from: 'adminComment' },
+  });
 };
 
 // 把一个评论节点及其所有后代平铺进数组
@@ -268,28 +332,22 @@ const pendingCount = (group: CommentGroup): number => {
   return group.comments.filter((c) => c.status === 0).length;
 };
 
-const getComments = async () => {
+const getComments = async (page = 1) => {
   loading.value = true;
-  // 管理端展示全部评论：按题目分组，每个题目一个折叠面板
-  const res = await getCommentList({ currentPage: 1, pageSize: 9999 });
-  const roots = res?.result ?? [];
-  const map = new Map<number, CommentGroup>();
-  roots.forEach((root) => {
-    const qid = getQid(root);
-    if (!map.has(qid)) {
-      map.set(qid, {
-        question_id: qid,
-        question_title: root.question_title || '（题目已删除）',
-        comments: [],
-      });
-    }
-    flattenOne(root, map.get(qid)!.comments);
+  // 管理端按「题目组」后端分页：每页返回若干组的全部评论（不再一次拉全量）
+  const res = await getCommentList({ groupPage: page, groupPageSize });
+  const groupList = (res?.result ?? []) as unknown as CommentGroup[];
+  // 后端返回的是嵌套树，el-table 需要平铺数组：把每组的子树递归展开成行
+  groupList.forEach((g) => {
+    const flat: IComment[] = [];
+    g.comments.forEach((root) => flattenOne(root, flat));
+    g.comments = flat;
   });
-  groups.value = Array.from(map.values());
-  activeGroups.value = groups.value.map((g) => g.question_id);
+  groups.value = groupList;
+  totalGroups.value = res?.totalGroups ?? 0;
+  // 性能优化：默认只展开第一组，避免当前页全部组同时渲染大量表格行
+  activeGroups.value = groups.value.length ? [groups.value[0].question_id] : [];
   highlightRowId.value = null;
-  // 重新拉取后回到第一页
-  currentPage.value = 1;
   loading.value = false;
 };
 
@@ -304,10 +362,14 @@ const handleApprove = (row: { id?: number }) => {
 const handlePin = (row: { id?: number; is_pinned?: number }) => {
   if (!row.id) return;
   const pinned = row.is_pinned === 1;
-  pinComment({ id: row.id, pinned: !pinned }).then(() => {
-    ElMessage.success(pinned ? '已取消置顶' : '已置顶');
-    getComments();
-  });
+  pinComment({ id: row.id, pinned: !pinned })
+    .then(() => {
+      ElMessage.success(pinned ? '已取消置顶' : '已置顶');
+      getComments();
+    })
+    .catch(() => {
+      // 失败时拦截层已 toast（如同题已有置顶提示），不需要刷新
+    });
 };
 
 const handleDelete = (row: { id?: number }) => {
@@ -375,9 +437,14 @@ onMounted(() => {
   getComments();
   // 初始化吸顶
   setTimeout(() => {
-    tabsHeaderEl = document.querySelector('.comments-list .el-tabs__header') as HTMLElement;
+    tabsHeaderEl = document.querySelector(
+      '.comments-list .el-tabs__header',
+    ) as HTMLElement;
     if (tabsHeaderEl) {
-      stickyTop = tabsHeaderEl.getBoundingClientRect().top + (window.scrollY || window.pageYOffset) - 60;
+      stickyTop =
+        tabsHeaderEl.getBoundingClientRect().top +
+        (window.scrollY || window.pageYOffset) -
+        60;
       // 创建占位符
       tabsPlaceholderEl = document.createElement('div');
       tabsPlaceholderEl.style.display = 'none';
@@ -395,18 +462,21 @@ onUnmounted(() => {
 <style scoped>
 .comments-list {
   width: 100%;
-  padding: 20px;
 }
+
 .comments-list :deep(.el-card__body) {
   padding-top: 0 !important;
 }
+
 .comments-list :deep(.el-tabs) {
   margin-top: 0 !important;
 }
+
 .comments-list :deep(.el-tabs__header) {
   margin-top: 0 !important;
   padding-top: 0 !important;
 }
+
 .comments-list :deep(.el-card__header) {
   padding-bottom: 10px !important;
 }
@@ -475,12 +545,19 @@ onUnmounted(() => {
   font-size: 13px;
   color: var(--el-text-color-secondary, #909399);
 }
+
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
+/* 评论分组折叠区：限高内部滚动，底部与其他管理页对齐 */
+.collapse-scroll {
+  max-height: calc(100vh - 279px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
 
 /* 评论管理：页签吸顶（JS 控制） */
 .comments-list :deep(.el-tabs__header.is-sticky) {
@@ -489,5 +566,11 @@ onUnmounted(() => {
   z-index: 29;
   background: var(--el-bg-color, #fff);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.group-expand {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 4px;
 }
 </style>

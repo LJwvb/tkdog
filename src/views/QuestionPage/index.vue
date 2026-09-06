@@ -139,6 +139,8 @@ interface IGetAllQuestionParams {
   catalogID?: number;
   subjectID?: number;
   refresh?: boolean;
+  questionType?: string;
+  difficulty?: string;
 }
 
 interface IForm {
@@ -194,6 +196,8 @@ const getAllQuestionParams = reactive<
   pageSize,
   subjectID: Number(subjectID) || 0,
   refresh: false,
+  questionType: '',
+  difficulty: '',
 });
 const onSubmit = () => {
   if (
@@ -422,6 +426,18 @@ watch(
         subjectIDList.value = res;
       });
     }
+  },
+);
+// 切换题目类型 / 难度 / 科目时即时刷新当前列表，无需手动点搜索；
+// 关键词、标签等输入型筛选仍只跟随「搜索」按钮，避免打字时频繁请求
+watch(
+  () => [form.questionType, form.difficulty, form.subjectID] as const,
+  ([qt, diff, sid]) => {
+    if (clickSearch.value) return; // 搜索结果模式由搜索逻辑负责
+    getAllQuestionParams.questionType = qt;
+    getAllQuestionParams.difficulty = diff;
+    getAllQuestionParams.subjectID = Number(sid) || 0;
+    getAllQuestion();
   },
 );
 </script>

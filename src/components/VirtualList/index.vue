@@ -414,9 +414,24 @@ onMounted(() => {
     }
   }
   updateAutoHeight();
+  // 首次挂载时布局可能未完全稳定（如 v-loading 遮罩、异步数据渲染），
+  // 下一帧重算 autoHeight，避免高度偏小导致列表只渲染一小截
+  requestAnimationFrame(() => {
+    updateAutoHeight();
+  });
   window.addEventListener('resize', onWinResize);
   void maybeFillViewport();
 });
+
+// auto 高度模式下，数据变化（切 tab / 加载更多）后布局高度会变，重算容器高度
+watch(
+  () => props.data,
+  () => {
+    if (props.height === 'auto') {
+      nextTick(() => updateAutoHeight());
+    }
+  },
+);
 
 onUnmounted(() => {
   resizeObserver?.disconnect();

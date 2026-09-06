@@ -1,15 +1,35 @@
 ﻿<template>
   <el-card class="paper-page">
     <div class="search-bar">
-      <el-input v-model="keyword" placeholder="按试卷名称或标签搜索" clearable style="max-width: 360px" @input="handleSearch" />
+      <el-input
+        v-model="keyword"
+        placeholder="按试卷名称或标签搜索"
+        clearable
+        style="max-width: 360px"
+        @input="handleSearch"
+      />
     </div>
     <el-tabs v-model="active" class="tabs">
-      <el-tab-pane v-for="(group, index) in groups" :key="group.key" :label="group.name" :name="index" class="tab-pane">
-        <div v-for="paper in group.list" :key="paper.paper_id" class="test-card">
+      <el-tab-pane
+        v-for="(group, index) in groups"
+        :key="group.key"
+        :label="group.name"
+        :name="index"
+        class="tab-pane"
+      >
+        <div
+          v-for="paper in group.list"
+          :key="paper.paper_id"
+          class="test-card"
+        >
           <TestCard :paper="paper" :name="group.name" />
         </div>
         <div v-if="group.list.length === 0" class="tabs">
-          <el-empty v-if="!group.loading" :image-size="200" description="没有试卷" />
+          <el-empty
+            v-if="!group.loading"
+            :image-size="200"
+            description="没有试卷"
+          />
           <div v-else class="load-status">
             <span class="loading">
               <el-icon class="is-loading">

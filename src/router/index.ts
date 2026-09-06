@@ -1,4 +1,4 @@
-import {
+﻿import {
   createRouter,
   createWebHashHistory,
   type RouteRecordRaw,
@@ -187,6 +187,18 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/ProblemInfo/index.vue'),
   },
   {
+    // 用户协议：对所有人开放
+    path: '/agreement',
+    name: 'agreement',
+    component: () => import('@/views/Agreement/index.vue'),
+  },
+  {
+    // 隐私政策：对所有人开放
+    path: '/privacy',
+    name: 'privacy',
+    component: () => import('@/views/Agreement/index.vue'),
+  },
+  {
     // 用户登录页：对所有人开放
     path: '/Login',
     name: 'Login',
@@ -204,7 +216,6 @@ const router = createRouter({
 });
 
 router.beforeEach((to, _from, next) => {
-  next(); return;
   // 登录态以后端 session 为准，前端只做 UI 拦截
   const userData = store.state.userData;
   const isLoggedIn = Boolean(userData?.phone);

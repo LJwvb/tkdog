@@ -61,10 +61,10 @@
           </span>
         </div>
       </template>
-      <el-table v-if="records.length" :data="records" stripe>
+      <el-table v-if="records.length" :data="records" stripe class="record-table" @row-click="goToDetail">
         <el-table-column prop="paper_title" label="试卷" min-width="200">
           <template #default="{ row }">
-            {{ row.paper_title || `试卷 #${row.paper_id}` }}
+            <span class="paper-link">{{ row.paper_title || `试卷 #${row.paper_id}` }}</span>
           </template>
         </el-table-column>
         <el-table-column label="得分" width="110" align="center">
@@ -105,6 +105,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { useRouter } from 'vue-router';
 import { getAnswerStats, getMyPaperRecords } from '@/services';
 import { transitionTime } from '@/utils';
 import { init, use } from 'echarts/core';
@@ -125,6 +126,13 @@ use([
   LegendComponent,
   CanvasRenderer,
 ]);
+
+const router = useRouter();
+
+const goToDetail = (row: IPaperRecord) => {
+  if (!row.id || !row.paper_id) return;
+  router.push(`/testPaper/doPaper?paperID=${row.paper_id}&recordId=${row.id}`);
+};
 
 const loading = ref(true);
 const stats = ref<IAnswerStats>({
@@ -310,5 +318,17 @@ onBeforeUnmount(() => {
 
 .c-sub {
   color: #e6a23c;
+}
+
+.record-table {
+  cursor: pointer;
+}
+
+.paper-link {
+  color: #409eff;
+  text-decoration: none;
+}
+.record-table:hover .paper-link {
+  text-decoration: underline;
 }
 </style>

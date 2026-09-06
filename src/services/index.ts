@@ -160,6 +160,19 @@ export function likeQuestion(params: ILikeQuestionParams): Promise<void> {
   return request<void>('POST', '/likeQuestions', { data: params });
 }
 
+// AI 解题解析
+export function aiAnalyze(params: { questionId: number }): Promise<{
+  available: boolean;
+  message?: string;
+  summary?: string;
+  points?: string[];
+  thinking?: string[];
+  pitfall?: string;
+  template?: string;
+}> {
+  return request('POST', '/aiAnalyze', { data: params, timeout: 60000 });
+}
+
 // 题目取消点赞接口
 export function unlikeQuestion(
   params: ICancelLikeQuestionParams,
@@ -508,15 +521,18 @@ export function addComment(params: Record<string, unknown>): Promise<void> {
   return request<void>('POST', '/addComment', { data: params });
 }
 
-// 获取评论接口（顶层评论分页，result 为当前页评论树，total 为顶层评论总数）
-export function getCommentList(
-  params: Record<string, unknown>,
-): Promise<{ result: IComment[]; total: number }> {
-  return request<{ result: IComment[]; total: number }>(
-    'GET',
-    '/getCommentList',
-    { params },
-  );
+// 获取评论接口（顶层评论分页，result 为当前页评论树，total 为顶层评论总数；
+// 管理端传 groupPage/groupPageSize 时按「题目组」分页，返回 totalGroups 组总数）
+export function getCommentList(params: Record<string, unknown>): Promise<{
+  result: IComment[];
+  total: number;
+  totalGroups?: number;
+}> {
+  return request<{
+    result: IComment[];
+    total: number;
+    totalGroups?: number;
+  }>('GET', '/getCommentList', { params });
 }
 
 // 点赞评论
@@ -560,6 +576,51 @@ export function submitPaper(
 }
 
 // AI 批改简答题（大模型响应慢，单独放宽超时；recordId 用于落库并重算成绩）
+// ===== AI 三大功能 =====
+// 1. 整卷 AI 分析报告（交卷后按 recordId 生成，落库缓存）
+export function aiPaperReport(params: { recordId: number }): Promise<{
+  available: boolean;
+  message?: string;
+  fromCache?: boolean;
+  summary?: string;
+  knowledgeAreas?: { name: string; mastery: number; comment?: string }[];
+  strengths?: string[];
+  weakPoints?: string[];
+  suggestions?: string[];
+  stats?: { score: number; correctNum: number; wrongNum: number; subjectiveNum: number; durationMin?: number };
+}> {
+  return request('POST', '/aiPaperReport', { data: params, timeout: 60000 });
+}
+
+// 2. AI 个人学习报告（按用户聚合，落库缓存）
+export function aiLearningReport(): Promise<{
+  available: boolean;
+  message?: string;
+  fromCache?: boolean;
+  skillProfile?: { name: string; level: string; comment: string }[];
+  strengths?: string[];
+  weakPoints?: string[];
+  suggestions?: string[];
+  stats?: { papers: number; accuracy: number; answered: number; favorites: number };
+}> {
+  return request('POST', '/aiLearningReport', { data: {}, timeout: 60000 });
+}
+
+// 3. AI 智能组卷建议（按条件从题库推荐题目组合）
+export function aiPaperSuggest(params: {
+  subjectID?: number | string;
+  difficulty?: number | string;
+  counts: { single: number; multiple: number; judge: number; essay: number };
+  tags?: string[];
+}): Promise<{
+  available: boolean;
+  message?: string;
+  questionIds?: number[];
+  reason?: string;
+}> {
+  return request('POST', '/aiPaperSuggest', { data: params, timeout: 60000 });
+}
+
 export function aiJudgeAnswer(params: {
   questionId: number;
   userAnswer: string;
@@ -571,9 +632,40 @@ export function aiJudgeAnswer(params: {
   });
 }
 
+// 批量 AI 判分（交卷时所有简答题一次调用，省 N-1 次网络往返）
+export function aiJudgeBatch(params: {
+  recordId?: number;
+  items: Array<{ questionId: number; userAnswer: string }>;
+}): Promise<{
+  available: boolean;
+  message?: string;
+  results?: Array<{ questionId: number; score: number; comment: string; isCorrect: boolean }>;
+  stats?: { correctNum: number; wrongNum: number; subjectiveNum: number; score: number; questionNum?: number };
+}> {
+  return request('POST', '/aiJudgeBatch', { data: params, timeout: 120_000 });
+}
+
 // 我的答题记录
 export function getMyPaperRecords(): Promise<IPaperRecord[]> {
   return request<IPaperRecord[]>('POST', '/getMyPaperRecords');
+}
+
+// 答题记录详情（回看某次答题）
+export function getRecordDetail(params: {
+  recordId: number | string;
+}): Promise<{
+  paperInfo: any;
+  questions: any[];
+  result: any;
+}> {
+  return request('POST', '/getRecordDetail', { data: params });
+}
+
+// 积分兑换 AI 额度（10积分=1次）
+export function exchangeAiCredit(params: {
+  count: number;
+}): Promise<{ cost: number; gained: number; remaining: number; credit: number }> {
+  return request('POST', '/exchangeAiCredit', { data: params });
 }
 
 // 答题统计
@@ -712,9 +804,13 @@ export function restoreAnnouncement(params: { id: number }): Promise<void> {
   return request<void>('POST', '/restoreAnnouncement', { data: params });
 }
 
-// 标签统计（管理员）
-export function getTagStats(): Promise<ITagStat[]> {
-  return request<ITagStat[]>('POST', '/getTagStats', { data: {} });
+// 标签统计（管理员），支持分页
+export function getTagStats(params: {
+  currentPage: number;
+  pageSize: number;
+  keyword?: string;
+}): Promise<{ result: ITagStat[]; total: number }> {
+  return request('POST', '/getTagStats', { data: params });
 }
 
 // 重命名标签（管理员）

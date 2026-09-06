@@ -30,6 +30,51 @@ import { School, Promotion, Stamp } from '@element-plus/icons-vue';
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 20px 24px;
+  border-radius: 14px;
+  /* 浅色青蓝渐变，与页面/hero 色调统一 */
+  background: linear-gradient(
+      120deg,
+      rgba(0, 166, 255, 0.1) 0%,
+      rgba(0, 200, 220, 0.05) 45%,
+      rgba(255, 255, 255, 0) 100%
+    ),
+    #fff;
+  border: 1px solid rgba(0, 166, 255, 0.12);
+  box-shadow: 0 4px 18px rgba(31, 45, 61, 0.08);
+  color: #5b6b7f;
+  font-size: 14px;
+  position: relative;
+  overflow: hidden;
+}
+/* 顶部青蓝流光线 */
+.connection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -40%;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 200, 255, 0.7),
+    transparent
+  );
+  animation: bottomLine 5s ease-in-out infinite;
+}
+@keyframes bottomLine {
+  0%,
+  100% {
+    left: -40%;
+  }
+  50% {
+    left: 40%;
+  }
+}
+.connection :deep(.el-icon) {
+  color: var(--el-color-primary);
+  margin-right: 6px;
 }
 .space {
   display: flex;

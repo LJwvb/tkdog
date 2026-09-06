@@ -20,8 +20,12 @@ html.dark .tkdog-container {
 
 html.dark .nav-container,
 html.dark .home-nav {
-  background-color: #1d1e1f !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  /* 与页面底色 #141414 完全一致，避免导航呈现色带 */
+  background-color: #141414 !important;
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border-bottom: 1px solid rgba(0, 166, 255, 0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
 }
 
 /* 暗色下：硬编码的深色文字统一调亮 */
@@ -188,6 +192,96 @@ html.dark .el-empty__image {
   opacity: 0.5;
 }
 
+/* 暗色下：首页 hero 横幅 */
+html.dark .home-hero {
+  background: linear-gradient(
+      120deg,
+      rgba(0, 166, 255, 0.14) 0%,
+      rgba(0, 200, 220, 0.06) 45%,
+      rgba(255, 255, 255, 0) 100%
+    ),
+    #1d1e1f !important;
+  border-color: rgba(0, 166, 255, 0.25) !important;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.4) !important;
+}
+html.dark .home-hero .hero-title {
+  color: #e5eaf3 !important;
+}
+html.dark .home-hero .hero-sub {
+  color: #a3a6ad !important;
+}
+html.dark .home-hero .hero-badge {
+  color: #7fd7ff !important;
+  border-color: rgba(90, 190, 255, 0.4) !important;
+  background: rgba(0, 160, 255, 0.14) !important;
+}
+html.dark .home-hero .hero-glow-1 {
+  background: rgba(0, 150, 255, 0.2);
+}
+html.dark .home-hero .hero-glow-2 {
+  background: rgba(0, 200, 220, 0.12);
+}
+
+/* 暗色下：答案与解析面板 */
+html.dark .answer-section {
+  background: linear-gradient(
+      135deg,
+      rgba(0, 166, 255, 0.08) 0%,
+      rgba(0, 200, 220, 0.03) 45%,
+      rgba(255, 255, 255, 0) 100%
+    ),
+    #1d1e1f !important;
+  border-color: rgba(0, 166, 255, 0.25) !important;
+}
+html.dark .answer-title {
+  color: #e5eaf3 !important;
+}
+html.dark .answer {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  color: #c7cdd6 !important;
+}
+
+/* 暗色下：AI 解题思路面板 */
+html.dark .ai-section {
+  background: linear-gradient(
+      135deg,
+      rgba(0, 166, 255, 0.08) 0%,
+      rgba(0, 200, 220, 0.03) 45%,
+      rgba(255, 255, 255, 0) 100%
+    ),
+    #1d1e1f !important;
+  border-color: rgba(0, 166, 255, 0.25) !important;
+}
+html.dark .ai-title,
+html.dark .ai-block-title {
+  color: #e5eaf3 !important;
+}
+html.dark .ai-summary {
+  color: #e5eaf3 !important;
+  background: rgba(0, 166, 255, 0.12) !important;
+}
+html.dark .ai-list,
+html.dark .ai-text {
+  color: #c7cdd6 !important;
+}
+html.dark .ai-text {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+html.dark .ai-login-tip,
+html.dark .ai-error {
+  color: #a3a6ad !important;
+}
+
+/* 暗色下：页脚 */
+html.dark .connection {
+  background: #1d1e1f !important;
+  border-color: #3a3b3c !important;
+  color: #a3a6ad !important;
+}
+html.dark .connection .el-icon {
+  color: #4fc3ff !important;
+}
+
 /* 暗色下：el-card 组件 */
 html.dark .el-card {
   background-color: #1d1e1f !important;
@@ -231,6 +325,18 @@ html.dark .question-card-container,
 html.dark .top-container .el-card {
   background-color: #1d1e1f !important;
   border-color: #3a3b3c !important;
+}
+
+/* 暗色下：QuestionCard 题目卡片组件 */
+html.dark .card-container {
+  background-color: #1d1e1f !important;
+  border-color: #3a3b3c !important;
+  color: #e5eaf3 !important;
+}
+html.dark .card-container:hover {
+  background-color: #262727 !important;
+  border-color: #4a4b4c !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
 }
 
 /* 暗色下：单选/多选按钮组 */
@@ -331,7 +437,7 @@ html.dark .user-menu .menu-item:hover {
 /* 暗色下：用户页信息卡片 */
 html.dark .user-info-container .main-info,
 html.dark .user-info-container .question-info {
-  background-color: #1d1e1f !important;
+  /* background-color: #1d1e1f !important; */
   border-color: #3a3b3c !important;
 }
 

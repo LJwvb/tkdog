@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="announcement-list">
     <el-card>
       <template #header>
@@ -10,7 +10,13 @@
 
       <el-tabs v-model="activeTab" @tab-change="handleTabChange">
         <el-tab-pane label="公告列表" name="normal">
-          <el-table v-loading="loading" :data="list" stripe>
+          <el-table
+            v-loading="loading"
+            :data="list"
+            stripe
+            height="calc(100vh - 328px)"
+            empty-text=""
+          >
             <el-table-column prop="id" label="ID" width="70" />
             <el-table-column prop="title" label="标题" min-width="200" />
             <el-table-column prop="content" label="内容" min-width="280" />
@@ -30,16 +36,28 @@
                 </el-button>
               </template>
             </el-table-column>
+
+            <template #empty>
+              <el-empty
+                v-if="!loading && list.length === 0"
+                :image-size="160"
+                description="暂无公告"
+              />
+            </template>
           </el-table>
 
-          <el-empty
-            v-if="!loading && list.length === 0"
-            :image-size="160"
-            description="暂无公告"
-          />
+          <div v-if="list.length > 0" class="list-total">
+            共 {{ list.length }} 条，已加载 {{ list.length }} 条
+          </div>
         </el-tab-pane>
         <el-tab-pane label="已删除公告" name="deleted">
-          <el-table v-loading="deletedLoading" :data="deletedList" stripe>
+          <el-table
+            v-loading="deletedLoading"
+            :data="deletedList"
+            stripe
+            height="calc(100vh - 328px)"
+            empty-text=""
+          >
             <el-table-column prop="id" label="ID" width="70" />
             <el-table-column prop="title" label="标题" min-width="200" />
             <el-table-column prop="content" label="内容" min-width="280" />
@@ -59,13 +77,19 @@
                 </el-button>
               </template>
             </el-table-column>
+
+            <template #empty>
+              <el-empty
+                v-if="!deletedLoading && deletedList.length === 0"
+                :image-size="160"
+                description="没有已删除的公告"
+              />
+            </template>
           </el-table>
 
-          <el-empty
-            v-if="!deletedLoading && deletedList.length === 0"
-            :image-size="160"
-            description="没有已删除的公告"
-          />
+          <div v-if="deletedList.length > 0" class="list-total">
+            共 {{ deletedList.length }} 条，已加载 {{ deletedList.length }} 条
+          </div>
         </el-tab-pane>
       </el-tabs>
     </el-card>
@@ -187,9 +211,15 @@ onMounted(load);
 </script>
 
 <style scoped>
+/* 列表总数状态：与其他管理页保持一致 */
+.list-total {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--el-text-color-secondary, #909399);
+}
 .announcement-list {
   width: 100%;
-  padding: 20px;
 }
 .header {
   display: flex;

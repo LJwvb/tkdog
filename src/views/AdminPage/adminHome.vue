@@ -425,7 +425,6 @@ onBeforeUnmount(() => {
 <style scoped>
 .home-container {
   width: 100%;
-  padding: 20px;
 }
 .stat-cards {
   display: flex;

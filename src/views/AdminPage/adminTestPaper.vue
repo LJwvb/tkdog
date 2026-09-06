@@ -1,7 +1,7 @@
-<template>
+﻿<template>
   <div class="hello" style="width: 100%">
     <!-- 搜索：与题目管理一致，置于页面顶部 -->
-    <div class="search">
+    <el-card class="search">
       <el-form :model="form" inline>
         <el-form-item label="关键词">
           <el-input
@@ -17,9 +17,9 @@
           <el-button @click="onReset">清空</el-button>
         </el-form-item>
       </el-form>
-    </div>
+    </el-card>
     <el-container>
-      <el-main style="padding: 10px">
+      <el-main style="padding: 10px 0 0 0">
         <el-card>
           <el-tabs v-model="activeNames" @tab-click="handleClick">
             <el-tab-pane label="未审核的试卷" name="nochk"></el-tab-pane>
@@ -46,7 +46,12 @@
               @load-more="loadMoreNoChk"
             >
               <template #default="{ item }">
-                <div class="paper-row">
+                <div
+                  class="paper-row"
+                  :style="{
+                    gridTemplateColumns: `repeat(${rowCols}, 1fr)`,
+                  }"
+                >
                   <div
                     v-for="paper in item"
                     :key="paper.paper_id"
@@ -58,8 +63,8 @@
                       :name="
                         paper?.purview === PaperPurview.Public ? '公开' : '私有'
                       "
-                      @check="check"
-                      @uncheck="uncheck"
+                      @check="toggleCheck"
+                      @uncheck="toggleCheck"
                       @delete="deletePaper"
                     />
                   </div>
@@ -90,7 +95,12 @@
               @load-more="loadMoreChk"
             >
               <template #default="{ item }">
-                <div class="paper-row">
+                <div
+                  class="paper-row"
+                  :style="{
+                    gridTemplateColumns: `repeat(${rowCols}, 1fr)`,
+                  }"
+                >
                   <div
                     v-for="paper in item"
                     :key="paper.paper_id"
@@ -134,7 +144,12 @@
               @load-more="loadMoreDeleted"
             >
               <template #default="{ item }">
-                <div class="paper-row">
+                <div
+                  class="paper-row"
+                  :style="{
+                    gridTemplateColumns: `repeat(${rowCols}, 1fr)`,
+                  }"
+                >
                   <div
                     v-for="paper in item"
                     :key="paper.paper_id"
@@ -162,7 +177,14 @@
 <script setup lang="ts">
 import TestCard from '@/components/TestCard/index.vue';
 import VirtualList from '@/components/VirtualList/index.vue';
-import { ref, reactive, computed, onMounted } from 'vue';
+import {
+  ref,
+  reactive,
+  computed,
+  onMounted,
+  onBeforeUnmount,
+  type Ref,
+} from 'vue';
 import { ElMessage } from 'element-plus';
 import { parseHashQuery, firstQueryValue } from '@/utils';
 
@@ -195,13 +217,12 @@ const nochkLoadingMore = ref(false);
 const chkLoadingMore = ref(false);
 const deletedLoadingMore = ref(false);
 
-const nochkParams = reactive({ currentPage: 1, pageSize: 10, keyword: '' });
-const chkParams = reactive({ currentPage: 1, pageSize: 10, keyword: '' });
-const deletedParams = reactive({
-  currentPage: 1,
-  pageSize: 10,
-  keyword: '',
-});
+// 三个页签的查询参数结构完全一致，用工厂生成，避免复制三份
+const makePageParams = () =>
+  reactive({ currentPage: 1, pageSize: 10, keyword: '' });
+const nochkParams = makePageParams();
+const chkParams = makePageParams();
+const deletedParams = makePageParams();
 
 // 搜索：把关键词同步进三个 tab 的查询参数，再重载当前 tab（切 tab 时会自动带词重查）
 const form = reactive({ keyword: '' });
@@ -211,16 +232,18 @@ const applyKeyword = () => {
   chkParams.keyword = kw;
   deletedParams.keyword = kw;
 };
-const reloadCurrentTab = () => {
+// 按页签名重拉第一页：搜索与切 tab 共用同一套分发，避免两处写重复逻辑
+const reloadByName = (name: string) => {
   loading.value = true;
-  if (activeNames.value === 'chk') {
+  if (name === 'chk') {
     void getAllChkPapers();
-  } else if (activeNames.value === 'deleted') {
+  } else if (name === 'deleted') {
     void getDeletedPapersFun();
   } else {
     void getNoChkPapers();
   }
 };
+const reloadCurrentTab = () => reloadByName(activeNames.value);
 const onSearch = () => {
   applyKeyword();
   reloadCurrentTab();
@@ -244,8 +267,8 @@ interface IPaperPageRes {
 const loadPapers = async (
   fetcher: (params: IPageParams) => Promise<IPaperPageRes>,
   params: IPageParams,
-  listRef: typeof NoChkPaper,
-  totalRef: typeof noChkTotal,
+  listRef: Ref<IPaperCard[]>,
+  totalRef: Ref<number>,
   append = false,
 ) => {
   if (!append) {
@@ -274,56 +297,63 @@ const getDeletedPapersFun = async (append = false) => {
   );
 };
 
-// ===== 三个 tab 各自的滚动追加（VirtualList 触底触发）=====
-const loadMoreNoChk = async () => {
-  if (nochkLoadingMore.value || NoChkPaper.value.length >= noChkTotal.value)
-    return;
-  nochkParams.currentPage += 1;
-  nochkLoadingMore.value = true;
-  try {
-    await getNoChkPapers(true);
-  } catch (err) {
-    nochkParams.currentPage -= 1;
-  } finally {
-    nochkLoadingMore.value = false;
-  }
+// ===== 滚动追加：三个 tab 逻辑同构，用工厂生成，避免复制三份 =====
+const makeLoadMore = (
+  loadingRef: Ref<boolean>,
+  listRef: Ref<IPaperCard[]>,
+  totalRef: Ref<number>,
+  params: IPageParams & { keyword: string },
+  fetch: (append: boolean) => Promise<void>,
+) => {
+  return async () => {
+    if (loadingRef.value || listRef.value.length >= totalRef.value) return;
+    params.currentPage += 1;
+    loadingRef.value = true;
+    try {
+      await fetch(true);
+    } catch (err) {
+      // 加载失败回退页码，避免页码与数据错位
+      params.currentPage -= 1;
+    } finally {
+      loadingRef.value = false;
+    }
+  };
 };
-const loadMoreChk = async () => {
-  if (chkLoadingMore.value || ChkPaper.value.length >= chkTotal.value) return;
-  chkParams.currentPage += 1;
-  chkLoadingMore.value = true;
-  try {
-    await getAllChkPapers(true);
-  } catch (err) {
-    chkParams.currentPage -= 1;
-  } finally {
-    chkLoadingMore.value = false;
-  }
-};
-const loadMoreDeleted = async () => {
-  if (
-    deletedLoadingMore.value ||
-    DeletedPaper.value.length >= deletedTotal.value
-  )
-    return;
-  deletedParams.currentPage += 1;
-  deletedLoadingMore.value = true;
-  try {
-    await getDeletedPapersFun(true);
-  } catch (err) {
-    deletedParams.currentPage -= 1;
-  } finally {
-    deletedLoadingMore.value = false;
-  }
-};
+const loadMoreNoChk = makeLoadMore(
+  nochkLoadingMore,
+  NoChkPaper,
+  noChkTotal,
+  nochkParams,
+  getNoChkPapers,
+);
+const loadMoreChk = makeLoadMore(
+  chkLoadingMore,
+  ChkPaper,
+  chkTotal,
+  chkParams,
+  getAllChkPapers,
+);
+const loadMoreDeleted = makeLoadMore(
+  deletedLoadingMore,
+  DeletedPaper,
+  deletedTotal,
+  deletedParams,
+  getDeletedPapersFun,
+);
 
 // ===== 行分块：VirtualList 是单列虚拟渲染，把卡片按每行 N 张切成"行"作为列表项，
 // 保持多列卡片网格的外观；追加数据时未变动的行对象复用原引用，
 // 让 VirtualList 判定为"加载更多"而不是"切换数据源"（避免滚动位置被重置）=====
-const ROW_COLS = 3;
-const makeRowChunker = (cols: number) => {
+// 列数随屏幕宽度响应式变化，CSS grid 与行分块必须同步，否则卡片会错位
+const rowCols = ref(3);
+const updateRowCols = () => {
+  const w = window.innerWidth;
+  rowCols.value = w < 700 ? 1 : w < 1100 ? 2 : 3;
+};
+const makeRowChunker = (getCols: () => number) => {
   let cache: IPaperCard[][] = [];
   return (list: IPaperCard[]): IPaperCard[][] => {
+    const cols = getCols();
     const needed = Math.ceil(list.length / cols);
     const out: IPaperCard[][] = [];
     for (let i = 0; i < needed; i++) {
@@ -339,9 +369,9 @@ const makeRowChunker = (cols: number) => {
     return out;
   };
 };
-const nochkRowsChunker = makeRowChunker(ROW_COLS);
-const chkRowsChunker = makeRowChunker(ROW_COLS);
-const deletedRowsChunker = makeRowChunker(ROW_COLS);
+const nochkRowsChunker = makeRowChunker(() => rowCols.value);
+const chkRowsChunker = makeRowChunker(() => rowCols.value);
+const deletedRowsChunker = makeRowChunker(() => rowCols.value);
 const noChkRows = computed(() => nochkRowsChunker(NoChkPaper.value));
 const chkRows = computed(() => chkRowsChunker(ChkPaper.value));
 const deletedRows = computed(() => deletedRowsChunker(DeletedPaper.value));
@@ -353,64 +383,56 @@ const restorePaperFun = (paperId: number) => {
   });
 };
 const handleClick = (tab: { props: { name?: string | number } }) => {
-  loading.value = true;
   // 切回 tab 时重新拉第一页：列表可能已被审核/删除操作改动过
-  if (tab.props.name === 'nochk') {
-    getNoChkPapers();
-  } else if (tab.props.name === 'deleted') {
-    getDeletedPapersFun();
-  } else {
-    getAllChkPapers();
-  }
+  reloadByName(String(tab.props.name ?? 'nochk'));
 };
 
 onMounted(() => {
+  updateRowCols();
+  window.addEventListener('resize', updateRowCols);
   void getNoChkPapers();
-  getAllChkPapers();
+  void getAllChkPapers();
 });
+// 组件卸载时移除 resize 监听
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateRowCols);
+});
+// 删除 / 审核后的统一刷新：判断依据统一取当前页签 ref，不再依赖子组件回传
+const refreshAfterChange = () => {
+  if (activeNames.value === 'nochk') {
+    void getNoChkPapers();
+  } else {
+    void getAllChkPapers();
+  }
+};
 //删除试卷
-const deletePaper = (paper_id: number, activeNames: string) => {
+const deletePaper = (paper_id: number) => {
   deletePapers({ paperId: paper_id }).then(() => {
-    if (activeNames === 'nochk') {
-      getNoChkPapers();
-    } else {
-      getAllChkPapers();
-    }
+    refreshAfterChange();
   });
 };
 
-const check = (params: IChkPapers) => {
+// 审核通过 / 不通过提交的是同一接口，后续处理也一致，合并为一个函数
+const toggleCheck = (params: IChkPapers) => {
   chkPaper(params).then(() => {
-    if (activeNames.value === 'nochk') {
-      getNoChkPapers();
-    } else {
-      getAllChkPapers();
-    }
-  });
-};
-const uncheck = (params: IChkPapers) => {
-  chkPaper(params).then(() => {
-    if (activeNames.value === 'nochk') {
-      getNoChkPapers();
-    } else {
-      getAllChkPapers();
-    }
+    refreshAfterChange();
   });
 };
 </script>
 
 <style scoped>
-/* 每行卡片容器：配合 VirtualList 行分块保持多列网格外观 */
+/* 每行卡片容器：grid 三列等分铺满整行，避免固定宽度在宽屏下右侧留白；
+   配合 VirtualList 行分块（ROW_COLS=3）保持多列卡片网格外观 */
 .paper-row {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
 }
 
 .test-card {
-  width: 400px;
+  width: auto;
   height: 200px;
-  margin-right: 20px;
-  margin-bottom: 20px;
+  margin: 0;
 }
 
 /* 搜索栏：样式与题目管理一致（flex 行内表单、自然高度居中），并吸顶于导航栏（60px）下方。
@@ -419,14 +441,15 @@ const uncheck = (params: IChkPapers) => {
   display: flex;
   flex-direction: row;
   align-items: center;
-  height: 40px;
   position: sticky;
   top: 60px;
   z-index: 30;
   background: var(--el-bg-color, #fff);
-  padding: 0 4px;
 }
 
+.search :deep(.el-form-item) {
+  margin-bottom: 0;
+}
 /* 已加载统计：与题目管理一致 */
 .list-total {
   margin-top: 8px;

@@ -58,6 +58,10 @@
             <el-icon><Warning /></el-icon> </el-tooltip
           >:{{ userInfo?.integral ?? 0 }}
         </div>
+        <div class="ai-credit-row">
+          <span>AI 额度：<b>{{ userInfo?.ai_credit ?? 0 }}</b> 次</span>
+          <el-button size="small" type="primary" plain @click="showExchange = true">积分兑换</el-button>
+        </div>
         <div class="level">
           等级：
           <el-tag :type="level.type" size="small" effect="plain">{{
@@ -119,7 +123,27 @@
         <div>最后登录时间：{{ transitionTime(userInfo?.last_login_time) }}</div>
       </div>
     </el-card>
+
   </div>
+
+  <!-- 积分兑换 AI 额度弹窗 -->
+  <el-dialog v-model="showExchange" title="积分兑换 AI 额度" width="400px">
+    <div class="exchange-info">
+      <p>当前积分：<b>{{ userInfo?.integral ?? 0 }}</b></p>
+      <p>当前 AI 额度：<b>{{ userInfo?.ai_credit ?? 0 }}</b> 次</p>
+      <p class="exchange-rate">兑换比例：10 积分 = 1 次 AI 额度</p>
+      <div class="exchange-count">
+        <span>兑换数量：</span>
+        <el-input-number v-model="exchangeCount" :min="1" :max="100" size="small" />
+        <span class="exchange-cost">= {{ exchangeCount * 10 }} 积分</span>
+      </div>
+    </div>
+    <template #footer>
+      <el-button @click="showExchange = false">取消</el-button>
+      <el-button type="primary" :loading="exchanging" @click="doExchange">确认兑换</el-button>
+    </template>
+  </el-dialog>
+
   <EditUserInfo v-model:dialogVisible="dialogVisible" :userInfo="userInfo" />
 </template>
 <script setup lang="ts">
@@ -127,11 +151,31 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useStore } from 'vuex';
 import { ElMessage } from 'element-plus';
 import { transitionTime } from '@/utils/index';
-import { getUserInfo, checkin, getCheckinInfo, setDailyGoal } from '@/services';
+import { getUserInfo, checkin, getCheckinInfo, setDailyGoal, exchangeAiCredit } from '@/services';
 import EditUserInfo from '@/components/EditUserInfo/index.vue';
 import { Female, Male, Warning } from '@element-plus/icons-vue';
 const store = useStore();
 const dialogVisible = ref(false);
+const showExchange = ref(false);
+const exchangeCount = ref(1);
+const exchanging = ref(false);
+
+const doExchange = async () => {
+  exchanging.value = true;
+  try {
+    const res = await exchangeAiCredit({ count: exchangeCount.value });
+    ElMessage.success(`兑换成功，获得 ${res.gained} 次 AI 额度`);
+    // 刷新用户信息
+    const info = await getUserInfo();
+    if (info) userInfo.value = info;
+    showExchange.value = false;
+    exchangeCount.value = 1;
+  } catch {
+    ElMessage.error('兑换失败，请检查积分是否足够');
+  } finally {
+    exchanging.value = false;
+  }
+};
 interface IUserDetail {
   userId?: number;
   avatar?: string;
@@ -148,6 +192,7 @@ interface IUserDetail {
   last_login_time?: string;
   daily_goal?: number;
   today_correct?: number;
+  ai_credit?: number;
 }
 interface ICheckinInfo {
   todayChecked: boolean;
@@ -221,13 +266,21 @@ const loadCheckin = async () => {
 const loadUserInfo = async () => {
   const data = await getUserInfo();
   userInfo.value = data;
-  // 仅在 userId 不一致时同步 store，避免 watch 触发无限循环
-  if (data?.userId && store.state.userData.userId !== data.userId) {
+  // 关键字段不一致时才同步 store（phone 等也纳入比较），避免 watch 触发无限循环
+  const ud = store.state.userData;
+  if (
+    data?.userId &&
+    (ud.userId !== data.userId ||
+      ud.phone !== data.phone ||
+      ud.username !== data.username ||
+      ud.avatar !== data.avatar)
+  ) {
     store.commit('setUserData', {
-      ...store.state.userData,
+      ...ud,
       userId: data.userId,
       username: data.username,
       avatar: data.avatar,
+      phone: data.phone,
     });
   }
 };
@@ -344,5 +397,32 @@ watch(
   margin-top: 8px;
   max-width: 320px;
   width: 100%;
+}
+.ai-credit-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.ai-credit-row b {
+  color: #409eff;
+  font-size: 16px;
+}
+.exchange-info p {
+  margin: 8px 0;
+}
+.exchange-rate {
+  color: #909399;
+  font-size: 13px;
+}
+.exchange-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.exchange-cost {
+  color: #f56c6c;
+  font-size: 13px;
 }
 </style>

@@ -156,4 +156,20 @@ const done = () => {
 :deep(.el-step__head.is-error .el-step__icon-inner.is-status) {
   color: var(--el-color-danger);
 }
+
+/* 小屏：缩小页面与卡片容器的内边距，给题目卡片让出更多宽度 */
+@media (max-width: 600px) {
+  .add-paper {
+    padding: 12px;
+  }
+
+  .steps {
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .step-content {
+    padding: 16px;
+  }
+}
 </style>

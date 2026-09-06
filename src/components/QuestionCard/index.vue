@@ -58,7 +58,11 @@
       </div>
     </div>
     <div class="card-actions">
-      <div v-if="store.state.userData.isAdmin" class="admin-actions">
+      <!-- paper（组卷/试题篮）模式只保留该模式自身的删除按钮，避免与管理端操作按钮重复 -->
+      <div
+        v-if="store.state.userData.isAdmin && props.type !== 'paper'"
+        class="admin-actions"
+      >
         <el-button
           v-if="activeName === 'deleted'"
           type="success"
@@ -204,17 +208,17 @@ const emit = defineEmits<{
   (e: 'edit', question: IQuestion): void;
   (e: 'restore', id: number): void;
 }>();
-const question = props.question as IQuestion;
-const checkParams = {
-  id: question.id,
+const question = computed(() => props.question as IQuestion);
+const checkParams = computed(() => ({
+  id: question.value.id,
   chkState: ChkState.Approved,
   chkRemarks: '审核通过',
-};
-const unCheckParams = {
-  id: question.id,
+}));
+const unCheckParams = computed(() => ({
+  id: question.value.id,
   chkState: ChkState.Rejected,
   chkRemarks: '审核不通过',
-};
+}));
 
 // 审核弹窗：可自定义审核建议，默认「审核通过 / 审核不通过」
 const reviewDialogVisible = ref(false);
@@ -226,7 +230,8 @@ const openReview = (action: 'check' | 'uncheck') => {
   reviewDialogVisible.value = true;
 };
 const confirmReview = () => {
-  const base = reviewAction.value === 'check' ? checkParams : unCheckParams;
+  const base =
+    reviewAction.value === 'check' ? checkParams.value : unCheckParams.value;
   const params = {
     ...base,
     chkRemarks: reviewRemark.value.trim() || base.chkRemarks,
@@ -239,25 +244,29 @@ const confirmReview = () => {
   reviewDialogVisible.value = false;
 };
 
-const tags = Array.isArray(question?.tags)
-  ? question?.tags?.filter((item: string) => item !== '')
-  : question?.tags?.split(',').filter((item: string) => item !== '');
+const tags = computed(() => {
+  const q = question.value;
+  const raw = q?.tags;
+  return Array.isArray(raw)
+    ? raw?.filter((item: string) => item !== '')
+    : raw?.split(',').filter((item: string) => item !== '');
+});
 
-const id = question?.id;
+const id = computed(() => question.value?.id);
 const typeName = computed(() => {
-  return questionType(Number(question?.questionType));
+  return questionType(Number(question.value?.questionType));
 });
 const degreeDifficulty = computed(() => {
-  return difficulty(Number(question?.difficulty));
+  return difficulty(Number(question.value?.difficulty));
 });
 const addDate = computed(() => {
-  return transitionTime(question?.addDate);
+  return transitionTime(question.value?.addDate);
 });
 const updateInfo = computed(() => {
-  if (!question?.updateTime) return '';
-  const t = transitionTime(question.updateTime);
-  return question.updateUser
-    ? `${question.updateUser} 修改于 ${t}`
+  if (!question.value?.updateTime) return '';
+  const t = transitionTime(question.value.updateTime);
+  return question.value.updateUser
+    ? `${question.value.updateUser} 修改于 ${t}`
     : `修改于 ${t}`;
 });
 
@@ -270,7 +279,7 @@ const toProblemInfo = () => {
   router.push({
     path: `/problemInfo`,
     query: {
-      id,
+      id: id.value,
       type: props?.type,
       isClickSearch: String(props?.isClickSearch),
       catalogID: props?.catalogID,
@@ -283,12 +292,12 @@ const selectedTopic = () => {
   // 获取之前选中的题目id
   const selectedTopicIds = stateSelectedTopic.map((item: IQuestion) => item.id);
   // 判断是否已经选中
-  if (selectedTopicIds.includes(id)) {
+  if (selectedTopicIds.includes(id.value)) {
     ElMessage.error('已选中该题，若想取消请在试题篮已选题目中取消');
     return;
   } else {
     const data = {
-      ...question,
+      ...question.value,
       data: new Date().toLocaleString(),
     };
     store.commit('addSelectedTopic', [...stateSelectedTopic, data]);
@@ -299,7 +308,7 @@ const selectedTopic = () => {
 const deleteTopic = () => {
   const selectedTopic = store.state.selectedTopic;
   const selectedTopicIds = selectedTopic.map((item: IQuestion) => item.id);
-  const index = selectedTopicIds.indexOf(id);
+  const index = selectedTopicIds.indexOf(id.value);
   if (index !== -1) {
     // 拷贝后删除，避免直接 mutate store state
     const next = [...selectedTopic];
@@ -314,7 +323,7 @@ watchEffect(() => {
   const stateSelectedTopic = store.state.selectedTopic;
   // 获取之前选中的题目id
   const selectedTopicIds = stateSelectedTopic.map((item: IQuestion) => item.id);
-  if (selectedTopicIds.includes(id)) {
+  if (selectedTopicIds.includes(id.value)) {
     isChecked.value = true;
   } else {
     isChecked.value = false;
@@ -444,5 +453,27 @@ watchEffect(() => {
 .admin-actions {
   display: flex;
   gap: 8px;
+}
+
+/* 小屏：标题缩小、footer 纵向堆叠避免 info 与 nums 挤压重叠 */
+@media (max-width: 600px) {
+  .card-container {
+    padding: 14px 16px;
+  }
+
+  .title {
+    font-size: 16px;
+  }
+
+  .card-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .nums {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
 }
 </style>

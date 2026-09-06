@@ -27,11 +27,18 @@ import TestBasket from '@/components/TestBasket/index.vue';
 import { setWaterMark } from './utils/waterMark';
 
 const route = useRoute();
-// 登录页 / 管理员登录页 / 404 属于独立页面，不渲染全局导航与布局
+// 登录页 / 管理员登录页 / 404 / 协议页属于独立页面，不渲染全局导航与布局
 // 导航未完成（name 为空）时也视为独立页面，避免重定向前渲染完整布局触发无关请求
 const isStandalonePage = computed(() => {
   const name = route.name;
-  return !name || name === 'Login' || name === 'admin' || name === '404';
+  return (
+    !name ||
+    name === 'Login' ||
+    name === 'admin' ||
+    name === '404' ||
+    name === 'agreement' ||
+    name === 'privacy'
+  );
 });
 
 // 仅在非输入元素上阻止 Enter 键默认行为（如表单提交）
@@ -58,6 +65,76 @@ onBeforeUnmount(() => {
 </script>
 <style>
 @import '@/styles/dark.css';
+
+/* ============ 全局主题：青蓝主色 ============ */
+:root {
+  --el-color-primary: #00a6ff;
+  --el-color-primary-light-3: #33b9ff;
+  --el-color-primary-light-5: #66cbff;
+  --el-color-primary-light-7: #99dcff;
+  --el-color-primary-light-8: #b3e5ff;
+  --el-color-primary-light-9: #e6f6ff;
+  --el-color-primary-dark-2: #0085cc;
+  --tk-brand-grad: linear-gradient(120deg, #00c6ff, #0072ff);
+  --tk-brand-grad-anim: linear-gradient(120deg, #00c6ff, #0072ff, #00c6ff);
+}
+
+/* 全局页面背景：顶部淡青蓝渐变的科技感底 */
+.tkdog-container {
+  background: linear-gradient(
+      180deg,
+      rgba(0, 166, 255, 0.08) 0%,
+      rgba(0, 166, 255, 0.03) 320px,
+      rgba(0, 166, 255, 0) 640px
+    ),
+    #f0f2f5;
+}
+
+/* 全局主按钮：青蓝渐变 + 光影 */
+.el-button--primary {
+  border: none;
+  background-image: var(--tk-brand-grad-anim);
+  background-size: 200% 100%;
+  box-shadow: 0 4px 14px rgba(0, 120, 255, 0.25);
+  transition: all 0.35s ease;
+}
+.el-button--primary:hover,
+.el-button--primary:focus {
+  background-position: 100% 0;
+  box-shadow: 0 6px 20px rgba(0, 140, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+/* plain 模式：保留渐变背景，文字改白色确保清晰可读 */
+.el-button--primary.is-plain {
+  color: #fff;
+}
+.el-button--primary.is-plain:hover,
+.el-button--primary.is-plain:focus {
+  color: #fff;
+}
+
+/* el-tabs：激活下划线渐变 + 激活文字品牌色 */
+.el-tabs__active-bar {
+  background: linear-gradient(90deg, #00c6ff, #0072ff);
+}
+.el-tabs__item.is-active {
+  color: var(--el-color-primary);
+}
+.el-tabs__item:hover {
+  color: var(--el-color-primary);
+}
+
+/* el-link 主色 */
+.el-link--primary {
+  --el-link-primary-text-color: var(--el-color-primary);
+}
+
+/* 滚动条：青蓝主题 */
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #7fd4ff, #4db8ff);
+  border-radius: 4px;
+}
 
 .tkdog-container {
   width: 100%;
@@ -102,22 +179,53 @@ onBeforeUnmount(() => {
   padding-right: 32px;
 }
 
-/* 全局统一卡片样式 */
+/* 全局统一卡片样式：更精致的层次光影 */
 .el-card {
-  border-radius: 12px;
+  border-radius: 14px;
   border: 1px solid #e4e7ed;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  transition: box-shadow 0.25s ease, transform 0.25s ease;
+  background: linear-gradient(
+      135deg,
+      rgba(0, 166, 255, 0.05) 0%,
+      rgba(0, 200, 220, 0.02) 45%,
+      rgba(255, 255, 255, 0) 100%
+    ),
+    #fff;
+  box-shadow: 0 4px 18px rgba(31, 45, 61, 0.06);
+  transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
 }
 
 .el-card:hover {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  border-color: rgba(0, 166, 255, 0.35);
+  box-shadow: 0 10px 30px rgba(0, 110, 255, 0.12);
+  transform: translateY(-2px);
 }
 
 /* 全局统一按钮圆角 */
 .el-button {
   border-radius: 6px;
   font-weight: 500;
+}
+
+/* 去掉 el-tag 动画：禁用过渡、hover 位移和关闭图标旋转 */
+.el-tag {
+  transition: none !important;
+}
+
+.el-tag .el-tag__close,
+.el-tag .el-icon-close {
+  transition: none !important;
+  transform: none !important;
+}
+
+.el-tag-fade-enter-active,
+.el-tag-fade-leave-active,
+.el-tag-fade-enter-from,
+.el-tag-fade-leave-to,
+.el-tag-fade-enter-to,
+.el-tag-fade-leave-from {
+  transition: none !important;
+  transform: none !important;
+  animation: none !important;
 }
 
 /* 移动端基础响应式 */

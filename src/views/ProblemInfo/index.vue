@@ -71,8 +71,9 @@
         </div>
         <div class="answer-section">
           <div class="answer-header" @click="toggleAnswer">
+            <el-icon class="answer-icon"><Document /></el-icon>
             <span class="answer-title">答案与解析</span>
-            <el-icon>
+            <el-icon class="answer-arrow">
               <ArrowUpBold v-if="answerOpen" />
               <ArrowDownBold v-else />
             </el-icon>
@@ -91,6 +92,61 @@
           />
           <!-- eslint-enable vue/no-v-html -->
         </div>
+        <!-- AI 解题思路 -->
+        <div class="ai-section">
+          <div class="ai-header" @click="toggleAiAnalysis">
+            <el-icon class="ai-icon"><MagicStick /></el-icon>
+            <span class="ai-title">AI 解题思路</span>
+            <span class="ai-badge">AI</span>
+            <el-icon class="ai-arrow">
+              <ArrowUpBold v-if="aiOpen" />
+              <ArrowDownBold v-else />
+            </el-icon>
+          </div>
+          <div v-show="aiOpen" class="ai-body">
+            <div v-if="!isLoggedInForAi" class="ai-login-tip">
+              登录后可使用 AI 解题思路，快来试试吧~
+            </div>
+            <div v-else-if="aiLoading" class="ai-loading">
+              <el-icon class="is-loading"><Loading /></el-icon>
+              <span>AI 正在分析题目，请稍候…</span>
+            </div>
+            <template v-else-if="aiData && aiData.available">
+              <div class="ai-summary">{{ aiData.summary }}</div>
+              <div v-if="aiData.points?.length" class="ai-block">
+                <div class="ai-block-title">核心知识点</div>
+                <ul class="ai-list">
+                  <li v-for="(pt, i) in aiData.points" :key="i">{{ pt }}</li>
+                </ul>
+              </div>
+              <div v-if="aiData.thinking?.length" class="ai-block">
+                <div class="ai-block-title">解题思路</div>
+                <ol class="ai-list ai-steps">
+                  <li v-for="(st, i) in aiData.thinking" :key="i">{{ st }}</li>
+                </ol>
+              </div>
+              <div v-if="aiData.pitfall" class="ai-block">
+                <div class="ai-block-title">易错提醒</div>
+                <p class="ai-text">{{ aiData.pitfall }}</p>
+              </div>
+              <div v-if="aiData.template" class="ai-block">
+                <div class="ai-block-title">答题模板</div>
+                <p class="ai-text">{{ aiData.template }}</p>
+              </div>
+            </template>
+            <div v-else class="ai-error">
+              <p>{{ aiData?.message || 'AI 解析暂不可用' }}</p>
+              <el-button
+                size="small"
+                type="primary"
+                text
+                @click="loadAiAnalysis"
+                >重新尝试</el-button
+              >
+            </div>
+          </div>
+        </div>
+
         <!-- 评论区 -->
         <div class="comment-section">
           <h4>讨论</h4>
@@ -386,7 +442,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive, onMounted, watchEffect, nextTick } from 'vue';
+import { ref, computed, reactive, onMounted, watchEffect, watch, nextTick } from 'vue';
 import { ElMessage } from 'element-plus';
 import {
   Star,
@@ -399,6 +455,8 @@ import {
   CircleCloseFilled,
   Loading,
   ArrowLeft,
+  MagicStick,
+  Document,
 } from '@element-plus/icons-vue';
 import { useStore } from 'vuex';
 import {
@@ -415,6 +473,7 @@ import {
   cancelFavoriteQuestion,
   getMyFavorites,
   uploadImage,
+  aiAnalyze,
 } from '@/services';
 import {
   parseHashQuery,
@@ -428,7 +487,52 @@ import type { IComment, IQuestion } from '@/types';
 import router from '@/router';
 import CommentItem from '@/components/CommentItem/index.vue';
 const store = useStore();
-const { id, type: whereInterType, isClickSearch, commentId } = parseHashQuery();
+const {
+  type: whereInterType,
+  isClickSearch,
+  commentId,
+  from: fromPage,
+} = parseHashQuery();
+// id 必须响应式：相似题目/浏览器前进后退切换题目时，组件复用而路由 query 变化
+const id = computed(() => firstQueryValue(router.currentRoute.value.query.id) || '');
+
+// AI 解题思路：收起/展开 + 首次展开自动加载
+const aiOpen = ref(false);
+const aiLoading = ref(false);
+const aiTried = ref(false);
+const aiData = ref<{
+  available: boolean;
+  message?: string;
+  summary?: string;
+  points?: string[];
+  thinking?: string[];
+  pitfall?: string;
+  template?: string;
+} | null>(null);
+const isLoggedInForAi = computed(() => Boolean(store.state.userData?.phone));
+const toggleAiAnalysis = () => {
+  if (!isLoggedInForAi.value) {
+    ElMessage.warning('登录后可查看 AI 解题思路');
+    return;
+  }
+  aiOpen.value = !aiOpen.value;
+  if (aiOpen.value && !aiTried.value) {
+    void loadAiAnalysis();
+  }
+};
+const loadAiAnalysis = async () => {
+  aiLoading.value = true;
+  try {
+    const res = await aiAnalyze({ questionId: Number(id.value) });
+    aiData.value = res as any;
+    aiTried.value = true;
+  } catch {
+    aiData.value = { available: false, message: '网络异常，请稍后重试' };
+    aiTried.value = true;
+  } finally {
+    aiLoading.value = false;
+  }
+};
 
 // 答案与解析：默认收起，点击标题展开/收起
 const answerOpen = ref(false);
@@ -472,7 +576,7 @@ const loading = ref(true);
 // 是否已收藏
 const isFavorite = ref(false);
 const toggleFavorite = () => {
-  const qid = Number(id);
+  const qid = Number(id.value);
   const fn = isFavorite.value
     ? cancelFavoriteQuestion({ questionId: qid })
     : favoriteQuestion({ questionId: qid });
@@ -545,16 +649,16 @@ const recordBrowse = (qid: number) => {
 // 获取题目详情
 const getDailyQuestion = async (value?: number) => {
   // 判断喜欢的题目中是否包含当前题目id
-  if (likeTopicsId?.includes(value || id)) {
+  if (likeTopicsId?.includes(value || id.value)) {
     isClickLike.value = true;
   } else {
     isClickLike.value = false;
   }
-  getQuestionDetail({ id: value ?? Number(id) })
+  getQuestionDetail({ id: value ?? Number(id.value) })
     .then((res) => {
       questionDetail.value = res;
       // 浏览记录统一在详情加载完成后处理，避免与详情接口并发导致浏览数少算
-      recordBrowse(value ?? Number(id));
+      recordBrowse(value ?? Number(id.value));
     })
     .finally(() => {
       loading.value = false;
@@ -563,7 +667,7 @@ const getDailyQuestion = async (value?: number) => {
 // 获取相似题目
 const getSimilarQuestions = async (value?: number) => {
   const res = await getSimilarQuestion({
-    id: value || Number(id),
+    id: value || Number(id.value),
   });
   similarQuestions.value = res;
 };
@@ -640,25 +744,33 @@ const selectedTopic = () => {
     ElMessage.success('选题成功，请在试题篮已选题目中查看');
   }
 };
-const goSimilarQuestion = (id: number) => {
-  router.push({ path: '/problemInfo', query: { id: id } });
-  getDailyQuestion(id);
-  getSimilarQuestions(id);
-  // 切换题目后刷新评论，清空评论输入与高亮定位
-  getComments(id);
+const goSimilarQuestion = (qid: number) => {
+  router.push({ path: '/problemInfo', query: { id: qid } });
+};
+// 切题统一处理：路由 query.id 变化（相似题目跳转 / 浏览器前进后退）时刷新
+// 详情、相似题、评论，并重置 AI 解析与翻页状态，避免残留上一题内容
+watch(id, (newId, oldId) => {
+  if (!newId || String(newId) === String(oldId)) return;
+  // 重置 AI 解析状态
+  aiOpen.value = false;
+  aiTried.value = false;
+  aiData.value = null;
+  aiLoading.value = false;
+  // 刷新评论：从第 1 页开始，避免沿用上一个题目的页码
+  commentPage.value = 1;
   commentContent.value = '';
   highlightCommentId.value = null;
-  const stateSelectedTopic = store.state.selectedTopic;
-  // 获取之前选中的题目id
-  const selectedTopicIds = stateSelectedTopic.map((item: IQuestion) => item.id);
-  if (selectedTopicIds.includes(Number(id))) {
-    isChecked.value = true;
-  } else {
-    isChecked.value = false;
-  }
-};
+  getDailyQuestion(Number(newId));
+  getSimilarQuestions(Number(newId));
+  getComments(Number(newId));
+});
 const returnToBefore = () => {
   if (store.state.userData?.isAdmin) {
+    // 从评论管理进入时回到评论管理，其余默认回题目管理
+    if (fromPage === 'adminComment') {
+      router.push({ path: '/adminComment' });
+      return;
+    }
     router.push({
       path: '/adminQuestion',
       query: {
@@ -858,7 +970,7 @@ const insertEmoji = (emoji: string) => {
 const getComments = async (qid?: number) => {
   // 用户端只展示审核通过的评论（待审核评论管理员审核后才可见）
   const res = await getCommentList({
-    questionId: qid ?? Number(id),
+    questionId: qid ?? Number(id.value),
     onlyApproved: true,
     currentPage: commentPage.value,
     pageSize: commentPageSize,
@@ -886,7 +998,7 @@ const submitComment = async () => {
   }
   await addComment({
     content: commentContent.value,
-    questionId: Number(id),
+    questionId: Number(id.value),
     images: commentImages.value,
   });
   ElMessage.success('评论成功');
@@ -936,7 +1048,7 @@ const submitFeedbackHandler = async () => {
     return;
   }
   await submitFeedback({
-    questionId: Number(id),
+    questionId: Number(id.value),
     type: feedbackType.value,
     content: feedbackContent.value,
   });
@@ -983,7 +1095,7 @@ const saveEdit = async () => {
 };
 // 加载当前题目的收藏状态
 const loadFavoriteStatus = async () => {
-  if (!store.state.userData?.phone) return; // 未登录跳过收藏状态
+  if (!store.state.userData?.phone || store.state.userData?.isAdmin) return; // 未登录或管理端跳过收藏状态（管理端无 userId session，收藏接口会 401）
   try {
     const favs = await getMyFavorites();
     isFavorite.value = (favs || []).some((q) => Number(q.id) === Number(id));
@@ -1002,7 +1114,7 @@ watchEffect(() => {
   const stateSelectedTopic = store.state.selectedTopic;
   // 获取之前选中的题目id
   const selectedTopicIds = stateSelectedTopic.map((item: IQuestion) => item.id);
-  if (selectedTopicIds.includes(Number(id))) {
+  if (selectedTopicIds.includes(Number(id.value))) {
     isChecked.value = true;
   } else {
     isChecked.value = false;
@@ -1121,32 +1233,55 @@ watchEffect(() => {
 }
 .answer-section {
   margin-top: 20px;
-  border-top: 1px solid #eee;
-  padding-top: 10px;
+  border: 1px solid rgba(0, 166, 255, 0.18);
+  border-radius: 14px;
+  background: linear-gradient(
+      135deg,
+      rgba(0, 166, 255, 0.06) 0%,
+      rgba(0, 200, 220, 0.02) 45%,
+      rgba(255, 255, 255, 0) 100%
+    ),
+    #fff;
+  box-shadow: 0 4px 18px rgba(31, 45, 61, 0.06);
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
+}
+.answer-section:hover {
+  box-shadow: 0 8px 26px rgba(0, 120, 255, 0.12);
 }
 .answer-header {
   display: flex;
   align-items: center;
-  gap: 6px;
+  padding: 14px 18px;
   cursor: pointer;
-  color: #409eff;
   user-select: none;
 }
-.answer-header:hover {
-  color: #66b1ff;
+.answer-header:hover .answer-title {
+  color: var(--el-color-primary);
+}
+.answer-icon {
+  color: var(--el-color-primary);
+  font-size: 18px;
+  margin-right: 8px;
 }
 .answer-title {
-  font-weight: 600;
   font-size: 15px;
-  color: inherit;
+  font-weight: 700;
+  color: #1f2937;
+  transition: color 0.25s ease;
+}
+.answer-arrow {
+  margin-left: auto;
+  color: #909399;
 }
 .answer {
-  margin-top: 12px;
-  background-color: #f5f7fa;
-  border-radius: 8px;
+  margin: 4px 18px 18px;
+  padding: 12px 16px;
+  background-color: rgba(0, 166, 255, 0.04);
+  border-radius: 10px;
+  border-top: 1px dashed rgba(0, 166, 255, 0.15);
   line-height: 1.8;
   color: #303133;
-  text-indent: 2px;
 }
 .answer::before {
   display: none;
@@ -1353,5 +1488,141 @@ watchEffect(() => {
   color: #409eff;
   border-color: #c6e2ff;
   background: #ecf5ff;
+}
+/* ===== AI 解题思路面板 ===== */
+.ai-section {
+  margin-top: 20px;
+  border: 1px solid rgba(0, 166, 255, 0.18);
+  border-radius: 14px;
+  background: linear-gradient(
+      135deg,
+      rgba(0, 166, 255, 0.06) 0%,
+      rgba(0, 200, 220, 0.02) 45%,
+      rgba(255, 255, 255, 0) 100%
+    ),
+    #fff;
+  box-shadow: 0 4px 18px rgba(31, 45, 61, 0.06);
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
+}
+.ai-section:hover {
+  box-shadow: 0 8px 26px rgba(0, 120, 255, 0.12);
+}
+.ai-header {
+  display: flex;
+  align-items: center;
+  padding: 14px 18px;
+  cursor: pointer;
+  user-select: none;
+}
+.ai-header:hover .ai-title {
+  color: var(--el-color-primary);
+}
+.ai-icon {
+  color: var(--el-color-primary);
+  font-size: 18px;
+  margin-right: 8px;
+}
+.ai-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f2937;
+  transition: color 0.25s ease;
+}
+.ai-badge {
+  margin-left: 10px;
+  padding: 2px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #fff;
+  border-radius: 999px;
+  background: linear-gradient(120deg, #00c6ff, #0072ff);
+  box-shadow: 0 2px 8px rgba(0, 140, 255, 0.4);
+}
+.ai-arrow {
+  margin-left: auto;
+  color: #909399;
+}
+.ai-body {
+  padding: 4px 18px 18px;
+  border-top: 1px dashed rgba(0, 166, 255, 0.15);
+}
+.ai-login-tip,
+.ai-error {
+  padding: 18px 0 8px;
+  text-align: center;
+  color: #909399;
+  font-size: 14px;
+}
+.ai-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 26px 0 18px;
+  color: var(--el-color-primary);
+  font-size: 14px;
+}
+.ai-summary {
+  margin-top: 14px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: linear-gradient(
+    120deg,
+    rgba(0, 166, 255, 0.1),
+    rgba(0, 200, 220, 0.04)
+  );
+  border-left: 3px solid var(--el-color-primary);
+  color: #1f2937;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.ai-block {
+  margin-top: 16px;
+}
+.ai-block-title {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+.ai-block-title::before {
+  content: '';
+  width: 4px;
+  height: 14px;
+  margin-right: 8px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #00c6ff, #0072ff);
+}
+.ai-list {
+  margin: 0;
+  padding-left: 18px;
+  color: #3d4d5f;
+  font-size: 14px;
+  line-height: 1.9;
+}
+.ai-steps li {
+  margin-bottom: 2px;
+}
+.ai-text {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(0, 166, 255, 0.05);
+  color: #3d4d5f;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+@media (max-width: 768px) {
+  .ai-header {
+    padding: 12px 14px;
+  }
+  .ai-body {
+    padding: 4px 14px 14px;
+  }
 }
 </style>

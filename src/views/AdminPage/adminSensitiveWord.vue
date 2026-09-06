@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="sensitive-word">
     <el-card>
       <template #header>
@@ -26,7 +26,8 @@
             v-loading="loading"
             :data="wordList"
             stripe
-            height="650"
+            height="calc(100vh - 372px)"
+            empty-text=""
             @scroll="handleTableScroll"
           >
             <el-table-column prop="id" label="ID" width="80" />
@@ -53,12 +54,16 @@
                 </el-button>
               </template>
             </el-table-column>
+
+            <template #empty>
+              <el-empty
+                v-if="!loading && wordList.length === 0"
+                :image-size="160"
+                description="暂无违禁词"
+              />
+            </template>
           </el-table>
-          <el-empty
-            v-if="!loading && wordList.length === 0"
-            :image-size="160"
-            description="暂无违禁词"
-          />
+
           <div v-if="total > 0" class="list-total">
             共 {{ total }} 条，已加载 {{ wordList.length }} 条
           </div>
@@ -68,7 +73,8 @@
             v-loading="deletedLoading"
             :data="deletedWords"
             stripe
-            height="650"
+            height="calc(100vh - 372px)"
+            empty-text=""
           >
             <el-table-column prop="id" label="ID" width="80" />
             <el-table-column prop="word" label="违禁词" min-width="200" />
@@ -94,12 +100,16 @@
                 </el-button>
               </template>
             </el-table-column>
+
+            <template #empty>
+              <el-empty
+                v-if="!deletedLoading && deletedWords.length === 0"
+                :image-size="160"
+                description="没有已删除的违禁词"
+              />
+            </template>
           </el-table>
-          <el-empty
-            v-if="!deletedLoading && deletedWords.length === 0"
-            :image-size="160"
-            description="没有已删除的违禁词"
-          />
+
           <el-pagination
             v-if="deletedTotal > 0"
             v-model:current-page="deletedPage"
@@ -298,7 +308,9 @@ const bindTableScroll = () => {
   }
   scrollBodyEl = getTableScrollBody(wordTableRef.value);
   if (scrollBodyEl) {
-    scrollBodyEl.addEventListener('scroll', handleTableScroll, { passive: true });
+    scrollBodyEl.addEventListener('scroll', handleTableScroll, {
+      passive: true,
+    });
   }
 };
 
@@ -320,7 +332,6 @@ onUnmounted(() => {
 <style scoped>
 .sensitive-word {
   width: 100%;
-  padding: 20px;
 }
 .header {
   display: flex;

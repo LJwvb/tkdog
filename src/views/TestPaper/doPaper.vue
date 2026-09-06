@@ -215,6 +215,64 @@
         </div>
       </el-card>
 
+      <el-card class="ai-report-entry" v-if="submitted">
+        <div class="ai-report-head">
+          <span class="ai-badge">AI</span>
+          <div class="ai-report-txt">
+            <div class="ai-report-title">AI 整卷分析报告</div>
+            <div class="ai-report-desc">基于本次作答逐题分析知识掌握与薄弱点，仅首次生成，之后秒回缓存</div>
+          </div>
+          <el-button type="primary" :loading="reportLoading" @click="handleAiReport">
+            {{ reportData ? '查看报告' : '生成报告' }}
+          </el-button>
+        </div>
+      </el-card>
+
+      <el-dialog v-model="reportVisible" width="760px" class="ai-report-dialog" :close-on-click-modal="false">
+        <template #header>
+          <div class="ai-report-dialog-head">
+            <span class="ai-badge">AI</span>
+            <span>整卷分析报告</span>
+            <span v-if="reportData?.fromCache" class="ai-cache-tag">缓存命中</span>
+          </div>
+        </template>
+        <div v-if="reportLoading" class="ai-report-loading">
+          <el-icon class="is-loading" :size="26"><i class="el-icon-loading" /></el-icon>
+          <div>AI 正在逐题分析本次作答，首次生成约需 10~20 秒…</div>
+        </div>
+        <div v-else-if="reportData" class="ai-report-body">
+          <div class="ai-summary">{{ reportData.summary }}</div>
+          <div v-if="reportData.stats" class="ai-stats">
+            <div class="ai-stat"><b>{{ reportData.stats.score }}</b><span>得分</span></div>
+            <div class="ai-stat"><b>{{ reportData.stats.correctNum }}</b><span>答对</span></div>
+            <div class="ai-stat"><b>{{ reportData.stats.wrongNum }}</b><span>答错</span></div>
+            <div class="ai-stat"><b>{{ reportData.stats.subjectiveNum }}</b><span>主观题</span></div>
+          </div>
+          <div v-if="reportData.knowledgeAreas?.length" class="ai-sec">
+            <div class="ai-sec-title">知识点掌握</div>
+            <div v-for="(k, i) in reportData.knowledgeAreas" :key="i" class="ai-knowledge">
+              <div class="ai-knowledge-row">
+                <span class="ai-knowledge-name">{{ k.name }}</span>
+                <span class="ai-knowledge-val">{{ k.mastery }}% 掌握</span>
+              </div>
+              <div class="ai-bar"><i :style="{ width: Math.max(0, Math.min(100, Number(k.mastery) || 0)) + '%' }"></i></div>
+            </div>
+          </div>
+          <div v-if="reportData.strengths?.length" class="ai-sec">
+            <div class="ai-sec-title">优势</div>
+            <ul class="ai-list ai-ok"><li v-for="(t, i) in reportData.strengths" :key="i">{{ t }}</li></ul>
+          </div>
+          <div v-if="reportData.weakPoints?.length" class="ai-sec">
+            <div class="ai-sec-title">薄弱点</div>
+            <ul class="ai-list ai-warn"><li v-for="(t, i) in reportData.weakPoints" :key="i">{{ t }}</li></ul>
+          </div>
+          <div v-if="reportData.suggestions?.length" class="ai-sec">
+            <div class="ai-sec-title">提升建议</div>
+            <ol class="ai-list ai-plan"><li v-for="(t, i) in reportData.suggestions" :key="i">{{ t }}</li></ol>
+          </div>
+        </div>
+      </el-dialog>
+
       <el-card
         v-for="(d, index) in result?.detail"
         :key="d.questionId"
@@ -333,11 +391,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { getPaperDetail, submitPaper, aiJudgeAnswer } from '@/services';
+import { getPaperDetail, submitPaper, aiJudgeAnswer, aiJudgeBatch, aiPaperReport, getRecordDetail } from '@/services';
 import { setWaterMark, removeWatermark } from '@/utils/waterMark';
 import {
   parseHashQuery,
@@ -360,7 +418,7 @@ interface IOption {
 
 const router = useRouter();
 const store = useStore();
-const { paperID } = parseHashQuery();
+const { paperID, recordId } = parseHashQuery();
 
 // 当前登录用户（考试水印显示真实身份，用于追溯截图来源）
 const username = computed(() => store.state.userData?.username || 'tkdog');
@@ -518,6 +576,7 @@ const stopAiStatusLoop = () => {
 };
 
 // 交卷后自动逐题批改简答题（串行，避免并发打爆大模型接口）
+// 交卷后批量批改简答题（一次调用搞定所有主观题，省 N-1 次网络往返）
 const runAiJudging = async () => {
   const pending = (result.value?.detail ?? []).filter(
     (d) => d.isCorrect === null,
@@ -528,49 +587,55 @@ const runAiJudging = async () => {
     questionId: d.questionId,
     userAnswer: d.userAnswer ?? '',
   }));
+  // 标记所有题为批改中（进度展示用）
+  aiJudging.value = {};
+  for (const d of pending) {
+    aiJudging.value[d.questionId] = true;
+  }
   startAiStatusLoop();
 
-  while (aiPendingList.value.length > 0 && !aiStopped) {
-    const item = aiPendingList.value[0];
-    aiJudging.value = { ...aiJudging.value, [item.questionId]: true };
-    try {
-      const res = await aiJudgeAnswer({
-        questionId: item.questionId,
-        userAnswer: item.userAnswer,
-        recordId: result.value?.recordId,
-      });
-      if (res?.available) {
+  try {
+    const res = await aiJudgeBatch({
+      recordId: result.value?.recordId,
+      items: pending.map((d) => ({
+        questionId: d.questionId,
+        userAnswer: d.userAnswer ?? '',
+      })),
+    });
+    if (res?.available && res.results) {
+      for (const r of res.results) {
         aiResults.value = {
           ...aiResults.value,
-          [item.questionId]: res,
+          [r.questionId]: {
+            available: true,
+            score: r.score,
+            comment: r.comment,
+            isCorrect: r.isCorrect,
+          },
         };
-        // AI 判分已落库，同步刷新整卷得分/对错/主观题统计
-        if (res.stats && result.value) {
-          result.value = {
-            ...result.value,
-            score: res.stats.score,
-            correctNum: res.stats.correctNum,
-            wrongNum: res.stats.wrongNum,
-            subjectiveNum: res.stats.subjectiveNum,
-          };
-        }
-      } else if (res?.message) {
-        ElMessage.warning(res.message);
-        // AI 不可用时整批停止（清空队列隐藏进度卡），避免每题重复弹提示
-        aiPendingList.value = [];
-        break;
       }
-    } catch {
-      // 单题失败：跳过继续批后面的题，不打断整体流程
-    } finally {
-      aiJudging.value = { ...aiJudging.value, [item.questionId]: false };
-      aiPendingList.value = aiPendingList.value.slice(1);
+      // 批量判分已落库，同步刷新整卷得分/对错/主观题统计
+      if (res.stats && result.value) {
+        result.value = {
+          ...result.value,
+          score: res.stats.score,
+          correctNum: res.stats.correctNum,
+          wrongNum: res.stats.wrongNum,
+          subjectiveNum: res.stats.subjectiveNum,
+        };
+      }
+      if (!aiStopped) {
+        ElMessage.success('AI 批改完成');
+      }
+    } else if (res?.message) {
+      ElMessage.warning(res.message);
     }
-  }
-
-  stopAiStatusLoop();
-  if (!aiStopped && Object.keys(aiResults.value).length > 0) {
-    ElMessage.success('AI 批改完成');
+  } catch {
+    // 批量失败：不打断整体流程，用户可对照参考答案自行复核
+  } finally {
+    aiJudging.value = {};
+    aiPendingList.value = [];
+    stopAiStatusLoop();
   }
 };
 
@@ -605,6 +670,36 @@ const formatAnswer = (answer: string | undefined): string => {
   return String(answer);
 };
 
+// ===== AI 整卷分析报告 =====
+const reportLoading = ref(false);
+const reportVisible = ref(false);
+const reportData = ref<any>(null);
+
+const handleAiReport = async () => {
+  if (reportData.value) {
+    reportVisible.value = true;
+    return;
+  }
+  if (!result.value?.recordId) {
+    ElMessage.warning('缺少交卷记录，无法生成报告');
+    return;
+  }
+  reportLoading.value = true;
+  try {
+    const res = await aiPaperReport({ recordId: result.value.recordId });
+    if (!res.available) {
+      ElMessage.warning(res.message || 'AI 暂不可用，请稍后再试');
+      return;
+    }
+    reportData.value = res;
+    reportVisible.value = true;
+  } catch {
+    ElMessage.error('报告生成失败，请稍后重试');
+  } finally {
+    reportLoading.value = false;
+  }
+};
+
 const backToList = () => {
   // 优先返回上一页（通常是试卷详情页）
   if (window.history.length > 1) {
@@ -621,11 +716,27 @@ const backToList = () => {
 
 const loadPaper = async () => {
   const paperId = firstQueryValue(paperID);
+  const recordIdVal = firstQueryValue(recordId);
   if (!paperId) {
     loading.value = false;
     return;
   }
   try {
+    // 历史记录回看模式：通过 recordId 加载已交卷的答题详情
+    if (recordIdVal) {
+      const res = await getRecordDetail({ recordId: recordIdVal });
+      if (res) {
+        questions.value = res.questions ?? [];
+        paperInfo.value = (res.paperInfo as IPaperDetailInfo) ?? {};
+        result.value = res.result;
+        submitted.value = true;
+        answers.value = questions.value.map(() => '');
+        multiAnswers.value = questions.value.map(() => []);
+        // 历史记录模式：自动生成并展示 AI 报告
+        nextTick(() => handleAiReport());
+      }
+      return;
+    }
     const res = await getPaperDetail({ paperId, forTest: true });
     questions.value = res?.questions ?? [];
     paperInfo.value = (res?.paperInfo as IPaperDetailInfo) ?? {};
@@ -819,6 +930,156 @@ onUnmounted(() => {
 
 .result-card {
   margin-bottom: 16px;
+}
+
+/* ===== AI 整卷分析报告 ===== */
+.ai-report-entry {
+  margin-bottom: 16px;
+  border: 1px solid rgba(64, 158, 255, 0.25);
+  background: linear-gradient(135deg, rgba(64, 158, 255, 0.06), rgba(103, 194, 58, 0.04));
+}
+.ai-report-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ai-badge {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 15px;
+  color: #fff;
+  background: linear-gradient(135deg, #409eff, #36cfc9);
+}
+.ai-report-txt {
+  flex: 1;
+  min-width: 0;
+}
+.ai-report-title {
+  font-weight: 700;
+  font-size: 15px;
+}
+.ai-report-desc {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  margin-top: 2px;
+}
+.ai-report-dialog-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 16px;
+}
+.ai-cache-tag {
+  font-size: 11px;
+  color: #67c23a;
+  border: 1px solid rgba(103, 194, 58, 0.4);
+  border-radius: 8px;
+  padding: 1px 8px;
+  background: rgba(103, 194, 58, 0.08);
+}
+.ai-report-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 0;
+  color: var(--el-text-color-secondary);
+}
+.ai-report-body {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+.ai-summary {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--el-text-color-primary);
+  background: rgba(64, 158, 255, 0.06);
+  border-left: 3px solid #409eff;
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin-bottom: 14px;
+}
+.ai-stats {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.ai-stat {
+  flex: 1;
+  text-align: center;
+  background: var(--el-fill-color-light);
+  border-radius: 10px;
+  padding: 10px 0;
+}
+.ai-stat b {
+  display: block;
+  font-size: 22px;
+  color: #409eff;
+}
+.ai-stat span {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
+.ai-sec {
+  margin-bottom: 14px;
+}
+.ai-sec-title {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: var(--el-text-color-primary);
+}
+.ai-knowledge {
+  margin-bottom: 8px;
+}
+.ai-knowledge-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 3px;
+}
+.ai-knowledge-name {
+  color: var(--el-text-color-primary);
+}
+.ai-knowledge-val {
+  color: var(--el-text-color-secondary);
+}
+.ai-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--el-fill-color);
+  overflow: hidden;
+}
+.ai-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #409eff, #36cfc9);
+  transition: width 0.4s;
+}
+.ai-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: var(--el-text-color-regular);
+}
+.ai-list.ai-ok li::marker {
+  color: #67c23a;
+}
+.ai-list.ai-warn li::marker {
+  color: #e6a23c;
+}
+.ai-list.ai-plan li::marker {
+  color: #409eff;
 }
 
 .result-summary {

@@ -66,7 +66,7 @@ export interface IGetQuestionsParams {
   pageSize?: number; // 每页条数
   catalogID?: number; // 章节ID
   subjectID?: number; // 科目ID
-  ids?: string[]; // 题目ID
+  ids?: string; // 题目ID，逗号分隔
 }
 export interface IGetQuestionsReturn {
   total: number;

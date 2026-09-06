@@ -1,11 +1,11 @@
-<template>
+﻿<template>
   <el-tabs v-model="active" class="tabs" @tab-click="tabClick">
     <div v-if="type === 'home'">
       <el-tab-pane
         v-for="(item, index) in catalogIDList"
         :key="item?.catalogID"
         :label="item?.catalogName"
-        :name="index"
+        :name="Number(item?.catalogID ?? index)"
       >
         <VirtualList
           v-if="questionList.length > 0"
@@ -50,7 +50,7 @@
       </el-tab-pane>
     </div>
     <div v-else-if="type === 'userQuestions'">
-      <el-tab-pane label="我的题目" name="0">
+      <el-tab-pane label="我的题目" :name="0">
         <VirtualList
           v-if="questionList?.length > 0"
           :data="questionList"
@@ -157,8 +157,8 @@ const goQuestion = () => {
 const emit = defineEmits(['tabClick', 'loadMore']);
 
 const tabClick = (tab: { props: { name?: string | number } }) => {
-  // 将index传递给父组件
-  emit('tabClick', tab.props.name);
+  // 父组件按真值（catalogID / subjectID）缓存与请求，必须转 number，不能传 v-for 索引
+  emit('tabClick', Number(tab.props.name));
 };
 
 const handleLoadMore = () => {

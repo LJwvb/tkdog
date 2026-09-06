@@ -31,7 +31,7 @@ const createWatermarkDom = (str1: string, str2: string): string => {
   div.style.pointerEvents = 'none';
   div.style.top = '0px';
   div.style.left = '0px';
-  div.style.opacity = '0.06';
+  div.style.opacity = '0.2';
   div.style.position = 'fixed';
   div.style.zIndex = '100000';
   div.style.width = document.documentElement.clientWidth + 'px';

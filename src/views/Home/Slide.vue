@@ -289,8 +289,27 @@ const goDaily = () => {
 .card-header {
   display: flex;
   align-items: center;
-  font-weight: 600;
-  color: #303133;
+  font-weight: 700;
+  color: #1f2937;
+  position: relative;
+  padding-left: 10px;
+}
+/* 模块标题：左侧品牌色条 */
+.card-header::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 16px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #00c6ff, #0072ff);
+  box-shadow: 0 0 8px rgba(0, 166, 255, 0.45);
+}
+.card-header :deep(.el-icon) {
+  color: var(--el-color-primary);
+  font-size: 17px;
 }
 .text {
   margin-left: 8px;
@@ -379,9 +398,32 @@ const goDaily = () => {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 8px;
-  font-weight: 600;
-  color: #303133;
+  font-weight: 700;
+  color: #1f2937;
   font-size: 15px;
+  position: relative;
+  padding-left: 10px;
+}
+.rank-header::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 16px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #00c6ff, #0072ff);
+  box-shadow: 0 0 8px rgba(0, 166, 255, 0.45);
+}
+.rank-header :deep(.el-radio-button__inner) {
+  font-size: 12px;
+}
+.rank-header
+  :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
+  background: linear-gradient(120deg, #00c6ff, #0072ff);
+  border-color: transparent;
+  box-shadow: -1px 0 0 0 #00c6ff;
 }
 
 /* 排行榜卡片固定高度，避免切换时高度变化导致页面抖动 */
