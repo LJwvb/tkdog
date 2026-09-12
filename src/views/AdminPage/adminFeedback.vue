@@ -178,18 +178,17 @@ const resolveVisible = ref(false);
 const resolveRemark = ref('');
 const currentRow = ref<IQuestionFeedback | null>(null);
 
-const { list, total, loading, noMore, reset } =
-  useInfiniteTable<IQuestionFeedback>(
-    (params) =>
-      getFeedbackList({
-        ...params,
-        content: searchForm.content,
-        username: searchForm.username,
-        question: searchForm.question,
-        isResolved: searchForm.isResolved,
-      }),
-    { pageSize: 10, tableRef: feedbackTableRef },
-  );
+const { list, total, loading, reset } = useInfiniteTable<IQuestionFeedback>(
+  (params) =>
+    getFeedbackList({
+      ...params,
+      content: searchForm.content,
+      username: searchForm.username,
+      question: searchForm.question,
+      isResolved: searchForm.isResolved,
+    }),
+  { pageSize: 10, tableRef: feedbackTableRef },
+);
 
 const typeName = (type: string) => {
   switch (type) {

@@ -60,7 +60,7 @@
     <div class="card-actions">
       <!-- paper（组卷/试题篮）模式只保留该模式自身的删除按钮，避免与管理端操作按钮重复 -->
       <div
-        v-if="store.state.userData.isAdmin && props.type !== 'paper'"
+        v-if="store.state.adminData?.id && props.type !== 'paper'"
         class="admin-actions"
       >
         <el-button

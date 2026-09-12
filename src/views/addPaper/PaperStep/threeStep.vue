@@ -276,7 +276,7 @@ const nextStep = () => {
   emit('done');
 };
 const addQuestion = () => {
-  if (store.state.userData.isAdmin) {
+  if (store.state.adminData?.id) {
     router.push({
       path: '/adminQuestion',
       query: {

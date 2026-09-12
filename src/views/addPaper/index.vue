@@ -73,7 +73,7 @@ const clearCountdown = () => {
 onUnmounted(clearCountdown);
 const goTestPaper = () => {
   clearCountdown();
-  if (store.state.userData.isAdmin) {
+  if (store.state.adminData?.id) {
     router.push({
       path: '/adminQuestion',
       query: {
@@ -89,7 +89,7 @@ const done = () => {
     ids: questionList.value?.map((item) => item.id)?.join(','),
     paperTitle: paperInfo.value?.name,
     paperTags: paperInfo.value?.dynamicTags?.join(','),
-    purview: store.state.userData?.isAdmin
+    purview: store.state.adminData?.id
       ? PaperPurview.Official
       : paperInfo.value?.auth,
     author: store.state.userData.username,
@@ -108,7 +108,7 @@ const done = () => {
       timer = setInterval(() => {
         if (count === 0) {
           clearCountdown();
-          if (store.state.userData.isAdmin) {
+          if (store.state.adminData?.id) {
             router.push('/adminTestPaper');
             store.commit('setActiveMenuIndex', '3');
           } else {

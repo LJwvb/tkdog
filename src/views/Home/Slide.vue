@@ -73,11 +73,13 @@
       <el-card class="third">
         <div class="rank-header">
           <span>排行榜</span>
+          <!-- 周榜/月榜暂不启用，如需恢复取消注释即可
           <el-radio-group v-model="rankType" size="small" @change="getRank">
             <el-radio-button label="all">总榜</el-radio-button>
             <el-radio-button label="week">周榜</el-radio-button>
             <el-radio-button label="month">月榜</el-radio-button>
           </el-radio-group>
+          -->
         </div>
         <VirtualList
           v-if="rankList.length > 0 || rankLoading"
@@ -170,7 +172,8 @@ const store = useStore();
 const dailyData = ref();
 const loadingDaily = ref(true);
 const dialogVisibleAbout = ref(false);
-const rankType = ref<'all' | 'week' | 'month'>('all');
+// 周榜/月榜暂不启用，仅总榜；如需恢复把下方 rankType 与 getRankList 的 'all' 一起还原
+// const rankType = ref<'all' | 'week' | 'month'>('all');
 const announcements = ref<IAnnouncement[]>([]);
 
 // 排行榜数据（只显示前100名）
@@ -216,7 +219,8 @@ const loadRankData = async (page: number, append = false) => {
   if (rankLoading.value) return;
   rankLoading.value = true;
   try {
-    const res = await getRankList(rankType.value, page, rankPageSize);
+    // 原为按 rankType 切换：getRankList(rankType.value, page, rankPageSize)
+    const res = await getRankList('all', page, rankPageSize);
     if (res && res.list) {
       let list = res.list;
       // 只保留前100名
@@ -236,11 +240,11 @@ const loadRankData = async (page: number, append = false) => {
   }
 };
 
-// 切换排行榜类型时重新加载（不清空列表，避免高度变化导致抖动）
+// 加载排行榜（总榜）
 const getRank = async () => {
   rankFinished.value = false;
   rankCurrentPage.value = 0;
-  // 直接加载新数据覆盖，加载过程中虚拟列表显示 loading 状态
+  // 原为切换排行榜类型时重新加载（不清空列表，避免高度变化导致抖动）
   await loadRankData(1);
 };
 

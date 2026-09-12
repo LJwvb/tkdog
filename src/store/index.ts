@@ -14,10 +14,19 @@ export interface UserData {
   sex: string;
   username: string;
   name?: string;
-  isAdmin?: boolean;
   token?: string;
   accessToken?: string;
   refreshToken?: string;
+}
+
+/**
+ * 管理员身份（独立于 userData）。
+ * 管理员走后端 ADMIN_SESS cookie 鉴权，不持有 JWT token；
+ * 与普通用户身份分开存储，同一浏览器可同时持有两种身份、互不覆盖。
+ */
+export interface AdminData {
+  id?: number;
+  name?: string;
 }
 
 export interface PaperInfo {
@@ -36,6 +45,8 @@ export interface SearchHistory {
 
 export interface RootState {
   userData: UserData;
+  /** 管理员身份（与 userData 独立，同一浏览器可同时登录） */
+  adminData: AdminData;
   selectedTopic: Array<IQuestion & { data?: string }>;
   paperInfo: PaperInfo;
   activeMenuIndex: string;
@@ -57,6 +68,7 @@ export default createStore<RootState>({
       sex: '',
       username: '',
     },
+    adminData: {},
     selectedTopic: [],
     paperInfo: {},
     activeMenuIndex: '1',
@@ -67,6 +79,12 @@ export default createStore<RootState>({
   mutations: {
     setUserData(state, payload: UserData) {
       state.userData = payload;
+    },
+    setAdminData(state, payload: AdminData) {
+      state.adminData = payload;
+    },
+    clearAdminData(state) {
+      state.adminData = {};
     },
     addSelectedTopic(state, payload: Array<IQuestion & { data?: string }>) {
       state.selectedTopic = payload;
@@ -93,9 +111,12 @@ export default createStore<RootState>({
   actions: {},
   modules: {},
   plugins: [
+    // 用 sessionStorage 而非 localStorage：sessionStorage 是「每个标签页独立」的，
+    // 这样同一浏览器不同标签页可分别登录普通用户 / 管理员，互不影响。
+    // 副作用：关闭标签页后登录态清空（已确认可接受）。
     createPersistedState({
       key: 'tkdog',
-      storage: window?.localStorage,
+      storage: window?.sessionStorage,
     }),
   ],
 });

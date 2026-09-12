@@ -105,7 +105,29 @@
                     <div>{{ transitionTime(scope.row.ctime) }}</div>
                   </template>
                 </el-table-column>
-                <el-table-column prop="last_login_time" label="最后登录时间">
+                <el-table-column
+                  prop="last_active_at"
+                  label="最近活跃"
+                  sortable="custom"
+                  width="170"
+                >
+                  <template #default="scope">
+                    <div
+                      :style="
+                        isInactive(scope.row.last_active_at)
+                          ? 'color:#ccc'
+                          : 'color:#67c23a'
+                      "
+                    >
+                      {{ transitionTime(scope.row.last_active_at) }}
+                    </div>
+                  </template>
+                </el-table-column>
+                <el-table-column
+                  prop="last_login_time"
+                  label="上次登录"
+                  width="170"
+                >
                   <template #default="scope">
                     <div>{{ transitionTime(scope.row.last_login_time) }}</div>
                   </template>
@@ -128,14 +150,15 @@
                   width="90"
                   sortable="custom"
                 />
-                <el-table-column label="最后打卡" width="110">
+                <el-table-column label="最后打卡" width="160">
                   <template #default="scope">
                     <div>
                       {{
+                        scope.row.last_checkin_time ||
                         scope.row.last_checkin_date
-                          ? transitionTime(scope.row.last_checkin_date).slice(
-                              0,
-                              10,
+                          ? transitionTime(
+                              scope.row.last_checkin_time ||
+                                scope.row.last_checkin_date,
                             )
                           : '-'
                       }}
@@ -196,7 +219,7 @@
                 <el-table-column prop="phone" label="电话" />
                 <el-table-column prop="email" label="邮箱" />
                 <el-table-column label="权限" width="100">
-                  <template #default="scope">
+                  <template #default>
                     <div style="color: red">管理员</div>
                   </template>
                 </el-table-column>
@@ -264,10 +287,12 @@
       center
     >
       <el-form ref="ruleFormRef" :model="ruleForm" :rules="rules" status-icon>
-        <el-form-item prop="password" placeholder="请输入密码">
+        <el-form-item prop="password">
           <el-input
             v-model="ruleForm.password"
-            placeholder="请输入长度在 6 到 20 个字符的密码"
+            type="password"
+            show-password
+            placeholder="请输入长度在 6 到 20 个字符的新密码"
           />
         </el-form-item>
       </el-form>
@@ -291,7 +316,7 @@ import {
   getDeletedUsers,
   restoreUser,
 } from '@/services';
-import { transitionSex, transitionTime } from '@/utils/index';
+import { transitionSex, transitionTime, isInactive } from '@/utils/index';
 import { useInfiniteTable } from '@/composables/useInfiniteTable';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import type { FormInstance, FormRules } from 'element-plus';
@@ -356,7 +381,7 @@ const rules = reactive<FormRules>({
   password: [
     {
       required: true,
-      message: '请输入密码',
+      message: '请输入新密码',
       trigger: 'blur',
     },
     {
@@ -407,11 +432,14 @@ const deleteUserFun = (id: number) => {
   });
 };
 const editPassword = (val: { id?: number; userId?: number }) => {
+  // 每次打开都清空表单，避免上一次为其他用户输入的密码残留
+  ruleForm.password = '';
   dialogVisibleEditPassword.value = true;
   // 管理员列表行只带 userId（= admin 表主键 id），需回退取值，否则修改密码时 id 为空导致失败
   isAdmin.value = val.id ?? val.userId ?? '';
 };
 const cancel = () => {
+  ruleForm.password = '';
   dialogVisibleEditPassword.value = false;
 };
 const resetForm = (formEl: FormInstance | undefined) => {

@@ -1,6 +1,7 @@
 ﻿import { request } from '@/utils/request';
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
+import store from '@/store';
 import type {
   IRankingList,
   IGetQuestionsParams,
@@ -267,10 +268,22 @@ export async function uploadImage(
   const form = new FormData();
   form.append('file', file);
   form.append('channel', channel);
+  // 用原生 fetch 上传：axios 对 multipart 需要额外处理，这里手动补鉴权头。
+  // 注意：后端鉴权优先读 Authorization: Bearer <accessToken>（auth 中间件），
+  // 仅靠 credentials:'include' 带的 EGG_SESS cookie 在生产环境不足以通过校验，
+  // 会返回 401。因此这里必须与 request.ts 的拦截器保持一致，手动带上 token。
+  const token =
+    (store.state.userData as any)?.accessToken ||
+    (store.state.userData as any)?.token;
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
   const res = await fetch('/api/uploadImage', {
     method: 'POST',
     body: form,
     credentials: 'include',
+    headers,
   });
   const body = await res.json();
   if (body.success === false || (body.code !== 200 && body.code !== 0)) {
@@ -293,9 +306,10 @@ export function resetPassword(params: {
   return request<void>('POST', '/resetPassword', { data: params });
 }
 
-// 退出登录接口（清除后端 session）
-export function logout(): Promise<void> {
-  return request<void>('POST', '/logout');
+// 退出登录接口（按 role 只清对应侧身份，两种身份独立互不影响）
+// role='admin' 只清管理员 cookie；role='user' 只清用户 session；不传则两侧都清
+export function logout(role?: 'admin' | 'user'): Promise<void> {
+  return request<void>('POST', '/logout', { data: role ? { role } : {} });
 }
 
 // 用户注册接口
@@ -537,25 +551,13 @@ export function editAdminPassword(
 }
 
 // 评论接口（返回完整响应，含 message，用于区分"评论成功"和"待审核"）
+// 必须走统一的 request()：它会自动附加 Authorization: Bearer <accessToken>，
+// 并在 401 时无感刷新 token。此前用裸 axios + withCredentials 调用，
+// 只带 cookie 不带 JWT，生产环境（鉴权中间件优先校验 JWT）会直接 401。
 export function addComment(
   params: Record<string, unknown>,
 ): Promise<{ message?: string }> {
-  return axios
-    .post('/api/addComment', params, { withCredentials: true })
-    .then((res) => {
-      const body = res.data || {};
-      if (body.success === false || (body.code !== 200 && body.code !== 0)) {
-        ElMessage.error(body.message || '评论失败');
-        return Promise.reject(body);
-      }
-      return body;
-    })
-    .catch((err) => {
-      if (!err?.response?.data?.message) {
-        ElMessage.error(err?.message || '网络请求失败');
-      }
-      return Promise.reject(err);
-    });
+  return request<{ message?: string }>('POST', '/addComment', { data: params });
 }
 
 // 获取评论接口（顶层评论分页，result 为当前页评论树，total 为顶层评论总数；
@@ -784,8 +786,16 @@ export function markAllNotificationsRead(): Promise<void> {
 }
 
 // 每日打卡
-export function checkin(): Promise<{ already: boolean; consecutive: number }> {
-  return request<{ already: boolean; consecutive: number }>('POST', '/checkin');
+export function checkin(): Promise<{
+  already: boolean;
+  consecutive: number;
+  checkinTime?: string;
+}> {
+  return request<{
+    already: boolean;
+    consecutive: number;
+    checkinTime?: string;
+  }>('POST', '/checkin');
 }
 
 // 打卡信息
@@ -793,11 +803,15 @@ export function getCheckinInfo(): Promise<{
   todayChecked: boolean;
   consecutive: number;
   total: number;
+  todayCheckinTime?: string | null;
+  lastCheckinTime?: string | null;
 }> {
   return request<{
     todayChecked: boolean;
     consecutive: number;
     total: number;
+    todayCheckinTime?: string | null;
+    lastCheckinTime?: string | null;
   }>('POST', '/getCheckinInfo');
 }
 

@@ -137,6 +137,16 @@ onBeforeUnmount(() => {
   color: #fff;
 }
 
+/* 修改密码弹窗：NavBar 容器 .home-nav 是 position:fixed; z-index:100，
+   会创建独立 stacking context，把 el-dialog 困在里面导致弹窗被截/看不到。
+   显式把 modal 提到最高层，确保始终盖住导航栏。 */
+.edit-password-modal {
+  z-index: 9999 !important;
+}
+.edit-password-modal .el-dialog {
+  z-index: 9999 !important;
+}
+
 /* el-tabs：激活下划线渐变 + 激活文字品牌色 */
 .el-tabs__active-bar {
   background: linear-gradient(90deg, #00c6ff, #0072ff);

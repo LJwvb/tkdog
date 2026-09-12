@@ -293,6 +293,9 @@ export interface IUserListItem {
   sex?: string;
   avatar?: string;
   ctime?: string;
+  last_login_time?: string; // 上次主动登录时间（login/register/githubCallback）
+  last_active_at?: string; // 上次活跃时间（auth 中间件鉴权通过后节流更新）
+  last_checkin_time?: string; // 最近打卡时刻（精确到秒）
   like_ques_num?: number;
   upload_ques_num?: number;
   approvedNums?: number;
@@ -314,6 +317,7 @@ export interface IAdminStatistics {
     uploads: Array<{ date: string; value: number }>;
     papers: Array<{ date: string; value: number }>;
     answers: Array<{ date: string; value: number }>;
+    activeUsers?: Array<{ date: string; value: number }>;
   };
   totals: {
     users: number;
@@ -322,6 +326,9 @@ export interface IAdminStatistics {
     answers: number;
     comments: number;
     pendingFeedback: number;
+    activeToday?: number;
+    active7d?: number;
+    active30d?: number;
   };
   subjectDist: Array<{ name: string; value: number }>;
   typeDist: Array<{ name: string; value: number }>;

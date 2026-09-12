@@ -319,7 +319,7 @@
           >
         </div>
         <el-button
-          v-if="store.state.userData.isAdmin"
+          v-if="store.state.adminData?.id"
           type="primary"
           plain
           @click="openEdit"
@@ -575,10 +575,13 @@ const handleLocate = (id: number) => {
 // 获取store中的用户信息
 const userData = store.state.userData;
 // 获取用户喜欢的题目id（统一转成字符串数组，避免 number/string 混用导致 includes 失效）
+const rawLikeTopics = userData?.likeTopicsId;
 const likeTopicsId: string[] = (
-  Array.isArray(userData?.likeTopicsId)
-    ? userData?.likeTopicsId
-    : userData?.likeTopicsId?.split(',') || []
+  Array.isArray(rawLikeTopics)
+    ? rawLikeTopics
+    : typeof rawLikeTopics === 'string'
+    ? rawLikeTopics.split(',')
+    : []
 ).map(String);
 // 获取题目详情
 const questionDetail = ref({} as IQuestion);
@@ -783,7 +786,7 @@ watch(id, (newId, oldId) => {
   getComments(Number(newId));
 });
 const returnToBefore = () => {
-  if (store.state.userData?.isAdmin) {
+  if (store.state.adminData?.id) {
     // 从评论管理进入时回到评论管理，其余默认回题目管理
     if (fromPage === 'adminComment') {
       router.push({ path: '/adminComment' });
@@ -1113,7 +1116,7 @@ const saveEdit = async () => {
 };
 // 加载当前题目的收藏状态
 const loadFavoriteStatus = async () => {
-  if (!store.state.userData?.userId || store.state.userData?.isAdmin) return; // 未登录或管理端跳过收藏状态（管理端无 userId session，收藏接口会 401）
+  if (!store.state.userData?.userId || store.state.adminData?.id) return; // 未登录或管理端跳过收藏状态（管理端无 userId session，收藏接口会 401）
   try {
     const favs = await getMyFavorites();
     isFavorite.value = (favs || []).some((q) => Number(q.id) === Number(id));

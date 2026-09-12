@@ -222,20 +222,28 @@ const router = createRouter({
 });
 
 router.beforeEach((to, _from, next) => {
-  // 登录态以 JWT Token 为准，前端只做 UI 拦截
+  // 两套身份完全独立：
+  // - 普通用户：userData.token（JWT）
+  // - 管理员：adminData.id（ADMIN_SESS cookie 鉴权，不持有 JWT token）
+  // 同一浏览器可同时持有两种身份，路由守卫分别判断，互不干扰。
   const userData = store.state.userData;
-  const isLoggedIn = Boolean((userData as any)?.token);
-  const isAdmin = Boolean(userData?.isAdmin);
+  const adminData = store.state.adminData;
+  const isLoggedIn = Boolean(userData?.token);
+  const isAdmin = Boolean(adminData?.id);
 
-  // 需要登录的路由：未登录重定向到登录页
-  if (to.meta?.requireAuth && !isLoggedIn) {
-    next({ path: '/Login', replace: true });
+  // 管理端路由：只认管理员身份，不要求 JWT token
+  if (to.meta?.isAdmin) {
+    if (!isAdmin) {
+      next({ path: '/404', replace: true });
+      return;
+    }
+    next();
     return;
   }
 
-  // 管理端路由：非管理员重定向到 404
-  if (to.meta?.isAdmin && !isAdmin) {
-    next({ path: '/404', replace: true });
+  // 普通用户需登录路由：只认用户 token（管理员身份不参与）
+  if (to.meta?.requireAuth && !isLoggedIn) {
+    next({ path: '/Login', replace: true });
     return;
   }
 

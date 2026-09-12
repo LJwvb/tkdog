@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!store.state.userData.isAdmin" class="nav-container">
+  <div v-if="!store.state.adminData?.id" class="nav-container">
     <div class="logo">
       <img src="../../assets/tkdog.png" width="50" />
       <div class="title">
@@ -108,12 +108,16 @@
       title="修改密码"
       width="400px"
       center
+      append-to-body
+      modal-class="edit-password-modal"
     >
       <el-form ref="ruleFormRef" :model="ruleForm" :rules="rules" status-icon>
-        <el-form-item prop="password" placeholder="请输入密码">
+        <el-form-item prop="password">
           <el-input
             v-model="ruleForm.password"
-            placeholder="请输入长度在 6 到 20 个字符的密码"
+            type="password"
+            show-password
+            placeholder="请输入长度在 6 到 20 个字符的新密码"
           />
         </el-form-item>
       </el-form>
@@ -127,7 +131,7 @@
       </template>
     </el-dialog>
   </div>
-  <div v-else-if="store.state.userData.isAdmin" class="nav-container">
+  <div v-else-if="store.state.adminData?.id" class="nav-container">
     <div class="logo">
       <img src="../../assets/tkdog.png" width="50" />
       <div class="title">
@@ -297,7 +301,7 @@ let pendingTimer: ReturnType<typeof setInterval> | null = null;
 
 const loadUnread = async () => {
   // 管理员或无登录态时不拉取用户未读数
-  if (store.state.userData.isAdmin) return;
+  if (store.state.adminData?.id) return;
   if (!store.state.userData?.userId) return;
   try {
     const res = await getUnreadCount();
@@ -307,7 +311,7 @@ const loadUnread = async () => {
   }
 };
 const loadPendingCounts = async () => {
-  if (!store.state.userData.isAdmin) return;
+  if (!store.state.adminData?.id) return;
   try {
     const res = await getAdminPendingCounts();
     pendingQuestions.value = res?.pendingQuestions ?? 0;
@@ -354,7 +358,7 @@ const rules = reactive<FormRules>({
   password: [
     {
       required: true,
-      message: '请输入密码',
+      message: '请输入新密码',
       trigger: 'blur',
     },
     {
@@ -430,9 +434,12 @@ const goLogin = () => {
 };
 
 const editPassword = () => {
+  // 每次打开都清空表单，避免上次未提交的内容残留
+  ruleForm.password = '';
   dialogVisibleEditPassword.value = true;
 };
 const cancel = () => {
+  ruleForm.password = '';
   dialogVisibleEditPassword.value = false;
 };
 const resetForm = (formEl: FormInstance | undefined) => {
@@ -465,21 +472,23 @@ const submitForm = async (formEl: FormInstance | undefined) => {
   });
 };
 const toLogin = () => {
-  // 清除后端 session，防止退出后 session 残留
-  logout();
-  // 回退到最初的路由
-  if (store.state.userData.isAdmin) {
-    router
-      .push({
-        path: '/admin',
-      })
-      .finally(() => {
-        window.location.reload();
-      });
+  // 两种身份独立存储，退出时按当前所处身份分别清理，避免误踢另一侧
+  const isAdminSide = Boolean(store.state.adminData?.id);
+
+  if (isAdminSide) {
+    // 管理员退出：只清后端 ADMIN_SESS cookie + 前端 adminData，普通用户身份保留
+    logout('admin');
+    store.commit('clearAdminData');
+    router.push({ path: '/admin' }).finally(() => {
+      window.location.reload();
+    });
   } else {
+    // 普通用户退出：只清后端用户 session + 前端 userData，管理员身份保留
+    logout('user');
+    store.commit('setUserData', {} as never);
     router.go(-router.currentRoute.value.meta.index!);
   }
-  store.commit('setUserData', {});
+
   store.commit('setActiveMenuIndex', '1');
   store.commit('setBrowseTopicsId', []);
   store.commit('addSelectedTopic', []);

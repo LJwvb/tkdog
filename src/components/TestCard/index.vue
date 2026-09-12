@@ -23,7 +23,7 @@
       </div>
       <div class="watermark">{{ name }}</div>
     </el-card>
-    <div v-if="store.state.userData.isAdmin" class="admin-actions">
+    <div v-if="store.state.adminData?.id" class="admin-actions">
       <el-button
         v-if="activeNames === 'deleted'"
         type="success"

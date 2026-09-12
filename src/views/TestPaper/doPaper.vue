@@ -474,7 +474,6 @@ import { QuestionFilled, MagicStick } from '@element-plus/icons-vue';
 import {
   getPaperDetail,
   submitPaper,
-  aiJudgeAnswer,
   aiJudgeBatch,
   aiPaperReport,
   getRecordDetail,

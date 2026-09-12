@@ -46,9 +46,7 @@
     </el-form-item>
     <el-form-item label="权限" prop="auth" style="margin-bottom: 0">
       <el-radio-group v-model="ruleForm.auth" @change="selectAuth">
-        <el-radio
-          v-if="!store.state.userData?.isAdmin"
-          :label="PaperAuth.Private"
+        <el-radio v-if="!store.state.adminData?.id" :label="PaperAuth.Private"
           >私有</el-radio
         >
         <el-radio :label="PaperAuth.Public">公开</el-radio>
@@ -80,7 +78,7 @@ const store = useStore();
 const ruleForm = reactive({
   name: store.state.paperInfo.name || '',
   desc: store.state.paperInfo.desc || '',
-  auth: store.state.userData?.isAdmin
+  auth: store.state.adminData?.id
     ? PaperAuth.Public
     : store.state.paperInfo.auth || '',
 });
@@ -124,7 +122,7 @@ const handleInputConfirm = () => {
   inputValue.value = '';
 };
 const selectAuth = (value: string | number | boolean | undefined) => {
-  if (value === '1' && !store.state.userData?.isAdmin) {
+  if (value === '1' && !store.state.adminData?.id) {
     showWarning.value = true;
   } else {
     showWarning.value = false;

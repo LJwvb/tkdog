@@ -68,9 +68,17 @@ async function doRefreshToken(): Promise<{
 }
 
 /**
- * 清除登录态并跳转登录页
+ * 清除登录态并跳转登录页。
+ * 两种身份独立：若当前处于管理端（持有 adminData），说明是 adminAuth 拒绝了请求，
+ * 只清管理员身份并跳 /admin；否则按普通用户处理，清 userData 跳 /Login。
  */
 function clearAuthAndRedirect() {
+  const isAdminSide = Boolean((store.state as any).adminData?.id);
+  if (isAdminSide) {
+    store.commit('clearAdminData');
+    window.location.hash = '#/admin';
+    return;
+  }
   store.commit('setUserData', {} as any);
   window.location.hash = '#/Login';
 }

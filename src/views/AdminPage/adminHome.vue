@@ -2,7 +2,12 @@
   <div class="home-container">
     <!-- 总量统计卡片 -->
     <div class="stat-cards">
-      <el-card v-for="card in statCards" :key="card.label" class="stat-card">
+      <el-card
+        v-for="card in statCards"
+        :key="card.label"
+        class="stat-card"
+        :class="{ 'stat-card-accent': card.accent === 'green' }"
+      >
         <div class="stat-value">{{ card.value }}</div>
         <div class="stat-label">{{ card.label }}</div>
       </el-card>
@@ -99,6 +104,8 @@ const statCards = computed(() => {
   const t = stats.value?.totals;
   return [
     { label: '总用户数', value: t?.users ?? 0 },
+    { label: '今日活跃', value: t?.activeToday ?? 0, accent: 'green' },
+    { label: '近7日活跃', value: t?.active7d ?? 0, accent: 'green' },
     { label: '总题目数', value: t?.questions ?? 0 },
     { label: '总试卷数', value: t?.papers ?? 0 },
     { label: '总答题次数', value: t?.answers ?? 0 },
@@ -124,7 +131,7 @@ const buildLineOption = (s: IAdminStatistics): EChartsOption => ({
   },
   tooltip: { trigger: 'axis' },
   legend: {
-    data: ['新增用户', '上传题目', '组卷', '答题'],
+    data: ['新增用户', '活跃用户', '上传题目', '组卷', '答题'],
     textStyle: { color: tc() },
   },
   grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
@@ -149,6 +156,12 @@ const buildLineOption = (s: IAdminStatistics): EChartsOption => ({
       type: 'line',
       smooth: true,
       data: s.sevenDays.newUsers.map((x) => x.value),
+    },
+    {
+      name: '活跃用户',
+      type: 'line',
+      smooth: true,
+      data: (s.sevenDays.activeUsers ?? []).map((x) => x.value),
     },
     {
       name: '上传题目',
@@ -441,6 +454,9 @@ onBeforeUnmount(() => {
   font-size: 28px;
   font-weight: 700;
   color: #409eff;
+}
+.stat-card-accent .stat-value {
+  color: #67c23a;
 }
 .stat-label {
   margin-top: 6px;

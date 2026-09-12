@@ -95,8 +95,6 @@ import type { FormInstance, FormRules } from 'element-plus';
 const formSize = ref<'' | 'default' | 'small' | 'large'>('default');
 const ruleFormRef = ref<FormInstance>();
 const store = useStore();
-const phone = store.state.userData.phone;
-const username = store.state.userData.username;
 // 头像预览（初始为当前头像，可更换）
 const avatarPreview = ref(store.state.userData.avatar || '');
 const avatarInput = ref<HTMLInputElement>();

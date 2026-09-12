@@ -98,11 +98,11 @@ const toLogin = async () => {
   try {
     const result = await adminLogin(ruleForm);
 
-    store.commit('setUserData', {
-      ...result,
-      phone: 'admin',
-      username: result?.name ?? 'admin',
-      isAdmin: true,
+    // 管理员身份写入独立的 adminData，不触碰 userData
+    // 这样同一浏览器已登录的普通用户 token 不会被覆盖，两种身份可同时存在
+    store.commit('setAdminData', {
+      id: (result as any)?.id,
+      name: result?.name ?? 'admin',
     });
     store.commit('setBrowseTopicsId', []);
     ElMessage.success({

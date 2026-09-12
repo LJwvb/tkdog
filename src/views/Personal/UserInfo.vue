@@ -42,7 +42,11 @@
         :disabled="checkinInfo?.todayChecked"
         @click="doCheckin"
       >
-        {{ checkinInfo?.todayChecked ? '今日已打卡' : '每日打卡 +5积分' }}
+        {{
+          checkinInfo?.todayChecked
+            ? `今日已打卡 ${timeOnly(checkinInfo?.todayCheckinTime)}`
+            : '每日打卡 +5积分'
+        }}
       </el-button>
     </el-card>
     <el-card style="margin-top: 16px">
@@ -83,6 +87,9 @@
         <div>
           连续打卡：{{ checkinInfo?.consecutive ?? 0 }} 天（累计
           {{ checkinInfo?.total ?? 0 }} 天）
+        </div>
+        <div v-if="checkinInfo?.lastCheckinTime">
+          最近打卡：{{ checkinInfo?.lastCheckinTime }}
         </div>
         <div class="daily-goal">
           <span>每日目标：</span>
@@ -222,12 +229,16 @@ interface ICheckinInfo {
   todayChecked: boolean;
   consecutive: number;
   total: number;
+  todayCheckinTime?: string | null;
+  lastCheckinTime?: string | null;
 }
 const userInfo = ref<IUserDetail>({});
 const checkinInfo = ref<ICheckinInfo>({
   todayChecked: false,
   consecutive: 0,
   total: 0,
+  todayCheckinTime: null,
+  lastCheckinTime: null,
 });
 // 勋章：基于积分/答题/上传/打卡达标情况
 const medals = computed(() => {
@@ -257,6 +268,10 @@ const level = computed<{
   if (integral >= 50) return { name: '青铜', type: 'danger' };
   return { name: '新手', type: 'primary' };
 });
+// 打卡时刻只展示「时:分:秒」，精确到秒
+const timeOnly = (t?: string | null): string =>
+  t && t.includes(' ') ? t.split(' ')[1] : t || '';
+
 // 每日答题目标
 const editingGoal = ref(false);
 const goalInput = ref(0);
@@ -312,7 +327,10 @@ const loadUserInfo = async () => {
 const doCheckin = async () => {
   const res = await checkin();
   if (res) {
-    ElMessage.success(res.already ? '今日已打卡' : '打卡成功');
+    const t = timeOnly(res.checkinTime);
+    ElMessage.success(
+      res.already ? `今日已打卡 ${t}` : `打卡成功 ${t} · 积分 +5`,
+    );
     await loadCheckin();
     // 刷新用户信息（积分变化）
     loadUserInfo();

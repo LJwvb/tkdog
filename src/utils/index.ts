@@ -120,6 +120,20 @@ export const transitionTime = (addDate: string | undefined) => {
   const second = date.getSeconds().toString().padStart(2, '0');
   return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
 };
+
+/**
+ * 判断用户是否不活跃（last_active_at 距今超过 days 天）。
+ * 未传值或非法值视为不活跃。用于 admin 列表把长期没动的用户标灰。
+ */
+export const isInactive = (
+  lastActiveAt: string | undefined | null,
+  days = 7,
+): boolean => {
+  if (!lastActiveAt) return true;
+  const t = new Date(lastActiveAt).getTime();
+  if (Number.isNaN(t)) return true;
+  return Date.now() - t > days * 24 * 60 * 60 * 1000;
+};
 // 审核中（二次编辑后重新审核）题目的点击提示；返回空串表示可正常跳详情
 // 只有「非本人上传」的审核中题目才拦截，本人可正常查看自己的题
 export const reviewingCardTip = (
