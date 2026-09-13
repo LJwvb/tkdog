@@ -168,6 +168,7 @@
                   type="deleted"
                   activeName="deleted"
                   @restore="restoreQuestionFun"
+                  @purge="purgeQuestionFun"
                 /> </template
             ></VirtualList>
             <div v-if="deletedTotal > 0" class="list-total">
@@ -541,6 +542,23 @@ const restoreQuestionFun = (id: number) => {
   restoreQuestion({ id }).then(() => {
     ElMessage.success('已恢复');
     getDeletedQuestion();
+  });
+};
+const purgeQuestionFun = (id: number) => {
+  ElMessageBox.confirm(
+    '彻底删除该题目？其评论、点赞、答题记录等数据将一并物理删除，无法恢复！',
+    '危险操作',
+    {
+      confirmButtonText: '彻底删除',
+      cancelButtonText: '取消',
+      type: 'error',
+      confirmButtonClass: 'el-button--danger',
+    },
+  ).then(() => {
+    deleteQuestions({ id, purge: true }).then(() => {
+      ElMessage.success('已彻底删除');
+      getDeletedQuestion();
+    });
   });
 };
 const handleClick = (tab: { props: { name?: string | number } }) => {

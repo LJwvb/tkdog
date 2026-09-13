@@ -71,6 +71,13 @@
           >恢复</el-button
         >
         <el-button
+          v-if="activeName === 'deleted'"
+          type="danger"
+          size="small"
+          @click="() => emit('purge', question.id)"
+          >彻底删除</el-button
+        >
+        <el-button
           v-if="activeName !== 'deleted'"
           type="danger"
           size="small"
@@ -207,6 +214,7 @@ const emit = defineEmits<{
   (e: 'uncheck', params: any, activeName: string): void;
   (e: 'edit', question: IQuestion): void;
   (e: 'restore', id: number): void;
+  (e: 'purge', id: number): void;
 }>();
 const question = computed(() => props.question as IQuestion);
 const checkParams = computed(() => ({

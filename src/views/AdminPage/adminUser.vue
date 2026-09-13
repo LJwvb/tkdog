@@ -261,13 +261,19 @@
                     <div>{{ transitionTime(scope.row.ctime) }}</div>
                   </template>
                 </el-table-column>
-                <el-table-column fixed="right" label="操作" width="120">
+                <el-table-column fixed="right" label="操作" width="200">
                   <template #default="scope">
                     <el-button
                       type="success"
                       size="small"
                       @click="restoreUserFun(scope.row.userId)"
                       >恢复</el-button
+                    >
+                    <el-button
+                      type="danger"
+                      size="small"
+                      @click="purgeUserFun(scope.row)"
+                      >彻底删除</el-button
                     >
                   </template>
                 </el-table-column>
@@ -484,6 +490,27 @@ const restoreUserFun = (userId: number | string) => {
     ElMessage.success('已恢复');
     getDeletedUserList();
     void reset();
+  });
+};
+// 彻底删除用户（删账号保留内容，二次强确认）
+const purgeUserFun = (row: Record<string, any>) => {
+  // userId 不在 IUserListItem 显式字段中（走索引签名，类型为 unknown），这里断言收窄
+  const uid = row.userId as number | string;
+  const label = row.name || row.username || String(uid);
+  ElMessageBox.confirm(
+    `彻底删除用户「${label}」的账号？其发布的题目、试卷、评论将保留并显示为「已注销」；答题记录、点赞、收藏等个人数据将被清除，无法恢复！`,
+    '危险操作',
+    {
+      confirmButtonText: '彻底删除',
+      cancelButtonText: '取消',
+      type: 'error',
+      confirmButtonClass: 'el-button--danger',
+    },
+  ).then(() => {
+    deleteUser({ userId: uid, purge: true }).then(() => {
+      ElMessage.success('已彻底删除');
+      getDeletedUserList();
+    });
   });
 };
 const handleTabChange = (name: string | number) => {

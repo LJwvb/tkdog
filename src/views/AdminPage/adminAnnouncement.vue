@@ -66,7 +66,7 @@
                 {{ transitionTime(row.ctime) }}
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="100" align="center">
+            <el-table-column label="操作" width="180" align="center">
               <template #default="{ row }">
                 <el-button
                   size="small"
@@ -74,6 +74,9 @@
                   @click="handleRestore(row)"
                 >
                   恢复
+                </el-button>
+                <el-button size="small" type="danger" @click="handlePurge(row)">
+                  彻底删除
                 </el-button>
               </template>
             </el-table-column>
@@ -198,6 +201,22 @@ const handleRestore = (row: unknown) => {
     ElMessage.success('已恢复');
     loadDeleted();
     load();
+  });
+};
+
+// 彻底删除（物理删除，二次强确认）
+const handlePurge = (row: unknown) => {
+  const r = row as IAnnouncement;
+  ElMessageBox.confirm(`彻底删除「${r.title}」？删除后无法恢复！`, '危险操作', {
+    confirmButtonText: '彻底删除',
+    cancelButtonText: '取消',
+    type: 'error',
+    confirmButtonClass: 'el-button--danger',
+  }).then(() => {
+    deleteAnnouncement({ id: r.id, purge: true }).then(() => {
+      ElMessage.success('已彻底删除');
+      loadDeleted();
+    });
   });
 };
 

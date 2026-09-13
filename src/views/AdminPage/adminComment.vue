@@ -213,13 +213,19 @@
                 {{ transitionTime(scope.row.create_time) }}
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="100" align="center">
+            <el-table-column label="操作" width="180" align="center">
               <template #default="scope">
                 <el-button
                   size="small"
                   type="success"
                   @click="handleRestore(scope.row)"
                   >恢复</el-button
+                >
+                <el-button
+                  size="small"
+                  type="danger"
+                  @click="handlePurge(scope.row)"
+                  >彻底删除</el-button
                 >
               </template>
             </el-table-column>
@@ -398,6 +404,26 @@ const handleRestore = (row: { id?: number }) => {
     ElMessage.success('已恢复');
     getDeletedCommentList();
     getComments();
+  });
+};
+
+// 彻底删除（物理删除，连带子回复，二次强确认）
+const handlePurge = (row: { id?: number }) => {
+  if (!row.id) return;
+  ElMessageBox.confirm(
+    '彻底删除该评论？其子回复将一并物理删除，无法恢复！',
+    '危险操作',
+    {
+      confirmButtonText: '彻底删除',
+      cancelButtonText: '取消',
+      type: 'error',
+      confirmButtonClass: 'el-button--danger',
+    },
+  ).then(() => {
+    deleteComment({ id: row.id!, purge: true }).then(() => {
+      ElMessage.success('已彻底删除');
+      getDeletedCommentList();
+    });
   });
 };
 

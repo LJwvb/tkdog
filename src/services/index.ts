@@ -527,7 +527,11 @@ export function getAdminPendingCounts(): Promise<{
 }
 
 // 删除用户
-export function deleteUser(params: { userId: number | string }): Promise<void> {
+export function deleteUser(params: {
+  userId: number | string;
+  /** 彻底删除（物理删除，不可恢复） */
+  purge?: boolean;
+}): Promise<void> {
   return request<void>('POST', '/deleteUser', { data: params });
 }
 
@@ -607,7 +611,11 @@ export function pinComment(params: {
 }
 
 // 删除评论接口
-export function deleteComment(params: { id: number }): Promise<void> {
+export function deleteComment(params: {
+  id: number;
+  /** 彻底删除（物理删除，不可恢复） */
+  purge?: boolean;
+}): Promise<void> {
   return request<void>('POST', '/deleteComment', { data: params });
 }
 
@@ -844,7 +852,11 @@ export function addSensitiveWord(params: {
 }
 
 // 删除违禁词（管理员）
-export function deleteSensitiveWord(params: { id: number }): Promise<void> {
+export function deleteSensitiveWord(params: {
+  id: number;
+  /** 彻底删除（物理删除，不可恢复） */
+  purge?: boolean;
+}): Promise<void> {
   return request<void>('POST', '/deleteSensitiveWord', { data: params });
 }
 
@@ -878,7 +890,11 @@ export function addAnnouncement(params: {
 }
 
 // 删除公告（管理员）
-export function deleteAnnouncement(params: { id: number }): Promise<void> {
+export function deleteAnnouncement(params: {
+  id: number;
+  /** 彻底删除（物理删除，不可恢复） */
+  purge?: boolean;
+}): Promise<void> {
   return request<void>('POST', '/deleteAnnouncement', { data: params });
 }
 

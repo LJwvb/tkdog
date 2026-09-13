@@ -53,10 +53,14 @@ export interface IChkPaper {
 //删除试卷接口
 export interface IDelPapers {
   paperId: number;
+  /** 彻底删除（物理删除，不可恢复） */
+  purge?: boolean;
 }
 //删除题目接口
 export interface IDelQuestion {
   id: number;
+  /** 彻底删除（物理删除，不可恢复） */
+  purge?: boolean;
 }
 
 // 获取审核后的题目接口

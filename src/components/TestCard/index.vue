@@ -32,6 +32,13 @@
         >恢复</el-button
       >
       <el-button
+        v-if="activeNames === 'deleted'"
+        type="danger"
+        class="btn2"
+        @click="() => emit('purge', props.paper?.paper_id)"
+        >彻底删除</el-button
+      >
+      <el-button
         v-if="activeNames !== 'deleted'"
         type="danger"
         class="btn2"
@@ -93,6 +100,7 @@ const emit = defineEmits<{
   (e: 'check', params: any, activeNames: string): void;
   (e: 'uncheck', params: any, activeNames: string): void;
   (e: 'restore', paperId: any): void;
+  (e: 'purge', paperId: any): void;
 }>();
 
 const checkParams = {

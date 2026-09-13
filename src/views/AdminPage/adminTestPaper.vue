@@ -160,6 +160,7 @@
                       activeNames="deleted"
                       name="已删除"
                       @restore="restorePaperFun"
+                      @purge="purgePaperFun"
                     />
                   </div>
                 </div>
@@ -185,7 +186,7 @@ import {
   onBeforeUnmount,
   type Ref,
 } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { parseHashQuery, firstQueryValue } from '@/utils';
 
 import {
@@ -380,6 +381,23 @@ const restorePaperFun = (paperId: number) => {
   restorePaper({ paperId }).then(() => {
     ElMessage.success('已恢复');
     getDeletedPapersFun();
+  });
+};
+const purgePaperFun = (paperId: number) => {
+  ElMessageBox.confirm(
+    '彻底删除该试卷？其答题记录、AI 报告等数据将一并物理删除，无法恢复！',
+    '危险操作',
+    {
+      confirmButtonText: '彻底删除',
+      cancelButtonText: '取消',
+      type: 'error',
+      confirmButtonClass: 'el-button--danger',
+    },
+  ).then(() => {
+    deletePapers({ paperId, purge: true }).then(() => {
+      ElMessage.success('已彻底删除');
+      getDeletedPapersFun();
+    });
   });
 };
 const handleClick = (tab: { props: { name?: string | number } }) => {
