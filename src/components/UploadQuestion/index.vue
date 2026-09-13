@@ -20,18 +20,18 @@
 
       <el-form-item label="题型" required>
         <el-radio-group v-model="ruleForm.questionType">
-          <el-radio-button label="0">单选题</el-radio-button>
-          <el-radio-button label="1">多选题</el-radio-button>
-          <el-radio-button label="2">判断题</el-radio-button>
-          <el-radio-button label="3">简答题</el-radio-button>
+          <el-radio-button value="0">单选题</el-radio-button>
+          <el-radio-button value="1">多选题</el-radio-button>
+          <el-radio-button value="2">判断题</el-radio-button>
+          <el-radio-button value="3">简答题</el-radio-button>
         </el-radio-group>
       </el-form-item>
 
       <el-form-item label="难度" required>
         <el-radio-group v-model="ruleForm.difficulty">
-          <el-radio-button label="0">简单</el-radio-button>
-          <el-radio-button label="1">中等</el-radio-button>
-          <el-radio-button label="2">困难</el-radio-button>
+          <el-radio-button value="0">简单</el-radio-button>
+          <el-radio-button value="1">中等</el-radio-button>
+          <el-radio-button value="2">困难</el-radio-button>
         </el-radio-group>
       </el-form-item>
 
@@ -94,7 +94,7 @@
               placeholder="请输入选项内容"
               class="option-input"
             />
-            <el-radio :label="opt.code" class="option-correct">正确</el-radio>
+            <el-radio :value="opt.code" class="option-correct">正确</el-radio>
             <el-button
               link
               type="danger"
@@ -140,8 +140,8 @@
       <!-- 判断：正确答案 -->
       <el-form-item v-if="isJudge" label="正确答案" required>
         <el-radio-group v-model="judgeAnswer">
-          <el-radio-button label="正确">正确</el-radio-button>
-          <el-radio-button label="错误">错误</el-radio-button>
+          <el-radio-button value="正确">正确</el-radio-button>
+          <el-radio-button value="错误">错误</el-radio-button>
         </el-radio-group>
       </el-form-item>
 

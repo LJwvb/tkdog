@@ -58,6 +58,64 @@ export const sanitizeHtml = (html: string | null | undefined): string => {
   return DOMPurify.sanitize(String(html), SANITIZE_CONFIG);
 };
 
+/**
+ * 验证码专用 sanitize（只放行纯 SVG，不带 on* 事件、href 等可执行属性）
+ * 用在 svg-captcha 渲染处，区别于通用 sanitizeHtml，避免给评论区等地方开放 SVG
+ */
+const SVG_SANITIZE_CONFIG = {
+  ALLOWED_TAGS: [
+    'svg',
+    'g',
+    'path',
+    'rect',
+    'circle',
+    'ellipse',
+    'line',
+    'polyline',
+    'polygon',
+    'text',
+    'tspan',
+    'defs',
+    'lineargradient',
+    'radialgradient',
+    'stop',
+    'filter',
+  ],
+  ALLOWED_ATTR: [
+    'class',
+    'fill',
+    'stroke',
+    'stroke-width',
+    'stroke-linecap',
+    'stroke-linejoin',
+    'd',
+    'x',
+    'y',
+    'width',
+    'height',
+    'viewbox',
+    'xmlns',
+    'transform',
+    'cx',
+    'cy',
+    'r',
+    'rx',
+    'ry',
+    'x1',
+    'y1',
+    'x2',
+    'y2',
+    'points',
+    'offset',
+    'stop-color',
+    'stop-opacity',
+  ],
+};
+export const sanitizeSvg = (html: string | null | undefined): string => {
+  if (!html) return '';
+  return DOMPurify.sanitize(String(html), SVG_SANITIZE_CONFIG);
+};
+
 export const questionType = (questionType: number) => {
   switch (questionType) {
     case 0:
@@ -168,7 +226,8 @@ export const transitionSex = (sex: unknown) => {
   return '未知';
 };
 export const isNaN = (value: unknown) => {
-  return value !== value;
+  // 与全局 isNaN 语义一致：先转 number 再判断（undefined/非数字字符串 → NaN → true）
+  return Number.isNaN(Number(value));
 };
 // ==== isNumber  函数====
 const toString = Object.prototype.toString;
@@ -276,9 +335,13 @@ export function exportPaperToWord(
           q.answer || '',
         )}</p>`;
       } else {
-        // 简答等主观题：题干详情/答案可能是富文本 HTML，保留原格式
-        if (q.questionDetail) optionsHtml = `<div>${q.questionDetail}</div>`;
-        answerHtml = `<p style="color:#666">参考答案：${q.answer || ''}</p>`;
+        // 简答等主观题：题干详情/答案可能是富文本 HTML，必须走 sanitizeHtml 防止
+        // 后端或已通过审核的题目里被注入 <script> / <iframe>，导出 Word 后被 Office 渲染执行
+        if (q.questionDetail)
+          optionsHtml = `<div>${sanitizeHtml(q.questionDetail)}</div>`;
+        answerHtml = `<p style="color:#666">参考答案：${sanitizeHtml(
+          q.answer || '',
+        )}</p>`;
       }
       return `<div style="margin-bottom:16px">
         <h3>${i + 1}. ${escapeHtml(q.question || '')}</h3>
@@ -287,9 +350,11 @@ export function exportPaperToWord(
       </div>`;
     })
     .join('');
+  // 试卷名可能来自用户输入，进入 HTML 前必须转义，避免注入标签
+  const safeTitle = escapeHtml(title);
   const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
-  <head><meta charset="utf-8"><title>${title}</title></head>
-  <body><h2 style="text-align:center">${title}</h2>${body}</body></html>`;
+  <head><meta charset="utf-8"><title>${safeTitle}</title></head>
+  <body><h2 style="text-align:center">${safeTitle}</h2>${body}</body></html>`;
   const blob = new Blob(['\ufeff' + html], { type: 'application/msword' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -349,7 +414,7 @@ export function exportQuestionsToCsv(
       q.question,
       q.answer,
       q.questionDetail,
-      q.tags,
+      Array.isArray(q.tags) ? q.tags.join('、') : q.tags,
       q.creator,
       chkName[String(q.chkState)] || q.chkState,
     ]

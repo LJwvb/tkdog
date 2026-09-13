@@ -41,9 +41,9 @@
         </el-form-item>
         <el-form-item label="难度">
           <el-radio-group v-model="editForm.difficulty">
-            <el-radio label="0">简单</el-radio>
-            <el-radio label="1">中等</el-radio>
-            <el-radio label="2">困难</el-radio>
+            <el-radio value="0">简单</el-radio>
+            <el-radio value="1">中等</el-radio>
+            <el-radio value="2">困难</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="标签">
@@ -91,7 +91,10 @@ const getUserUploadQuesParams = reactive({
   chkState: ChkState.Pending,
 });
 
+// 竞态防护：切换状态页签时 seq++，旧请求返回后丢弃，避免覆盖新列表
+let listSeq = 0;
 const getUserUploadQuesData = async (append = false) => {
+  const seq = append ? listSeq : ++listSeq;
   if (append) {
     loadingMore.value = true;
   } else {
@@ -101,6 +104,7 @@ const getUserUploadQuesData = async (append = false) => {
     ...getUserUploadQuesParams,
     currentPage: currentPage.value,
   });
+  if (seq !== listSeq) return;
   if (append) {
     questionList.value = [...questionList.value, ...(res?.data ?? [])];
   } else {

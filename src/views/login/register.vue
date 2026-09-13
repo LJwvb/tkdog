@@ -27,8 +27,8 @@
         </el-form-item>
         <el-form-item label="性别" prop="sex">
           <el-radio-group v-model="ruleForm.sex">
-            <el-radio label="1"> 男 </el-radio>
-            <el-radio label="0"> 女 </el-radio>
+            <el-radio value="1"> 男 </el-radio>
+            <el-radio value="0"> 女 </el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="邮箱" prop="email">
@@ -51,12 +51,12 @@
             <div
               style="cursor: pointer"
               @click="Captcha"
-              v-html="registerCaptcha"
+              v-html="sanitizeSvg(registerCaptcha)"
             ></div>
             <!-- eslint-enable vue/no-v-html -->
           </el-col>
         </el-row>
-        <el-form-item prop="checked">
+        <el-form-item prop="checked" class="agreement">
           <div class="agreement-row">
             <el-checkbox v-model="ruleForm.checked" label="0"
               >我已阅读并同意</el-checkbox
@@ -87,6 +87,7 @@ import { reactive, ref, watch } from 'vue';
 import { ElMessage, type FormInstance } from 'element-plus';
 import { register, getCaptcha } from '@/services';
 import type { ICaptcha } from '@/types';
+import { sanitizeSvg } from '@/utils';
 
 // 表单的ref
 const ruleFormRef = ref<FormInstance>();
@@ -159,8 +160,8 @@ const rules = {
     { required: true, message: '密码不能为空', trigger: 'blur' },
     {
       min: 6,
-      max: 20,
-      message: '密码长度必须是6-20位之间',
+      max: 16,
+      message: '密码长度必须是6-16位之间',
       trigger: 'blur',
     },
   ],
@@ -242,7 +243,9 @@ defineExpose({ dialogVisible });
 .register-dialog .el-dialog__headerbtn:hover .el-dialog__close {
   color: #fff;
 }
-
+.agreement .el-form-item__content {
+  margin-left: 0 !important;
+}
 .reg-header {
   text-align: center;
 }
@@ -375,5 +378,70 @@ defineExpose({ dialogVisible });
   background-position: 100% 0;
   transform: translateY(-2px);
   box-shadow: 0 12px 28px rgba(0, 140, 255, 0.5);
+}
+.el-dialog__footer {
+  text-align: center;
+}
+
+/* ===== 移动端适配 ===== */
+@media (max-width: 520px) {
+  .register-dialog {
+    width: 92% !important;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+  .register-dialog .el-dialog__header {
+    padding: 20px 18px 0;
+  }
+  .register-dialog .el-dialog__body {
+    padding: 16px 18px 6px;
+  }
+  .register-dialog .el-dialog__footer {
+    padding: 6px 18px 20px;
+  }
+  .reg-title {
+    font-size: 21px;
+  }
+  .reg-sub {
+    font-size: 12px;
+  }
+  /* 图形码行：输入框与验证码自适应排列 */
+  .register-dialog .el-row {
+    display: flex;
+    flex-wrap: nowrap;
+  }
+  .register-dialog .el-col-16 {
+    flex: 1 !important;
+    max-width: none !important;
+    width: auto !important;
+  }
+  .register-dialog .el-col-7 {
+    flex: 0 0 auto !important;
+    width: 128px !important;
+    max-width: none !important;
+    margin-left: 8px !important;
+    display: flex;
+    align-items: center;
+  }
+  .register-dialog .el-col-7 > div {
+    width: 100%;
+    max-height: 40px;
+    overflow: hidden;
+  }
+  .register-dialog .el-col-7 svg {
+    width: 100% !important;
+    height: 40px !important;
+  }
+  /* 协议行紧凑 */
+  .register-dialog .agreement-row {
+    gap: 2px;
+    font-size: 12px;
+  }
+  .register-dialog .agreement-row .el-checkbox__label {
+    font-size: 12px;
+  }
+  .register-dialog .agreement-row .el-link {
+    font-size: 12px;
+  }
 }
 </style>

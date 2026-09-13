@@ -102,7 +102,7 @@
               <el-radio
                 v-for="opt in parseOptions(q)"
                 :key="opt.code"
-                :label="opt.code"
+                :value="opt.code"
                 class="option-item"
               >
                 {{ opt.code }}. {{ opt.value }}
@@ -134,7 +134,7 @@
               <el-radio
                 v-for="opt in judgeOptions(q)"
                 :key="opt.code"
-                :label="opt.code"
+                :value="opt.code"
                 class="option-item"
               >
                 {{ opt.code }}

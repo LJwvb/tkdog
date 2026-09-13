@@ -20,16 +20,16 @@
         <p class="brand-slogan">面试刷题 · 一站搞定</p>
         <div class="brand-tags">
           <span class="brand-tag">
-            <el-icon><MagicStick /></el-icon>AI解题提示
+            <el-icon> <MagicStick /> </el-icon>AI解题提示
           </span>
           <span class="brand-tag">
-            <el-icon><Files /></el-icon>智能组卷
+            <el-icon> <Files /> </el-icon>智能组卷
           </span>
           <span class="brand-tag">
-            <el-icon><DataAnalysis /></el-icon>AI答题报告
+            <el-icon> <DataAnalysis /> </el-icon>AI答题报告
           </span>
           <span class="brand-tag">
-            <el-icon><CircleCheck /></el-icon>AI智能判分
+            <el-icon> <CircleCheck /> </el-icon>AI智能判分
           </span>
         </div>
         <div class="brand-stats">
@@ -66,7 +66,9 @@
         >
           <el-form-item prop="phone">
             <div class="input-wrap">
-              <el-icon class="input-icon"><Iphone /></el-icon>
+              <el-icon class="input-icon">
+                <Iphone />
+              </el-icon>
               <el-input
                 v-model="ruleForm.phone"
                 placeholder="请输入手机号"
@@ -77,7 +79,9 @@
 
           <el-form-item prop="password">
             <div class="input-wrap">
-              <el-icon class="input-icon"><Lock /></el-icon>
+              <el-icon class="input-icon">
+                <Lock />
+              </el-icon>
               <el-input
                 v-model="ruleForm.password"
                 placeholder="请输入密码"
@@ -89,7 +93,9 @@
           <el-form-item prop="code">
             <div class="code-row">
               <div class="input-wrap code-input">
-                <el-icon class="input-icon"><Key /></el-icon>
+                <el-icon class="input-icon">
+                  <Key />
+                </el-icon>
                 <el-input
                   v-model="ruleForm.code"
                   placeholder="验证码"
@@ -98,7 +104,7 @@
               <div
                 class="captcha-img"
                 @click="changeLoginCaptcha"
-                v-html="loginCaptcha"
+                v-html="sanitizeSvg(loginCaptcha)"
               ></div>
             </div>
           </el-form-item>
@@ -158,7 +164,7 @@
 
         <div class="card-footer">
           <span class="footer-line"></span>
-          <span class="footer-text">AI 智能刷题 · 高效备考</span>
+          <span class="footer-text">AI 智能刷题 · 高效刷题</span>
           <span class="footer-line"></span>
         </div>
       </div>
@@ -199,7 +205,7 @@
               <div
                 style="cursor: pointer"
                 @click="changeForgotCaptcha"
-                v-html="forgotCaptcha"
+                v-html="sanitizeSvg(forgotCaptcha)"
               ></div>
               <!-- eslint-enable vue/no-v-html -->
             </el-col>
@@ -222,6 +228,7 @@ import { login, getCaptcha, resetPassword, getGithubAuthUrl } from '@/services';
 import { ElMessage, type FormInstance } from 'element-plus';
 import type { ICaptcha } from '@/types';
 import Register from '@/views/login/register.vue';
+import { sanitizeSvg } from '@/utils';
 import {
   Iphone,
   Lock,
@@ -332,7 +339,7 @@ const rules = ref({
   ],
   password: [
     { required: true, message: '密码不能为空', trigger: 'blur' },
-    { min: 6, max: 20, message: '密码必须在6-20位之间', trigger: 'blur' },
+    { min: 6, max: 16, message: '密码必须在6-16位之间', trigger: 'blur' },
   ],
   code: [{ required: true, message: '验证码不能为空', trigger: 'blur' }],
 });
@@ -355,32 +362,24 @@ const toLogin = async () => {
       message: '登录成功~',
       type: 'success',
     });
-    localStorage.setItem('uid', ruleForm.phone);
     router.push('/');
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Login error:', error);
+  } catch {
+    // 不打印 error 对象：AxiosError.config.data 含密码明文，避免生产环境泄漏
     changeLoginCaptcha();
   }
 };
 
 // GitHub 第三方登录
 const handleGithubLogin = async () => {
-  console.log('[GitHub Login] 点击 GitHub 登录按钮');
   try {
-    console.log('[GitHub Login] 调用 /api/oauth/github 获取授权 URL...');
     const res: any = await getGithubAuthUrl();
-    console.log('[GitHub Login] 接口返回:', res);
     if (res?.authUrl) {
-      console.log('[GitHub Login] 跳转到 GitHub 授权页:', res.authUrl);
       window.location.href = res.authUrl;
     } else {
-      console.error('[GitHub Login] 接口未返回 authUrl');
       ElMessage.error('GitHub 登录暂不可用');
     }
-  } catch (err: any) {
-    console.error('[GitHub Login] 获取授权 URL 失败:', err);
-    ElMessage.error(err?.message || 'GitHub 登录初始化失败');
+  } catch {
+    ElMessage.error('GitHub 登录初始化失败');
   }
 };
 
@@ -404,6 +403,9 @@ const openAgreement = (type: 'user' | 'privacy') => {
 // ============ Canvas 粒子网络背景 ============
 const particleCanvas = ref<HTMLCanvasElement>();
 let animId = 0;
+// 监听器引用提升到 setup 顶层，卸载时才能正确移除
+let resizeHandler: (() => void) | null = null;
+let spawnHandler: (() => void) | null = null;
 
 const initParticles = () => {
   const canvas = particleCanvas.value;
@@ -488,6 +490,8 @@ const initParticles = () => {
   resize();
   spawn();
   draw();
+  resizeHandler = resize;
+  spawnHandler = spawn;
   window.addEventListener('resize', resize);
   window.addEventListener('resize', spawn);
 };
@@ -498,6 +502,9 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   cancelAnimationFrame(animId);
+  // 卸载时移除 resize 监听，避免页面切换后泄漏监听器
+  if (resizeHandler) window.removeEventListener('resize', resizeHandler);
+  if (spawnHandler) window.removeEventListener('resize', spawnHandler);
 });
 </script>
 
@@ -542,6 +549,7 @@ onBeforeUnmount(() => {
   z-index: 1;
   animation: glowFloat 12s ease-in-out infinite alternate;
 }
+
 .glow-1 {
   width: 420px;
   height: 420px;
@@ -549,6 +557,7 @@ onBeforeUnmount(() => {
   right: 12%;
   background: rgba(0, 150, 255, 0.22);
 }
+
 .glow-2 {
   width: 360px;
   height: 360px;
@@ -557,6 +566,7 @@ onBeforeUnmount(() => {
   background: rgba(0, 200, 220, 0.16);
   animation-delay: -4s;
 }
+
 .glow-3 {
   width: 300px;
   height: 300px;
@@ -565,10 +575,12 @@ onBeforeUnmount(() => {
   background: rgba(40, 120, 255, 0.12);
   animation-delay: -8s;
 }
+
 @keyframes glowFloat {
   from {
     transform: translate(0, 0) scale(1);
   }
+
   to {
     transform: translate(30px, 24px) scale(1.12);
   }
@@ -601,11 +613,13 @@ onBeforeUnmount(() => {
   gap: 72px;
   animation: contentIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
 @keyframes contentIn {
   from {
     opacity: 0;
     transform: translateY(24px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -617,18 +631,21 @@ onBeforeUnmount(() => {
   color: #eaf6ff;
   max-width: 420px;
 }
+
 .brand-logo {
   position: relative;
   width: 64px;
   height: 64px;
   margin-bottom: 24px;
 }
+
 .logo-img {
   width: 64px;
   height: 64px;
   border-radius: 16px;
   box-shadow: 0 0 28px rgba(0, 170, 255, 0.55);
 }
+
 .logo-ring {
   position: absolute;
   inset: -10px;
@@ -636,12 +653,14 @@ onBeforeUnmount(() => {
   border: 1px solid rgba(0, 190, 255, 0.35);
   animation: ringPulse 2.6s ease-in-out infinite;
 }
+
 @keyframes ringPulse {
   0%,
   100% {
     transform: scale(0.94);
     opacity: 0.35;
   }
+
   50% {
     transform: scale(1.06);
     opacity: 0.85;
@@ -660,6 +679,7 @@ onBeforeUnmount(() => {
   background-size: 200% 100%;
   animation: titleFlow 6s linear infinite;
 }
+
 @keyframes titleFlow {
   to {
     background-position: -200% 0;
@@ -679,6 +699,7 @@ onBeforeUnmount(() => {
   gap: 12px;
   margin-bottom: 38px;
 }
+
 .brand-tag {
   display: inline-flex;
   align-items: center;
@@ -692,6 +713,7 @@ onBeforeUnmount(() => {
   backdrop-filter: blur(6px);
   transition: all 0.25s ease;
 }
+
 .brand-tag:hover {
   border-color: rgba(0, 190, 255, 0.6);
   background: rgba(0, 170, 255, 0.12);
@@ -703,21 +725,25 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 26px;
 }
+
 .stat-item {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
+
 .stat-num {
   font-size: 26px;
   font-weight: 700;
   color: #59d5ff;
   text-shadow: 0 0 18px rgba(0, 170, 255, 0.45);
 }
+
 .stat-label {
   font-size: 13px;
   color: rgba(190, 220, 250, 0.65);
 }
+
 .stat-divider {
   width: 1px;
   height: 34px;
@@ -738,6 +764,7 @@ onBeforeUnmount(() => {
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   overflow: hidden;
 }
+
 /* 顶部渐变流光 */
 .login-card::before {
   content: '';
@@ -755,11 +782,13 @@ onBeforeUnmount(() => {
   );
   animation: topLine 4s ease-in-out infinite;
 }
+
 @keyframes topLine {
   0%,
   100% {
     left: -60%;
   }
+
   50% {
     left: 0%;
   }
@@ -779,11 +808,13 @@ onBeforeUnmount(() => {
   );
   animation: shine 9s ease-in-out infinite;
 }
+
 @keyframes shine {
   0%,
   100% {
     transform: translate(0, 0);
   }
+
   50% {
     transform: translate(8%, 6%);
   }
@@ -793,6 +824,7 @@ onBeforeUnmount(() => {
   text-align: center;
   margin-bottom: 26px;
 }
+
 .card-title {
   font-size: 26px;
   font-weight: 700;
@@ -800,6 +832,7 @@ onBeforeUnmount(() => {
   margin: 0 0 6px;
   letter-spacing: 2px;
 }
+
 .card-sub {
   font-size: 14px;
   color: rgba(190, 220, 250, 0.6);
@@ -807,7 +840,7 @@ onBeforeUnmount(() => {
 }
 
 .login-form :deep(.el-form-item) {
-  margin-bottom: 16px;
+  /* margin-bottom: 16px; */
 }
 
 /* 忘记密码弹窗：深色主题 */
@@ -817,38 +850,48 @@ onBeforeUnmount(() => {
   border-radius: 16px !important;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 150, 255, 0.1) !important;
 }
+
 .forgot-dialog .el-dialog__header {
   border-bottom: 1px solid rgba(140, 200, 255, 0.15) !important;
   padding: 20px 24px !important;
   margin-right: 0 !important;
 }
+
 .forgot-dialog .el-dialog__title {
   color: #eaf6ff !important;
   font-size: 18px !important;
   font-weight: 600 !important;
 }
+
 .forgot-dialog .el-dialog__headerbtn .el-dialog__close {
   color: rgba(180, 210, 240, 0.6) !important;
 }
+
 .forgot-dialog .el-dialog__headerbtn:hover .el-dialog__close {
   color: #00a6ff !important;
 }
+
 .forgot-dialog .el-dialog__body {
   padding: 24px !important;
   color: #c8dcf0 !important;
 }
+
 .forgot-dialog .el-dialog__footer {
   border-top: 1px solid rgba(140, 200, 255, 0.15) !important;
   padding: 16px 24px !important;
 }
+
 .forgot-dialog .el-form-item__label {
+  width: auto !important;
   color: rgba(200, 225, 250, 0.85) !important;
 }
+
 .forgot-dialog .el-button--default {
   background: rgba(255, 255, 255, 0.08) !important;
   border-color: rgba(140, 200, 255, 0.3) !important;
   color: #c8dcf0 !important;
 }
+
 .forgot-dialog .el-button--default:hover {
   background: rgba(255, 255, 255, 0.12) !important;
   border-color: rgba(0, 190, 255, 0.5) !important;
@@ -866,12 +909,14 @@ onBeforeUnmount(() => {
   padding: 2px 12px;
   transition: all 0.3s ease;
 }
+
 .login-form :deep(.el-input__wrapper:hover),
 .login-form .el-input__wrapper:hover,
 .forgot-dialog .el-input__wrapper:hover {
   box-shadow: 0 0 0 1px rgba(0, 190, 255, 0.4) inset;
   background-color: #1a2638 !important;
 }
+
 .login-form :deep(.el-input__wrapper.is-focus),
 .login-form .el-input__wrapper.is-focus,
 .forgot-dialog .el-input__wrapper.is-focus {
@@ -879,6 +924,7 @@ onBeforeUnmount(() => {
     0 0 18px rgba(0, 170, 255, 0.18);
   background-color: #1c2a40 !important;
 }
+
 /* 错误状态下也保持深色背景 */
 .login-form :deep(.el-input__wrapper.is-error),
 .login-form .el-input__wrapper.is-error,
@@ -886,6 +932,7 @@ onBeforeUnmount(() => {
   background-color: #162236 !important;
   box-shadow: 0 0 0 1px rgba(255, 80, 80, 0.5) inset;
 }
+
 .login-form :deep(.el-input__inner),
 .login-form .el-input__inner,
 .forgot-dialog .el-input__inner {
@@ -894,11 +941,13 @@ onBeforeUnmount(() => {
   font-size: 14px;
   -webkit-text-fill-color: #eaf6ff !important;
 }
+
 .login-form :deep(.el-input__inner::placeholder),
 .login-form .el-input__inner::placeholder,
 .forgot-dialog .el-input__inner::placeholder {
   color: rgba(180, 210, 240, 0.45) !important;
 }
+
 /* 密码显示按钮颜色 */
 .login-form :deep(.el-input__password),
 .login-form .el-input__password,
@@ -922,6 +971,7 @@ onBeforeUnmount(() => {
   /* 延迟背景变化，防止闪烁 */
   transition: background-color 5000s ease-in-out 0s !important;
 }
+
 /* autofill 时的 hover/focus 状态 */
 .login-form :deep(input:-webkit-autofill:hover),
 .login-form :deep(input:-webkit-autofill:focus),
@@ -938,6 +988,7 @@ onBeforeUnmount(() => {
   position: relative;
   width: 100%;
 }
+
 .input-icon {
   position: absolute;
   left: 14px;
@@ -948,9 +999,11 @@ onBeforeUnmount(() => {
   font-size: 16px;
   pointer-events: none;
 }
+
 .input-wrap :deep(.el-input) {
   width: 100%;
 }
+
 .input-wrap :deep(.el-input__wrapper) {
   padding-left: 42px;
 }
@@ -961,12 +1014,15 @@ onBeforeUnmount(() => {
   width: 100%;
   align-items: stretch;
 }
+
 .code-input {
   flex: 1;
 }
+
 .code-input :deep(.el-input__wrapper) {
   padding-left: 42px;
 }
+
 .captcha-img {
   cursor: pointer;
   flex-shrink: 0;
@@ -981,9 +1037,11 @@ onBeforeUnmount(() => {
   overflow: hidden;
   transition: all 0.25s ease;
 }
+
 .captcha-img:hover {
   border-color: rgba(0, 190, 255, 0.5);
 }
+
 .captcha-img :deep(img),
 .captcha-img :deep(svg) {
   width: 100%;
@@ -1000,22 +1058,27 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
   color: rgba(200, 225, 250, 0.75);
 }
+
 .agreement-row :deep(.el-checkbox__label) {
   color: rgba(200, 225, 250, 0.75);
   font-size: 13px;
 }
+
 .agreement-row :deep(.el-checkbox__inner) {
   background: transparent;
   border-color: rgba(140, 200, 255, 0.4);
 }
+
 .agreement-row :deep(.el-checkbox.is-checked .el-checkbox__inner) {
   background: #00a6ff;
   border-color: #00a6ff;
 }
+
 .agreement-row :deep(.el-link) {
   font-size: 13px;
   --el-link-primary-text-color: #4fc3ff;
 }
+
 .agreement-sep {
   color: rgba(190, 220, 250, 0.5);
 }
@@ -1035,11 +1098,13 @@ onBeforeUnmount(() => {
   box-shadow: 0 8px 24px rgba(0, 120, 255, 0.35);
   transition: all 0.35s ease;
 }
+
 .login-btn:hover {
   background-position: 100% 0;
   transform: translateY(-2px);
   box-shadow: 0 12px 30px rgba(0, 140, 255, 0.5);
 }
+
 .login-btn:active {
   transform: translateY(0);
 }
@@ -1055,6 +1120,7 @@ onBeforeUnmount(() => {
   border: 1px solid rgba(140, 200, 255, 0.25);
   transition: all 0.3s ease;
 }
+
 .register-btn:hover {
   border-color: rgba(0, 190, 255, 0.6);
   background: rgba(0, 170, 255, 0.12);
@@ -1068,6 +1134,7 @@ onBeforeUnmount(() => {
   gap: 12px;
   margin: 4px 0;
 }
+
 .oauth-line {
   flex: 1;
   height: 1px;
@@ -1078,6 +1145,7 @@ onBeforeUnmount(() => {
     transparent
   );
 }
+
 .oauth-text {
   font-size: 12px;
   color: rgba(180, 210, 240, 0.5);
@@ -1099,6 +1167,7 @@ onBeforeUnmount(() => {
   gap: 8px;
   transition: all 0.3s ease;
 }
+
 .github-btn:hover {
   border-color: rgba(0, 190, 255, 0.6);
   background: rgba(0, 170, 255, 0.12);
@@ -1106,10 +1175,12 @@ onBeforeUnmount(() => {
   transform: translateY(-1px);
   box-shadow: 0 4px 16px rgba(0, 150, 255, 0.2);
 }
+
 .github-icon {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
+  margin-right: 8px;
 }
 
 .forgot-row {
@@ -1117,10 +1188,12 @@ onBeforeUnmount(() => {
   justify-content: center;
   width: 100%;
 }
+
 .forgot-row :deep(.el-link) {
   color: rgba(160, 215, 255, 0.75);
   font-size: 13px;
 }
+
 .forgot-row :deep(.el-link:hover) {
   color: #4fc3ff;
 }
@@ -1131,6 +1204,7 @@ onBeforeUnmount(() => {
   gap: 12px;
   margin-top: 8px;
 }
+
 .footer-line {
   flex: 1;
   height: 1px;
@@ -1141,6 +1215,7 @@ onBeforeUnmount(() => {
     transparent
   );
 }
+
 .footer-text {
   font-size: 12px;
   color: rgba(180, 215, 245, 0.5);
@@ -1159,30 +1234,39 @@ onBeforeUnmount(() => {
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   overflow: hidden;
 }
+
 :global(.forgot-dialog .el-dialog__header) {
   padding: 24px 24px 8px;
 }
+
 :global(.forgot-dialog .el-dialog__title) {
   color: #f0f8ff;
   font-weight: 600;
   letter-spacing: 2px;
 }
+
 :global(.forgot-dialog .el-dialog__body) {
   padding: 16px 24px 8px;
 }
+
 :global(.forgot-dialog .el-dialog__footer) {
   padding: 8px 24px 24px;
 }
+
 :global(.forgot-dialog .el-dialog__headerbtn .el-dialog__close) {
   color: rgba(190, 220, 250, 0.6);
 }
+
 :global(.forgot-dialog .el-dialog__headerbtn:hover .el-dialog__close) {
   color: #fff;
 }
+
 :global(.forgot-dialog .el-form-item__label) {
   color: rgba(200, 225, 250, 0.85);
   font-size: 14px;
+  width: auto !important;
 }
+
 /* ============ 忘记密码弹窗深色主题（全局，因为 dialog teleport 到 body） ============ */
 :global(.forgot-dialog .el-dialog) {
   background: linear-gradient(145deg, #1a2540 0%, #0f1830 100%) !important;
@@ -1190,33 +1274,41 @@ onBeforeUnmount(() => {
   border-radius: 16px !important;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 150, 255, 0.1) !important;
 }
+
 :global(.forgot-dialog .el-dialog__header) {
   border-bottom: 1px solid rgba(140, 200, 255, 0.15) !important;
   padding: 20px 24px !important;
   margin-right: 0 !important;
 }
+
 :global(.forgot-dialog .el-dialog__title) {
   color: #eaf6ff !important;
   font-size: 18px !important;
   font-weight: 600 !important;
 }
+
 :global(.forgot-dialog .el-dialog__headerbtn .el-dialog__close) {
   color: rgba(180, 210, 240, 0.6) !important;
 }
+
 :global(.forgot-dialog .el-dialog__headerbtn:hover .el-dialog__close) {
   color: #00a6ff !important;
 }
+
 :global(.forgot-dialog .el-dialog__body) {
   padding: 24px !important;
   color: #c8dcf0 !important;
 }
+
 :global(.forgot-dialog .el-dialog__footer) {
   border-top: 1px solid rgba(140, 200, 255, 0.15) !important;
   padding: 16px 24px !important;
 }
+
 :global(.forgot-dialog .el-form-item__label) {
   color: rgba(200, 225, 250, 0.85) !important;
 }
+
 /* 输入框 */
 :global(.forgot-dialog .el-input__wrapper) {
   background-color: #162236 !important;
@@ -1225,29 +1317,36 @@ onBeforeUnmount(() => {
   border-radius: 10px !important;
   transition: all 0.3s ease !important;
 }
+
 :global(.forgot-dialog .el-input__wrapper:hover) {
   box-shadow: 0 0 0 1px rgba(0, 190, 255, 0.4) inset !important;
   background-color: #1a2638 !important;
 }
+
 :global(.forgot-dialog .el-input__wrapper.is-focus) {
   box-shadow: 0 0 0 1.5px rgba(0, 190, 255, 0.75) inset,
     0 0 16px rgba(0, 170, 255, 0.15) !important;
   background-color: #1c2a40 !important;
 }
+
 :global(.forgot-dialog .el-input__wrapper.is-error) {
   background-color: #162236 !important;
   box-shadow: 0 0 0 1px rgba(255, 80, 80, 0.5) inset !important;
 }
+
 :global(.forgot-dialog .el-input__inner) {
   color: #eaf6ff !important;
   -webkit-text-fill-color: #eaf6ff !important;
 }
+
 :global(.forgot-dialog .el-input__inner::placeholder) {
   color: rgba(180, 210, 240, 0.45) !important;
 }
+
 :global(.forgot-dialog .el-input__password) {
   color: rgba(140, 200, 255, 0.65) !important;
 }
+
 /* autofill 覆盖 */
 :global(.forgot-dialog input:-webkit-autofill),
 :global(.forgot-dialog input:-internal-autofill-selected) {
@@ -1257,12 +1356,14 @@ onBeforeUnmount(() => {
   caret-color: #eaf6ff !important;
   transition: background-color 5000s ease-in-out 0s !important;
 }
+
 :global(.forgot-dialog input:-webkit-autofill:hover),
 :global(.forgot-dialog input:-webkit-autofill:focus) {
   -webkit-box-shadow: 0 0 0 1000px #1c2a40 inset !important;
   box-shadow: 0 0 0 1000px #1c2a40 inset !important;
   -webkit-text-fill-color: #eaf6ff !important;
 }
+
 /* 按钮 */
 :global(.forgot-dialog .el-button--primary) {
   border: none !important;
@@ -1274,11 +1375,13 @@ onBeforeUnmount(() => {
   box-shadow: 0 8px 22px rgba(0, 120, 255, 0.35) !important;
   transition: all 0.35s ease !important;
 }
+
 :global(.forgot-dialog .el-button--primary:hover) {
   background-position: 100% 0 !important;
   transform: translateY(-2px) !important;
   box-shadow: 0 12px 28px rgba(0, 140, 255, 0.5) !important;
 }
+
 :global(.forgot-dialog .el-button:not(.el-button--primary)) {
   border-radius: 10px !important;
   color: rgba(220, 240, 255, 0.9) !important;
@@ -1286,6 +1389,7 @@ onBeforeUnmount(() => {
   border: 1px solid rgba(140, 200, 255, 0.25) !important;
   transition: all 0.3s ease !important;
 }
+
 :global(.forgot-dialog .el-button:not(.el-button--primary):hover) {
   border-color: rgba(0, 190, 255, 0.6) !important;
   background: rgba(0, 170, 255, 0.12) !important;
@@ -1297,17 +1401,113 @@ onBeforeUnmount(() => {
   .brand-panel {
     display: none;
   }
+
   .login-content {
     gap: 0;
   }
 }
+
 @media (max-width: 520px) {
+  /* 小屏（含矮屏）：允许纵向滚动，内容超高时不裁切、可从顶部查看 */
+  .login-wrap {
+    align-items: flex-start;
+    padding: 20px 0;
+  }
+
+  .login-content {
+    margin: auto;
+    width: 100%;
+    justify-content: center;
+  }
+
   .login-card {
     width: 92%;
-    padding: 32px 22px 24px;
+    padding: 28px 20px 22px;
   }
+
   .brand-title {
     font-size: 34px;
+  }
+
+  .card-title {
+    font-size: 24px;
+  }
+
+  .card-header {
+    margin-bottom: 20px;
+  }
+
+  .login-form :deep(.el-form-item) {
+    /* margin-bottom: 12px; */
+  }
+
+  /* 协议行小屏紧凑：避免换行 */
+  .agreement-row {
+    gap: 2px;
+    font-size: 12px;
+  }
+
+  .agreement-row :deep(.el-checkbox__label) {
+    font-size: 12px;
+  }
+
+  .agreement-row :deep(.el-link) {
+    font-size: 12px;
+  }
+
+  /* 验证码图片与输入框同高 */
+  .captcha-img {
+    width: 108px;
+    height: 40px;
+  }
+
+  .login-form :deep(.el-input__inner) {
+    height: 36px;
+    font-size: 14px;
+  }
+
+  .login-btn,
+  .register-btn,
+  .github-btn {
+    height: 44px;
+  }
+
+  .login-btn {
+    letter-spacing: 4px;
+  }
+}
+
+/* 矮屏进一步压缩，保证核心表单完整可见 */
+@media (max-height: 700px) and (max-width: 520px) {
+  .login-wrap {
+    padding: 12px 0;
+  }
+
+  .login-card {
+    padding: 22px 18px 16px;
+  }
+
+  .card-title {
+    font-size: 22px;
+  }
+
+  .card-header {
+  }
+
+  .card-sub {
+    font-size: 13px;
+  }
+
+  .login-form :deep(.el-form-item) {
+  }
+}
+
+/* 忘记密码弹窗：小屏自适应宽度 */
+@media (max-width: 520px) {
+  :global(.forgot-dialog) {
+    width: 92% !important;
+    max-width: 420px;
+    margin: 0 auto;
   }
 }
 </style>

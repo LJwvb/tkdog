@@ -12,19 +12,19 @@
         </el-form-item>
         <el-form-item label="难度">
           <el-radio-group v-model="form.difficulty">
-            <el-radio-button label="0"> 简单 </el-radio-button>
-            <el-radio-button label="1"> 中等</el-radio-button>
-            <el-radio-button label="2"> 困难 </el-radio-button>
-            <el-radio-button label="3"> 未知 </el-radio-button>
+            <el-radio-button value="0"> 简单 </el-radio-button>
+            <el-radio-button value="1"> 中等</el-radio-button>
+            <el-radio-button value="2"> 困难 </el-radio-button>
+            <el-radio-button value="3"> 未知 </el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="题型">
           <el-radio-group v-model="form.questionType">
-            <el-radio-button label="0"> 单选题 </el-radio-button>
-            <el-radio-button label="1"> 多选题 </el-radio-button>
-            <el-radio-button label="2"> 判断题 </el-radio-button>
-            <el-radio-button label="3"> 简答题 </el-radio-button>
-            <el-radio-button label="4"> 未知 </el-radio-button>
+            <el-radio-button value="0"> 单选题 </el-radio-button>
+            <el-radio-button value="1"> 多选题 </el-radio-button>
+            <el-radio-button value="2"> 判断题 </el-radio-button>
+            <el-radio-button value="3"> 简答题 </el-radio-button>
+            <el-radio-button value="4"> 未知 </el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="科目">
@@ -219,14 +219,19 @@ const onSubmit = () => {
     currentPage: 1,
   });
 };
+// 列表竞态防护：切换科目/筛选/搜索时 listSeq 递增，旧请求返回后比对不一致则丢弃
+let listSeq = 0;
+
 const getAllQuestion = (refresh?: boolean) => {
   if (refresh) {
     getAllQuestionParams.refresh = true;
   }
+  const seq = ++listSeq;
   loading.value = true;
   currentPage.value = 1;
   noMore.value = false;
   getQuestionList(getAllQuestionParams).then((res) => {
+    if (seq !== listSeq) return;
     allQuestion.value = res?.result || [];
     total.value = res?.total || 0;
     noMore.value = allQuestion.value.length >= total.value;
@@ -245,6 +250,7 @@ const getAllQuestion = (refresh?: boolean) => {
 // 加载更多全部题目
 const loadMoreAllQuestion = async () => {
   if (loadingMore.value || noMore.value) return;
+  const seq = listSeq; // 捕获当前列表上下文，期间切换科目/筛选则丢弃本次追加
   loadingMore.value = true;
   currentPage.value += 1;
   const params = {
@@ -253,6 +259,7 @@ const loadMoreAllQuestion = async () => {
   };
   try {
     const res = await getQuestionList(params);
+    if (seq !== listSeq) return;
     if (res?.result?.length) {
       allQuestion.value = [...allQuestion.value, ...res.result];
     }
@@ -273,11 +280,13 @@ const loadMoreAllQuestion = async () => {
 };
 
 const getSearchData = (val?: { currentPage: number }) => {
+  const seq = ++listSeq;
   searchQuestion({
     ...form,
     currentPage: val ? val.currentPage : currentSearchPage.value,
     pageSize,
   }).then((res) => {
+    if (seq !== listSeq) return;
     searchData.value = res?.result || [];
     searchTotal.value = res?.total || 0;
     searchNoMore.value = searchData.value.length >= searchTotal.value;
@@ -289,6 +298,7 @@ const getSearchData = (val?: { currentPage: number }) => {
 // 加载更多搜索结果
 const loadMoreSearch = async () => {
   if (searchLoadingMore.value || searchNoMore.value) return;
+  const seq = listSeq;
   searchLoadingMore.value = true;
   currentSearchPage.value += 1;
   try {
@@ -297,6 +307,7 @@ const loadMoreSearch = async () => {
       currentPage: currentSearchPage.value,
       pageSize,
     });
+    if (seq !== listSeq) return;
     if (res?.result?.length) {
       searchData.value = [...searchData.value, ...res.result];
     }
@@ -395,11 +406,13 @@ watchEffect(() => {
     currentSearchPage.value = searchHistory.currentPage;
     searchData.value = [];
     searchNoMore.value = false;
+    const seq = ++listSeq;
     searchQuestion({
       ...searchHistory,
       currentPage: searchHistory.currentPage,
       pageSize,
     }).then((res) => {
+      if (seq !== listSeq) return;
       searchData.value = res?.result || [];
       searchTotal.value = res?.total || 0;
       searchNoMore.value = searchData.value.length >= searchTotal.value;

@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { githubCallback } from '@/services';
@@ -21,6 +21,8 @@ const route = useRoute();
 const router = useRouter();
 
 const loading = ref(true);
+// 跳转定时器（组件卸载时清理，避免卸载后仍触发路由跳转）
+let redirectTimer: ReturnType<typeof setTimeout> | null = null;
 const success = ref(false);
 const error = ref(false);
 const message = ref('正在处理 GitHub 授权...');
@@ -30,38 +32,24 @@ onMounted(async () => {
     // hash 路由下，query 参数在 route.query 中
     const code = route.query.code as string;
     const state = route.query.state as string;
-    console.log('[GithubCallback] 解析到 code:', code, 'state:', state);
 
     if (!code) {
       console.error('[GithubCallback] 缺少 code 参数');
       throw new Error('授权失败：缺少 code 参数');
     }
 
-    console.log('[GithubCallback] 调用 /api/oauth/github/callback...');
     // 调用后端回调接口
     const res: any = await githubCallback({ code, state });
-    console.log('[GithubCallback] 接口返回:', res);
 
     if (res) {
-      console.log(
-        '[GithubCallback] 登录成功，res.userId:',
-        res?.userId,
-        'res.phone:',
-        res?.phone,
-        'res.username:',
-        res?.username,
-      );
       // 登录成功，存储用户信息
       store.commit('setUserData', res);
-      console.log(
-        '[GithubCallback] store.state.userData:',
-        store.state.userData,
-      );
       success.value = true;
+      loading.value = false;
       message.value = 'GitHub 登录成功';
       ElMessage.success('GitHub 登录成功');
       // 延迟跳转首页
-      setTimeout(() => {
+      redirectTimer = setTimeout(() => {
         router.replace('/');
       }, 800);
     } else {
@@ -73,10 +61,13 @@ onMounted(async () => {
     message.value = err?.message || 'GitHub 登录失败';
     ElMessage.error(err?.message || 'GitHub 登录失败');
     // 延迟跳转回登录页
-    setTimeout(() => {
+    redirectTimer = setTimeout(() => {
       router.replace('/Login');
     }, 1500);
   }
+});
+onUnmounted(() => {
+  if (redirectTimer) clearTimeout(redirectTimer);
 });
 </script>
 

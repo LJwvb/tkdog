@@ -46,10 +46,10 @@
     </el-form-item>
     <el-form-item label="权限" prop="auth" style="margin-bottom: 0">
       <el-radio-group v-model="ruleForm.auth" @change="selectAuth">
-        <el-radio v-if="!store.state.adminData?.id" :label="PaperAuth.Private"
+        <el-radio v-if="!store.state.adminData?.id" :value="PaperAuth.Private"
           >私有</el-radio
         >
-        <el-radio :label="PaperAuth.Public">公开</el-radio>
+        <el-radio :value="PaperAuth.Public">公开</el-radio>
       </el-radio-group>
     </el-form-item>
   </el-form>

@@ -268,28 +268,11 @@ export async function uploadImage(
   const form = new FormData();
   form.append('file', file);
   form.append('channel', channel);
-  // 用原生 fetch 上传：axios 对 multipart 需要额外处理，这里手动补鉴权头。
-  // 注意：后端鉴权优先读 Authorization: Bearer <accessToken>（auth 中间件），
-  // 仅靠 credentials:'include' 带的 EGG_SESS cookie 在生产环境不足以通过校验，
-  // 会返回 401。因此这里必须与 request.ts 的拦截器保持一致，手动带上 token。
-  const token =
-    (store.state.userData as any)?.accessToken ||
-    (store.state.userData as any)?.token;
-  const headers: Record<string, string> = {};
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-  const res = await fetch('/api/uploadImage', {
-    method: 'POST',
-    body: form,
-    credentials: 'include',
-    headers,
-  });
-  const body = await res.json();
-  if (body.success === false || (body.code !== 200 && body.code !== 0)) {
-    throw new Error(body.message || '上传失败');
-  }
-  return body.data.url as string;
+  // 走 request 统一入口：自动加 Authorization、401 无感刷新、业务错误 toast
+  // （axios 对 FormData 自动设置 Content-Type 含 boundary）
+  return request<{ url: string }>('POST', '/uploadImage', { data: form }).then(
+    (res) => res.url,
+  );
 }
 
 // 用户登录接口（返回登录后的用户信息）
@@ -992,6 +975,8 @@ export function getGithubAuthUrl(): Promise<{ authUrl: string }> {
 export function githubCallback(params: {
   code: string;
   state: string;
-}): Promise<any> {
-  return request<any>('POST', '/oauth/github/callback', { data: params });
+}): Promise<ILoginData> {
+  return request<ILoginData>('POST', '/oauth/github/callback', {
+    data: params,
+  });
 }

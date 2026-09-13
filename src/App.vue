@@ -62,23 +62,17 @@ onMounted(() => {
 
   // GitHub OAuth 回调处理：GitHub 不接受带 # 的 hash 回调 URL，
   // 回调到首页 ?code=xxx&state=xxx 后，跳转到 hash 路由的回调页处理
-  console.log('[App] onMounted, 当前 URL:', window.location.href);
-  console.log('[App] window.location.search:', window.location.search);
   const urlParams = new URLSearchParams(window.location.search);
   const githubCode = urlParams.get('code');
   const githubState = urlParams.get('state');
-  console.log('[App] 检测到 code:', githubCode, 'state:', githubState);
   if (githubCode) {
     const redirectHash = `/oauth/github/callback?code=${encodeURIComponent(
       githubCode,
     )}${githubState ? `&state=${encodeURIComponent(githubState)}` : ''}`;
-    console.log('[App] 用 router.replace 跳转到回调页:', redirectHash);
     // 清除 URL 中的 query 参数，避免刷新重复处理
     window.history.replaceState({}, document.title, window.location.pathname);
     // 用 Vue Router 跳转，确保组件 onMounted 被触发
     router.replace(redirectHash);
-  } else {
-    console.log('[App] 未检测到 code，正常渲染页面');
   }
 });
 

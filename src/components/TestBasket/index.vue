@@ -109,10 +109,12 @@ const clearAll = () => {
   bottom: 160px;
   right: 5px;
   width: 25px;
+  z-index: 9999;
 }
 
 :deep(.el-badge__content.is-fixed) {
   transform: translateY(-50%) translateX(-50%);
+  z-index: 999;
 }
 .basket-btn {
   width: 25px;

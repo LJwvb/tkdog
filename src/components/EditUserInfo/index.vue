@@ -188,7 +188,7 @@ const resetForm = (formEl: FormInstance | undefined) => {
   ruleForm.personalIntroduction = '';
 };
 
-const emit = defineEmits(['update:dialogVisible']);
+const emit = defineEmits<{ 'update:dialogVisible': [value: boolean] }>();
 const cancel = () => {
   emit('update:dialogVisible', false);
 };

@@ -368,9 +368,9 @@
     </div>
     <div class="feedback-type">
       <el-radio-group v-model="feedbackType">
-        <el-radio label="error">题目错误</el-radio>
-        <el-radio label="wrong_answer">答案错误</el-radio>
-        <el-radio label="typo">错别字</el-radio>
+        <el-radio value="error">题目错误</el-radio>
+        <el-radio value="wrong_answer">答案错误</el-radio>
+        <el-radio value="typo">错别字</el-radio>
       </el-radio-group>
     </div>
     <el-input
@@ -401,9 +401,9 @@
       </el-form-item>
       <el-form-item label="难度">
         <el-radio-group v-model="editForm.difficulty">
-          <el-radio label="0">简单</el-radio>
-          <el-radio label="1">中等</el-radio>
-          <el-radio label="2">困难</el-radio>
+          <el-radio value="0">简单</el-radio>
+          <el-radio value="1">中等</el-radio>
+          <el-radio value="2">困难</el-radio>
         </el-radio-group>
       </el-form-item>
       <el-form-item label="标签">
@@ -666,17 +666,20 @@ const recordBrowse = (qid: number) => {
 
 // 获取题目详情
 const getDailyQuestion = async (value?: number) => {
+  const targetId = value ?? Number(id.value);
   // 判断喜欢的题目中是否包含当前题目id（统一按字符串比较）
-  if (likeTopicsId.includes(String(value ?? id.value))) {
+  if (likeTopicsId.includes(String(targetId))) {
     isClickLike.value = true;
   } else {
     isClickLike.value = false;
   }
-  getQuestionDetail({ id: value ?? Number(id.value) })
+  getQuestionDetail({ id: targetId })
     .then((res) => {
+      // 竞态防护：切题后旧请求返回时直接丢弃，避免覆盖新题数据
+      if (Number(id.value) !== targetId) return;
       questionDetail.value = res;
       // 浏览记录统一在详情加载完成后处理，避免与详情接口并发导致浏览数少算
-      recordBrowse(value ?? Number(id.value));
+      recordBrowse(targetId);
     })
     .finally(() => {
       loading.value = false;
@@ -684,9 +687,12 @@ const getDailyQuestion = async (value?: number) => {
 };
 // 获取相似题目
 const getSimilarQuestions = async (value?: number) => {
+  const targetId = value || Number(id.value);
   const res = await getSimilarQuestion({
-    id: value || Number(id.value),
+    id: targetId,
   });
+  // 竞态防护：切题后旧响应丢弃
+  if (Number(id.value) !== targetId) return;
   similarQuestions.value = res;
 };
 // 点赞
@@ -770,6 +776,7 @@ const goSimilarQuestion = (qid: number) => {
 };
 // 切题统一处理：路由 query.id 变化（相似题目跳转 / 浏览器前进后退）时刷新
 // 详情、相似题、评论，并重置 AI 解析与翻页状态，避免残留上一题内容
+// （竞态防护：各加载函数在赋值前比对目标 id 与当前 id，旧请求响应直接丢弃）
 watch(id, (newId, oldId) => {
   if (!newId || String(newId) === String(oldId)) return;
   // 重置 AI 解析状态
@@ -989,14 +996,17 @@ const insertEmoji = (emoji: string) => {
 };
 
 const getComments = async (qid?: number) => {
+  const targetQid = qid ?? Number(id.value);
   // 用户端只展示审核通过的评论（待审核评论管理员审核后才可见）
   const res = await getCommentList({
-    questionId: qid ?? Number(id.value),
+    questionId: targetQid,
     onlyApproved: true,
     currentPage: commentPage.value,
     pageSize: commentPageSize,
     userId: store.state.userData?.userId,
   });
+  // 竞态防护：切题后旧评论响应丢弃
+  if (Number(id.value) !== targetQid) return;
   commentTree.value = res?.result ?? [];
   commentTotal.value = res?.total ?? 0;
   // 从消息通知跳转过来时，滚动定位到对应评论

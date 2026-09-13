@@ -6,6 +6,7 @@ import axios, {
 import { ElMessage } from 'element-plus';
 import type { IApiResponse } from '@/types';
 import store from '@/store';
+import type { UserData } from '@/store';
 
 // 默认走 vite 代理（同源）
 const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api';
@@ -26,8 +27,8 @@ let pendingRequests: Array<(token: string) => void> = [];
  */
 function getAccessToken(): string | undefined {
   return (
-    (store.state.userData as any)?.accessToken ||
-    (store.state.userData as any)?.token
+    store.state.userData?.accessToken ||
+    store.state.userData?.token
   );
 }
 
@@ -35,7 +36,7 @@ function getAccessToken(): string | undefined {
  * 从 store 获取 refreshToken
  */
 function getRefreshToken(): string | undefined {
-  return (store.state.userData as any)?.refreshToken;
+  return store.state.userData?.refreshToken;
 }
 
 /**
@@ -73,13 +74,13 @@ async function doRefreshToken(): Promise<{
  * 只清管理员身份并跳 /admin；否则按普通用户处理，清 userData 跳 /Login。
  */
 function clearAuthAndRedirect() {
-  const isAdminSide = Boolean((store.state as any).adminData?.id);
+  const isAdminSide = Boolean(store.state.adminData?.id);
   if (isAdminSide) {
     store.commit('clearAdminData');
     window.location.hash = '#/admin';
     return;
   }
-  store.commit('setUserData', {} as any);
+  store.commit('setUserData', {} as UserData);
   window.location.hash = '#/Login';
 }
 

@@ -281,9 +281,9 @@
         </el-form-item>
         <el-form-item label="难度">
           <el-radio-group v-model="editForm.difficulty">
-            <el-radio label="0">简单</el-radio>
-            <el-radio label="1">中等</el-radio>
-            <el-radio label="2">困难</el-radio>
+            <el-radio value="0">简单</el-radio>
+            <el-radio value="1">中等</el-radio>
+            <el-radio value="2">困难</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="标签">
@@ -430,6 +430,9 @@ interface IQuestionPageRes {
   total?: number;
 }
 // append=true 追加下一页；否则回到第一页（首次加载 / 切回标签页 / 审核删除后刷新）
+// 竞态防护：每个列表维护自增 seq，切换 tab/刷新时 seq++，旧请求返回后比对不一致则丢弃
+let nochkSeq = 0;
+let chkSeq = 0;
 const loadQuestions = async (
   fetcher: (params: IPageParams) => Promise<IQuestionPageRes>,
   params: IPageParams,
@@ -437,17 +440,26 @@ const loadQuestions = async (
   totalRef: Ref<number>,
   loadingRef: Ref<boolean>,
   append = false,
+  seq = 0,
 ) => {
   if (!append) {
     params.currentPage = 1;
   }
   const res = await fetcher(params);
+  // append 时校验发起时的 seq；非 append 时 seq 已递增，校验恒通过
+  if (
+    append &&
+    seq !== (listRef.value === NoChkQuestions.value ? nochkSeq : chkSeq)
+  ) {
+    return;
+  }
   const list = res?.result ?? [];
   listRef.value = append ? [...listRef.value, ...list] : list;
   totalRef.value = res?.total ?? 0;
   loadingRef.value = false;
 };
 const getNoChkQuestion = async (append = false) => {
+  const seq = append ? nochkSeq : ++nochkSeq;
   await loadQuestions(
     getNoChkQuestions,
     nochkParams,
@@ -455,9 +467,11 @@ const getNoChkQuestion = async (append = false) => {
     noChkTotal,
     nochkLoading,
     append,
+    seq,
   );
 };
 const getAllChkQuestion = async (append = false) => {
+  const seq = append ? chkSeq : ++chkSeq;
   await loadQuestions(
     getAllChkQuestions,
     chkParams,
@@ -465,6 +479,7 @@ const getAllChkQuestion = async (append = false) => {
     chkTotal,
     chkLoading,
     append,
+    seq,
   );
 };
 // 导出当前标签页全部题目为 CSV
@@ -651,9 +666,14 @@ const loadMoreSearch = async () => {
   }
 };
 onMounted(() => {
-  // loading 由请求内部完成后置 false；这里不能提前置 false，否则首屏蒙层一闪而过
-  void getNoChkQuestion();
-  void getAllChkQuestion();
+  // 默认只拉当前 tab，其余 tab 切换时才请求，避免首屏并发拉两个列表
+  if (activeName.value === 'nochk') {
+    void getNoChkQuestion();
+  } else if (activeName.value === 'deleted') {
+    void getDeletedQuestion();
+  } else {
+    void getAllChkQuestion();
+  }
 });
 
 const deleteQuestion = (id: number, activeName: string) => {

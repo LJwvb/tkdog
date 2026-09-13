@@ -101,7 +101,7 @@ const toLogin = async () => {
     // 管理员身份写入独立的 adminData，不触碰 userData
     // 这样同一浏览器已登录的普通用户 token 不会被覆盖，两种身份可同时存在
     store.commit('setAdminData', {
-      id: (result as any)?.id,
+      id: Number(result?.id) || undefined,
       name: result?.name ?? 'admin',
     });
     store.commit('setBrowseTopicsId', []);
@@ -109,7 +109,6 @@ const toLogin = async () => {
       message: '登录成功~',
       type: 'success',
     });
-    localStorage.setItem('uid', String(ruleForm.name));
     router.push('/adminHome');
   } catch (error) {
     ElMessage.error('登录失败，请稍后重试');

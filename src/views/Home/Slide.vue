@@ -75,9 +75,9 @@
           <span>排行榜</span>
           <!-- 周榜/月榜暂不启用，如需恢复取消注释即可
           <el-radio-group v-model="rankType" size="small" @change="getRank">
-            <el-radio-button label="all">总榜</el-radio-button>
-            <el-radio-button label="week">周榜</el-radio-button>
-            <el-radio-button label="month">月榜</el-radio-button>
+            <el-radio-button value="all">总榜</el-radio-button>
+            <el-radio-button value="week">周榜</el-radio-button>
+            <el-radio-button value="month">月榜</el-radio-button>
           </el-radio-group>
           -->
         </div>
@@ -114,7 +114,7 @@
           <div class="border_bottom my-rank">
             <div class="row">
               <div class="rank">
-                {{ myRankInfo.rank <= 100 ? myRankInfo.rank : '未上榜' }}
+                {{ myRankInfo.rank <= 100 ? myRankInfo.rank : '--' }}
               </div>
               <img :src="myRankInfo.avatar" alt="" class="avatar" />
               <div class="name">

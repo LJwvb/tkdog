@@ -10,9 +10,9 @@
           <span>消息通知</span>
           <div class="msg-tools">
             <el-radio-group v-model="filter" size="small">
-              <el-radio-button label="all">全部</el-radio-button>
-              <el-radio-button label="unread">未读</el-radio-button>
-              <el-radio-button label="read">已读</el-radio-button>
+              <el-radio-button value="all">全部</el-radio-button>
+              <el-radio-button value="unread">未读</el-radio-button>
+              <el-radio-button value="read">已读</el-radio-button>
             </el-radio-group>
             <el-button
               v-if="notifications.some((n) => n.is_read === 0)"

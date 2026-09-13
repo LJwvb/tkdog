@@ -326,21 +326,32 @@ const toMessage = () => {
   store.commit('setActiveMenuIndex', '4');
   router.push({ path: '/user/UserMessage' });
 };
+const onVisibilityChange = () => {
+  // 从后台切回前台立即刷新，避免等待下一个轮询周期
+  if (!document.hidden) {
+    loadUnread();
+    loadPendingCounts();
+  }
+};
 onMounted(() => {
   loadUnread();
   loadPendingCounts();
   // 管理端红点定时刷新：NavBar 跨路由常驻，只有刷新页面才会重新挂载，
   // 这里用轮询保证审核/反馈数量在停留页面时也能及时更新
   pendingTimer = setInterval(() => {
+    // 页面隐藏（后台标签页）时不轮询，切回前台由 visibilitychange 立即刷新
+    if (document.hidden) return;
     loadUnread();
     loadPendingCounts();
   }, 10000);
+  document.addEventListener('visibilitychange', onVisibilityChange);
 });
 onBeforeUnmount(() => {
   if (pendingTimer) {
     clearInterval(pendingTimer);
     pendingTimer = null;
   }
+  document.removeEventListener('visibilitychange', onVisibilityChange);
 });
 // 路由切换后立即刷新红点/未读数（无需等下一次轮询）
 watch(
@@ -363,8 +374,8 @@ const rules = reactive<FormRules>({
     },
     {
       min: 6,
-      max: 20,
-      message: '长度在 6 到 20 个字符',
+      max: 16,
+      message: '长度在 6 到 16 个字符',
       trigger: 'blur',
     },
   ],

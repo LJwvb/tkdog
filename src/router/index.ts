@@ -228,7 +228,7 @@ router.beforeEach((to, _from, next) => {
   // 同一浏览器可同时持有两种身份，路由守卫分别判断，互不干扰。
   const userData = store.state.userData;
   const adminData = store.state.adminData;
-  const isLoggedIn = Boolean(userData?.token);
+  const isLoggedIn = Boolean(userData?.token || userData?.accessToken);
   const isAdmin = Boolean(adminData?.id);
 
   // 管理端路由：只认管理员身份，不要求 JWT token
