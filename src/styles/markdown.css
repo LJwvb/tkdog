@@ -1,0 +1,283 @@
+/* ==================== Markdown / 代码高亮样式 ====================
+ * 用于 renderMarkdown() 产出的 HTML（题目解析、简答/手写题参考答案等）。
+ * 目标：代码块观感接近编辑器（等宽字体、行内滚动、清晰缩进）。
+ * 亮色 / 暗色主题分别适配，跟随 html.dark 类（见 main.ts 主题初始化）。
+ */
+
+/* ---------- 通用排版 ---------- */
+.md-body {
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--el-text-color-primary);
+  word-break: break-word;
+}
+
+.md-body > :first-child {
+  margin-top: 0;
+}
+
+.md-body > :last-child {
+  margin-bottom: 0;
+}
+
+.md-body p {
+  margin: 0 0 10px;
+}
+
+.md-body ul,
+.md-body ol {
+  margin: 0 0 10px;
+  padding-left: 22px;
+}
+
+.md-body li {
+  margin: 3px 0;
+}
+
+.md-body h1,
+.md-body h2,
+.md-body h3,
+.md-body h4,
+.md-body h5,
+.md-body h6 {
+  margin: 16px 0 8px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.md-body h1 { font-size: 20px; }
+.md-body h2 { font-size: 18px; }
+.md-body h3 { font-size: 16px; }
+.md-body h4 { font-size: 15px; }
+
+.md-body blockquote {
+  margin: 0 0 10px;
+  padding: 6px 12px;
+  border-left: 3px solid var(--el-color-primary-light-5);
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-regular);
+  border-radius: 0 4px 4px 0;
+}
+
+.md-body hr {
+  border: none;
+  border-top: 1px solid var(--el-border-color-lighter);
+  margin: 14px 0;
+}
+
+.md-body table {
+  border-collapse: collapse;
+  margin: 0 0 12px;
+  width: 100%;
+  font-size: 13px;
+}
+
+.md-body th,
+.md-body td {
+  border: 1px solid var(--el-border-color);
+  padding: 6px 10px;
+  text-align: left;
+}
+
+.md-body th {
+  background: var(--el-fill-color-light);
+  font-weight: 600;
+}
+
+/* ---------- 行内代码 ---------- */
+.md-body code:not(pre code):not(.hljs) {
+  padding: 2px 5px;
+  font-size: 0.88em;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas,
+    'Courier New', 'PingFang SC', 'Microsoft YaHei', monospace;
+  color: var(--el-color-danger);
+  background: var(--el-fill-color);
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 4px;
+}
+
+/* ---------- 代码块（编辑器观感） ---------- */
+.md-body pre,
+.md-body pre.hljs {
+  position: relative;
+  margin: 0 0 12px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.6;
+  border-radius: 8px;
+  background: #f6f8fa; /* 亮色：GitHub 风格浅底 */
+  border: 1px solid var(--el-border-color-lighter);
+  -webkit-overflow-scrolling: touch;
+}
+
+.md-body pre code,
+.md-body pre.hljs code {
+  display: block;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas,
+    'Courier New', 'PingFang SC', 'Microsoft YaHei', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre;
+  tab-size: 2;
+  -moz-tab-size: 2;
+}
+
+/* 细滚动条，避免出现浏览器默认粗条 */
+.md-body pre::-webkit-scrollbar {
+  height: 8px;
+}
+
+.md-body pre::-webkit-scrollbar-thumb {
+  background: var(--el-border-color);
+  border-radius: 4px;
+}
+
+.md-body pre::-webkit-scrollbar-thumb:hover {
+  background: var(--el-border-color-darker);
+}
+
+/* ---------- 代码高亮配色（亮色，GitHub Light 近似） ---------- */
+.md-body .hljs-comment,
+.md-body .hljs-quote {
+  color: #6a737d;
+  font-style: italic;
+}
+
+.md-body .hljs-keyword,
+.md-body .hljs-selector-tag,
+.md-body .hljs-doctag,
+.md-body .hljs-meta-keyword {
+  color: #d73a49;
+}
+
+.md-body .hljs-string,
+.md-body .hljs-regexp,
+.md-body .hljs-addition,
+.md-body .hljs-attribute {
+  color: #032f62;
+}
+
+.md-body .hljs-number,
+.md-body .hljs-literal,
+.md-body .hljs-variable,
+.md-body .hljs-template-variable {
+  color: #005cc5;
+}
+
+.md-body .hljs-title,
+.md-body .hljs-title.function_,
+.md-body .hljs-section,
+.md-body .hljs-name {
+  color: #6f42c1;
+}
+
+.md-body .hljs-built_in,
+.md-body .hljs-class .hljs-title,
+.md-body .hljs-title.class_ {
+  color: #e36209;
+}
+
+.md-body .hljs-attr,
+.md-body .hljs-selector-attr,
+.md-body .hljs-selector-class,
+.md-body .hljs-selector-id {
+  color: #005cc5;
+}
+
+.md-body .hljs-type,
+.md-body .hljs-symbol,
+.md-body .hljs-bullet,
+.md-body .hljs-link {
+  color: #e36209;
+}
+
+.md-body .hljs-tag {
+  color: #22863a;
+}
+
+.md-body .hljs-deletion {
+  color: #b31d28;
+  background: #ffeef0;
+}
+
+.md-body .hljs-emphasis {
+  font-style: italic;
+}
+
+.md-body .hljs-strong {
+  font-weight: 700;
+}
+
+/* ---------- 暗色主题适配 ---------- */
+html.dark .md-body pre,
+html.dark .md-body pre.hljs {
+  background: #1e1e1e; /* 编辑器深色底 */
+  border-color: #3a3a3a;
+}
+
+html.dark .md-body code:not(pre code):not(.hljs) {
+  background: #2a2a2a;
+  border-color: #3a3a3a;
+  color: #ff7b72;
+}
+
+html.dark .md-body .hljs-comment,
+html.dark .md-body .hljs-quote {
+  color: #6a9955;
+}
+
+html.dark .md-body .hljs-keyword,
+html.dark .md-body .hljs-selector-tag,
+html.dark .md-body .hljs-doctag,
+html.dark .md-body .hljs-meta-keyword {
+  color: #569cd6;
+}
+
+html.dark .md-body .hljs-string,
+html.dark .md-body .hljs-regexp,
+html.dark .md-body .hljs-addition,
+html.dark .md-body .hljs-attribute {
+  color: #ce9178;
+}
+
+html.dark .md-body .hljs-number,
+html.dark .md-body .hljs-literal,
+html.dark .md-body .hljs-variable,
+html.dark .md-body .hljs-template-variable {
+  color: #b5cea8;
+}
+
+html.dark .md-body .hljs-title,
+html.dark .md-body .hljs-title.function_,
+html.dark .md-body .hljs-section,
+html.dark .md-body .hljs-name {
+  color: #dcdcaa;
+}
+
+html.dark .md-body .hljs-built_in,
+html.dark .md-body .hljs-class .hljs-title,
+html.dark .md-body .hljs-title.class_,
+html.dark .md-body .hljs-type,
+html.dark .md-body .hljs-symbol,
+html.dark .md-body .hljs-bullet,
+html.dark .md-body .hljs-link,
+html.dark .md-body .hljs-attr,
+html.dark .md-body .hljs-selector-attr,
+html.dark .md-body .hljs-selector-class,
+html.dark .md-body .hljs-selector-id {
+  color: #4ec9b0;
+}
+
+html.dark .md-body .hljs-tag {
+  color: #4ec9b0;
+}
+
+html.dark .md-body .hljs-deletion {
+  color: #f48771;
+  background: #4b1818;
+}

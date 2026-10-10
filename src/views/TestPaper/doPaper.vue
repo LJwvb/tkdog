@@ -444,19 +444,9 @@
           <div class="answer-header">
             <span>参考答案</span>
           </div>
-          <div class="answer-body">
+          <div class="answer-body md-body">
             <!-- eslint-disable vue/no-v-html -->
-            <span
-              v-html="
-                sanitizeHtml(
-                  formatAnswerWithValues(
-                    d.questionType,
-                    d.correctAnswer,
-                    d.questionDetail,
-                  ),
-                )
-              "
-            ></span>
+            <span v-html="answerHtmlMap[d.questionId] || ''"></span>
             <!-- eslint-enable vue/no-v-html -->
           </div>
         </div>
@@ -486,7 +476,7 @@ import {
   difficulty,
   firstQueryValue,
   formatAnswerWithValues,
-  sanitizeHtml,
+  renderMarkdown,
 } from '@/utils';
 import type { IQuestion, ISubmitPaperResult, IAiJudgeResult } from '@/types';
 
@@ -551,6 +541,23 @@ const paperInfo = ref<IPaperDetailInfo>({});
 const answers = ref<string[]>([]);
 const multiAnswers = ref<string[][]>([]);
 const result = ref<ISubmitPaperResult | null>(null);
+
+// 参考答案 Markdown 渲染缓存（key = questionId），异步渲染完成后回填
+const answerHtmlMap = ref<Record<number, string>>({});
+const renderAllAnswers = async (detail: ISubmitPaperResult['detail']) => {
+  if (!detail?.length) return;
+  const entries = await Promise.all(
+    detail.map(async (d) => {
+      const raw = formatAnswerWithValues(
+        d.questionType,
+        d.correctAnswer,
+        d.questionDetail,
+      );
+      return [d.questionId, await renderMarkdown(raw)] as const;
+    }),
+  );
+  answerHtmlMap.value = Object.fromEntries(entries);
+};
 
 // ===== 右侧题号导航栏 =====
 const currentQuestionIndex = ref(0);
@@ -820,6 +827,8 @@ const loadPaper = async () => {
         submitted.value = true;
         answers.value = questions.value.map(() => '');
         multiAnswers.value = questions.value.map(() => []);
+        // 参考答案按 Markdown 渲染（含代码高亮），异步补全
+        renderAllAnswers(res.result?.detail);
         // 历史记录模式：自动生成并展示 AI 报告
         nextTick(() => handleAiReport());
       }
@@ -873,6 +882,8 @@ const handleSubmit = async () => {
     });
     result.value = res;
     submitted.value = true;
+    // 参考答案按 Markdown 渲染（含代码高亮），异步补全
+    renderAllAnswers(res?.detail);
     ElMessage.success('交卷成功');
     // 交卷后自动用 AI 批改简答题（带动画）
     runAiJudging();

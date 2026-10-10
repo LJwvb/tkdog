@@ -3,6 +3,8 @@ import App from './App.vue';
 import router from './router';
 import store from './store';
 import './assets/index.css';
+// Markdown 渲染 + 代码高亮（题目解析/简答参考答案）
+import './styles/markdown.css';
 // Element Plus 暗色主题变量
 import 'element-plus/theme-chalk/dark/css-vars.css';
 

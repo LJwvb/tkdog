@@ -96,7 +96,10 @@
           }}</span>
           <span class="ai-suggest-diff">难度{{ q.difficulty ?? 0 }}</span>
         </div>
-        <div class="ai-suggest-q" v-html="sanitizeHtml(q.question)"></div>
+        <div
+          class="ai-suggest-q md-body"
+          v-html="questionHtmlMap[q.id] || sanitizeHtml(q.question)"
+        ></div>
       </div>
       <div class="ai-suggest-actions">
         <el-button type="primary" @click="addSuggestQuestions"
@@ -137,7 +140,7 @@
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import QuestionCard from '@/components/QuestionCard/index.vue';
-import { sanitizeHtml } from '@/utils';
+import { sanitizeHtml, renderMarkdown } from '@/utils';
 import {
   randomPickQuestions,
   getSubjectList,
@@ -205,6 +208,8 @@ const doPick = async () => {
 // ===== AI 智能组卷 =====
 const suggesting = ref(false);
 const suggestVisible = ref(false);
+// 推荐题干的 Markdown 渲染缓存（key = 题目 id）
+const questionHtmlMap = ref<Record<number, string>>({});
 const suggestData = ref<{ reason: string; questions: IQuestion[] } | null>(
   null,
 );
@@ -247,6 +252,14 @@ const handleAiSuggest = async () => {
       return;
     }
     suggestData.value = { reason: res.reason || '', questions: ordered };
+    // 题干按 Markdown 渲染（含代码高亮），异步补全
+    Promise.all(
+      ordered.map(async (q) => {
+        questionHtmlMap.value[q.id] = await renderMarkdown(q.question);
+      }),
+    ).catch(() => {
+      /* 渲染失败时保留空串，兜底展示原文本 */
+    });
     suggestVisible.value = true;
   } catch {
     ElMessage.error('AI 组卷失败，请稍后重试');

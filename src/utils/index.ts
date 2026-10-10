@@ -50,13 +50,144 @@ const SANITIZE_CONFIG = {
     'h6',
     'span',
     'div',
+    'table',
+    'thead',
+    'tbody',
+    'tr',
+    'th',
+    'td',
+    'hr',
   ],
-  ALLOWED_ATTR: [],
+  // 只放行代码高亮必需的两个属性；其余（style/on*/href/src）一律剥离
+  ALLOWED_ATTR: [ 'class' ],
 };
 export const sanitizeHtml = (html: string | null | undefined): string => {
   if (!html) return '';
   return DOMPurify.sanitize(String(html), SANITIZE_CONFIG);
 };
+
+// ==================== Markdown 渲染（代码块高亮） ====================
+
+/**
+ * 允许出现在 class 上的白名单前缀：
+ * - `language-xxx` / `lang-xxx`：marked 为代码块生成的语种标记
+ * - `hljs` / `hljs-xxx`：highlight.js 生成的高亮 token
+ * 其余 class（例如用户试图借 class 做样式注入/覆盖）会被剥离。
+ */
+const SAFE_CLASS_PREFIXES = ['language-', 'lang-', 'hljs'];
+
+/**
+ * 合并后的安全配置：在基础白名单上放行 class，
+ * 并通过 DOMPurify hook 把不符合前缀规则的 class 逐项剔除。
+ */
+let mdHookInstalled = false;
+const installClassHook = () => {
+  if (mdHookInstalled) return;
+  mdHookInstalled = true;
+  DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
+    if (data.attrName !== 'class') return;
+    const kept = String(data.attrValue || '')
+      .split(/\s+/)
+      .filter((c) =>
+        SAFE_CLASS_PREFIXES.some((p) =>
+          p === 'hljs' ? c === 'hljs' || c.startsWith('hljs-') : c.startsWith(p),
+        ),
+      )
+      .join(' ');
+    if (kept) data.attrValue = kept;
+    else data.keepAttr = false;
+  });
+};
+
+const escapeHtml = (s: string): string =>
+  String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+/** 代码高亮（动态引入 highlight.js，失败则降级为纯文本转义） */
+let hljsInstance: typeof import('highlight.js').default | null = null;
+const getHljs = async () => {
+  if (hljsInstance) return hljsInstance;
+  const mod = await import('highlight.js/lib/common');
+  hljsInstance = mod.default;
+  return hljsInstance;
+};
+
+/**
+ * 把纯文本代码做高亮，返回 HTML 字符串。
+ * 找不到语言或高亮失败时，退回转义后的纯文本（保证不丢内容、不报错）。
+ */
+const highlightCode = async (code: string, lang?: string) => {
+  const raw = String(code ?? '');
+  try {
+    const hljs = await getHljs();
+    const language = lang && hljs.getLanguage(lang) ? lang : '';
+    const html = language
+      ? hljs.highlight(raw, { language, ignoreIllegals: true }).value
+      : hljs.highlightAuto(raw).value;
+    return `<pre class="hljs"><code class="hljs language-${
+      language || 'plaintext'
+    }">${html}</code></pre>`;
+  } catch {
+    return `<pre class="hljs"><code class="hljs">${escapeHtml(raw)}</code></pre>`;
+  }
+};
+
+/**
+ * 把库内内容按 Markdown 渲染成安全的 HTML（异步，因为代码高亮按需加载）。
+ *
+ * 设计要点：
+ * 1. 三方内容一律先渲染 Markdown，再过 DOMPurify（class 走前缀白名单 hook），
+ *    避免 markdown 中的 HTML 变成注入点。
+ * 2. 代码块统一交给 highlight.js 生成，产出的 class 恰好命中白名单前缀，
+ *    因此能在被净化后依然保留高亮样式。
+ * 3. 未包含 Markdown 语法时，效果与原 sanitizeHtml 基本一致（换行会被
+ *    解析为段落），因此可安全替换原有调用点。
+ */
+export const renderMarkdown = async (
+  content: string | null | undefined,
+): Promise<string> => {
+  const text = String(content ?? '');
+  if (!text) return '';
+  installClassHook();
+  try {
+    const { Marked } = await import('marked');
+    const codeBlocks: Array<{ code: string; lang: string }> = [];
+    const marked = new Marked({
+      gfm: true,
+      breaks: true, // 单个换行也换行，符合题库“解析分段”书写习惯
+    });
+    // 自定义代码块渲染：不用 marked 的默认高亮，自己接管以便统一输出结构
+    // marked v12 的 renderer.code 签名为 (code, infostring, escaped) => string
+    marked.use({
+      renderer: {
+        code(codeText: string, infostring: string | undefined) {
+          // 渲染期为同步上下文，这里先用占位符，高亮在下方异步补齐
+          const idx = codeBlocks.length;
+          const lang = (infostring || '').trim().split(/\s+/)[0] || '';
+          codeBlocks.push({ code: codeText, lang });
+          return `\u0000CODEBLOCK${idx}\u0000`;
+        },
+      },
+    });
+    let html = marked.parse(text) as string;
+    // 逐个替换占位符为高亮后的代码块
+    const highlighted = await Promise.all(
+      codeBlocks.map((b) => highlightCode(b.code, b.lang)),
+    );
+    html = html.replace(/\u0000CODEBLOCK(\d+)\u0000/g, (_, i) => {
+      return highlighted[Number(i)] ?? '';
+    });
+    return DOMPurify.sanitize(html, SANITIZE_CONFIG);
+  } catch {
+    // Markdown 解析失败时退回纯文本展示，保证题目内容不丢失
+    return sanitizeHtml(escapeHtml(text).replace(/\n/g, '<br>'));
+  }
+};
+
 
 /**
  * 验证码专用 sanitize（只放行纯 SVG，不带 on* 事件、href 等可执行属性）
