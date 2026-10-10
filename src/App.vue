@@ -96,6 +96,27 @@ onBeforeUnmount(() => {
   --tk-brand-grad-anim: linear-gradient(120deg, #00c6ff, #0072ff, #00c6ff);
 }
 
+/* ============ 全局字体（修复 Mac 显示不友好） ============
+   项目原先未声明 font-family，页面自有文字继承浏览器默认字体：
+   Windows 上默认恰好是微软雅黑（无衬线）所以看着正常，
+   macOS 没有雅黑，中文会回退到宋体 Songti SC（衬线体），
+   与 Element Plus 组件内置的苹方混排，观感割裂。
+   这里采用与 Element Plus 官方一致的字体栈，全站统一。 */
+body {
+  font-family:
+    'Helvetica Neue',
+    Helvetica,
+    'PingFang SC',
+    'Hiragino Sans GB',
+    'Microsoft YaHei',
+    '微软雅黑',
+    Arial,
+    sans-serif;
+  /* macOS 文字渲染优化：抗锯齿，笔画更细腻，贴近苹方原生观感 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 /* 全局页面背景：顶部淡青蓝渐变的科技感底 */
 .tkdog-container {
   background: linear-gradient(
