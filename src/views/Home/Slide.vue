@@ -97,7 +97,9 @@
                 <div class="name">{{ item.username }}</div>
               </div>
               <div class="level">
+                <!-- 积分已不再展示（保留字段但隐藏，如需恢复取消注释即可）
                 <div class="level-integral">积分：{{ item.integral ?? 0 }}</div>
+                -->
                 <div v-if="item?.get_likes_num > 0">
                   获赞数：{{ item.get_likes_num }}
                 </div>
@@ -121,11 +123,13 @@
                 {{ myRankInfo.username }}<span class="me-tag">我</span>
               </div>
             </div>
+            <!-- 积分已不再展示（保留结构但隐藏，如需恢复取消注释即可）
             <div class="level">
               <div class="level-integral">
                 积分：{{ myRankInfo.integral ?? 0 }}
               </div>
             </div>
+            -->
           </div>
         </div>
       </el-card>
