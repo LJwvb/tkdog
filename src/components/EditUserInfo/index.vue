@@ -78,7 +78,7 @@
           "
           >清空</el-button
         >
-        <el-button type="primary" @click="submitForm(ruleFormRef)">
+        <el-button type="primary" :loading="subLoading" @click="submitForm(ruleFormRef)">
           确定
         </el-button>
       </span>
@@ -87,7 +87,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, toRefs } from 'vue';
+import { reactive, ref, toRefs, watch, nextTick } from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import { useStore } from 'vuex';
 import { editUserInfo, uploadImage } from '@/services';
@@ -95,6 +95,8 @@ import type { FormInstance, FormRules } from 'element-plus';
 const formSize = ref<'' | 'default' | 'small' | 'large'>('default');
 const ruleFormRef = ref<FormInstance>();
 const store = useStore();
+// 提交中标记：防止重复点击，同时给按钮 loading 反馈
+const subLoading = ref(false);
 // 头像预览（初始为当前头像，可更换）
 const avatarPreview = ref(store.state.userData.avatar || '');
 const avatarInput = ref<HTMLInputElement>();
@@ -132,6 +134,21 @@ const ruleForm = reactive({
   personalIntroduction: store.state.userData.personalIntroduction,
 });
 
+// 弹窗打开时同步最新用户数据并清掉上次的校验残留：
+// ruleForm / avatarPreview 是组件挂载时的一次性快照，弹窗复用不会自动刷新，
+// 否则改完一次再打开会看到旧值，且上次的红色报错一直挂着。
+watch(dialogVisible, (visible) => {
+  if (!visible) return;
+  const ud = store.state.userData;
+  ruleForm.phone = ud.phone;
+  ruleForm.username = ud.username;
+  ruleForm.email = ud.email;
+  ruleForm.sex = ud.sex;
+  ruleForm.personalIntroduction = ud.personalIntroduction;
+  avatarPreview.value = ud.avatar || '';
+  nextTick(() => ruleFormRef.value?.clearValidate());
+});
+
 const rules = reactive<FormRules>({
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
@@ -141,8 +158,9 @@ const rules = reactive<FormRules>({
     { required: true, message: '请输入手机号', trigger: 'blur' },
     {
       pattern: /^1[3-9]\d{9}$/,
-      message: '请输入正确的手机号',
-      trigger: 'blur',
+      message: '请输入正确的手机号（11 位，1 开头）',
+      // change 也触发：避免用户输入完直接点「确定」时不校验
+      trigger: ['blur', 'change'],
     },
   ],
   email: [
@@ -157,35 +175,50 @@ const rules = reactive<FormRules>({
 
 const submitForm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return;
-  await formEl.validate((valid) => {
-    if (valid) {
-      const params = {
-        ...ruleForm,
-        avatar: avatarPreview.value,
-      };
+  // 校验不通过时 Element Plus 会在字段下方内联提示，这里不再额外 toast，避免重复打扰
+  const valid = await formEl.validate().catch(() => false);
+  if (!valid) return;
 
-      editUserInfo(params).then(() => {
-        ElMessage.success('修改成功');
-        emit('update:dialogVisible', false);
-        store.commit('setUserData', {
-          ...store.state.userData,
-          ...params,
-        });
-      });
-    } else {
-      return;
+  const params = {
+    ...ruleForm,
+    avatar: avatarPreview.value,
+  };
+
+  subLoading.value = true;
+  try {
+    await editUserInfo(params);
+    ElMessage.success('修改成功');
+    emit('update:dialogVisible', false);
+    store.commit('setUserData', {
+      ...store.state.userData,
+      ...params,
+    });
+  } catch (err: any) {
+    // 网络/业务错误已由 request 拦截层统一 toast，这里只处理「服务端校验失败」的场景：
+    // 把后端返回的具体原因回填到对应字段，而不是只弹一句笼统的提示。
+    const msg: string = err?.message || '';
+    if (msg.includes('手机号')) {
+      formEl.validateField?.('phone');
+    } else if (msg.includes('用户名')) {
+      formEl.validateField?.('username');
     }
-  });
+  } finally {
+    subLoading.value = false;
+  }
 };
 
 const resetForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return;
-  formEl.resetFields();
-  ruleForm.phone = store.state.userData.phone;
-  ruleForm.username = store.state.userData.username;
-  ruleForm.email = '';
-  ruleForm.sex = '';
-  ruleForm.personalIntroduction = '';
+  // 不用 resetFields()：它会回退到组件初次挂载时的快照（可能是旧值）。
+  // 这里手动恢复为 store 里的当前真实数据，并清掉校验提示。
+  const ud = store.state.userData;
+  ruleForm.phone = ud.phone;
+  ruleForm.username = ud.username;
+  ruleForm.email = ud.email || '';
+  ruleForm.sex = ud.sex;
+  ruleForm.personalIntroduction = ud.personalIntroduction || '';
+  avatarPreview.value = ud.avatar || '';
+  formEl.clearValidate();
 };
 
 const emit = defineEmits<{ 'update:dialogVisible': [value: boolean] }>();
