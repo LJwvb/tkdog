@@ -20,7 +20,7 @@
         <span>© 2026 题库狗</span>
       </div>
     </div>
-    <!-- 备案信息：按国内要求展示备案号，并链接至工信部 ICP/IP 地址/域名信息备案管理系统 -->
+    <!-- 备案信息：ICP 备案号 + 公安备案号同一排展示，均链至官方备案系统 -->
     <div class="icp-row">
       <a
         class="icp-link"
@@ -30,32 +30,32 @@
       >
         浙ICP备2026077308号-1
       </a>
-    </div>
-    <!--
-      公安联网备案（公网安备）：在全国互联网安全管理服务平台审核通过后，
-      把拿到的编号（纯数字部分，如 33010802000000）填入下方 POLICE_BEIAN_NO 即可，
-      留空则该行不展示。
-    -->
-    <div v-if="POLICE_BEIAN_NO" class="icp-row police-row">
-      <a
-        class="icp-link"
-        :href="policeBeianUrl"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        浙公网安备 {{ POLICE_BEIAN_NO }} 号
-      </a>
+      <!-- 公安联网备案：编号由下方 POLICE_BEIAN_NO 常量控制，留空则整段不展示 -->
+      <template v-if="POLICE_BEIAN_NO">
+        <span class="icp-sep">·</span>
+        <a
+          class="icp-link police-link"
+          :href="policeBeianUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img class="police-icon" :src="policeBadge" alt="公安备案" />
+          浙公网安备 {{ POLICE_BEIAN_NO }} 号
+        </a>
+      </template>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { School, Promotion, Stamp } from '@element-plus/icons-vue';
+// 公安备案官方警徽图标（取自 beian.gov.cn 官方备案编号图标，勿篡改样式）
+import policeBadge from '@/assets/police-badge.png';
 
-// 公安联网备案号（公网安备）的数字部分，例如 '33010802000000'
-// 留空则页脚不展示该行；拿到编号后填入并重新打包即可
-const POLICE_BEIAN_NO = '';
-const policeBeianUrl = `http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=${POLICE_BEIAN_NO}`;
+// 公安联网备案号（公网安备）的数字部分，例如 '33028202001312'
+// 留空则页脚不展示该段；编号由公安备案平台「我的网站 → 详情」中获取
+const POLICE_BEIAN_NO = '33028202001312';
+const policeBeianUrl = `https://beian.mps.gov.cn/#/query/webSearch?code=${POLICE_BEIAN_NO}`;
 </script>
 
 <style scoped>
@@ -145,10 +145,20 @@ const policeBeianUrl = `http://www.beian.gov.cn/portal/registerSystemInfo?record
   color: var(--el-color-primary);
   text-decoration: underline;
 }
-.police-row {
-  margin-top: 6px;
-  padding-top: 0;
-  border-top: none;
+.icp-sep {
+  opacity: 0.55;
+}
+.police-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.police-icon {
+  /* 规范建议图标尺寸 16×17px */
+  width: 16px;
+  height: 17px;
+  flex-shrink: 0;
+  display: block;
 }
 
 /* 移动端适配：垂直排列，避免文字被压缩 */
