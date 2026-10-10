@@ -1,9 +1,17 @@
 <template>
+  <!--
+    append-to-body 必须开启：本组件挂在 NavBar（.nav-container）里，
+    而 .nav-container 有 backdrop-filter，会成为 position:fixed 后代的包含块并创建层叠上下文。
+    el-dialog 默认 appendToBody=false → Teleport 被禁用 → 弹窗原地渲染在导航栏那条 60px 高的带子里，
+    遮罩铺不满、弹窗被顶到视口上方看起来"被盖住"。teleport 到 body 后即恢复正常全屏居中。
+    注意：这里不要手动把 z-index 钉死成 9999，handleClose 里的 ElMessageBox 需要叠在弹窗之上。
+  -->
   <el-dialog
     v-model="dialogVisible"
     title="上传题目"
     width="60%"
     center
+    append-to-body
     :before-close="handleClose"
   >
     <el-form label-width="90px" status-icon>
