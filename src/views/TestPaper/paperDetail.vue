@@ -38,19 +38,8 @@
             </el-icon>
           </div>
           <!-- eslint-disable vue/no-v-html -->
-          <div v-show="answerOpen[item.id]" class="question-answer">
-            <div
-              v-if="item.answer"
-              v-html="
-                sanitizeHtml(
-                  formatAnswerWithValues(
-                    item.questionType,
-                    item.answer,
-                    item.questionDetail,
-                  ),
-                )
-              "
-            ></div>
+          <div v-show="answerOpen[item.id]" class="question-answer md-body">
+            <div v-if="item.answer" v-html="answerHtmlMap[item.id] || ''"></div>
             <!-- eslint-enable vue/no-v-html -->
             <div v-else class="answer-tip">
               该试卷答案仅作者本人或管理员可见
@@ -107,7 +96,7 @@ import {
   exportPaperToWord,
   parsePaperOptions,
   formatAnswerWithValues,
-  sanitizeHtml,
+  renderMarkdown,
 } from '@/utils';
 import type { IQuestion } from '@/types';
 import {
@@ -133,10 +122,14 @@ const paperInfo = ref<IPaperDetailInfo>({});
 // 答案展开状态（默认全部收起）
 const answerOpen = ref<Record<number, boolean>>({});
 
-// 游客（未登录）展开答案时给出说明：后端对未登录强制隐藏答案
+// 游客（未登录）展开答案时给出说明：后端对未登录强制隐藏答案。
+// 管理员用 ADMIN_SESS cookie 登录（不持有 userData.userId），后端 getPaperQuestionsDetail
+// 已显式传入 isAdmin 放行答案，前端这里必须同样放行，否则管理端会误报"请先登录"。
 const store = useStore();
 const toggleAnswer = (id: number) => {
-  const isLoggedIn = Boolean(store.state.userData?.userId);
+  const isLoggedIn = Boolean(
+    store.state.userData?.userId || store.state.adminData?.id,
+  );
   if (!isLoggedIn) {
     ElMessage.warning('登录后可查看答案，请先登录');
     return;
@@ -150,10 +143,29 @@ const optionList = (item: IQuestion) => {
   return [];
 };
 
+// 答案 Markdown 渲染结果缓存（key = 题目 id），异步渲染完成后回填
+const answerHtmlMap = ref<Record<number, string>>({});
+
+// 预渲染所有题目的答案（Markdown + 代码高亮），避免展开时才卡顿
+const renderAllAnswers = async (list: IQuestion[]) => {
+  const entries = await Promise.all(
+    list.map(async (item) => {
+      const raw = formatAnswerWithValues(
+        item.questionType,
+        item.answer,
+        item.questionDetail,
+      );
+      return [item.id, await renderMarkdown(raw)] as const;
+    }),
+  );
+  answerHtmlMap.value = Object.fromEntries(entries);
+};
+
 onMounted(async () => {
   const res = await getPaperDetail({ paperId: firstQueryValue(paperID) });
   paperDetail.value = res?.questions;
   paperInfo.value = res?.paperInfo as unknown as IPaperDetailInfo;
+  if (paperDetail.value?.length) await renderAllAnswers(paperDetail.value);
 });
 const addDate = computed(() => {
   return transitionTime(paperInfo.value?.ctime);
@@ -168,9 +180,9 @@ const tags = computed<string[]>(() => {
     : [];
 });
 const name = computed(() => {
-  return paperInfo.value?.purview === PaperPurview.Public
-    ? '公开试卷'
-    : '个人试卷';
+  const purview = paperInfo.value?.purview;
+  if (purview === PaperPurview.Official) return '官方试卷';
+  return purview === PaperPurview.Public ? '公开试卷' : '个人试卷';
 });
 const goBack = () => {
   if (window.history.length > 1) {

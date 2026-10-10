@@ -7,7 +7,25 @@
       </el-button>
     </div>
     <!-- 题目详情 -->
-    <el-card class="container">
+    <!-- 题目不存在/已被删除：不渲染详情卡片，避免展示残留内容 -->
+    <el-card v-if="notFound" class="container">
+      <el-empty description="该题目不存在或已被删除">
+        <el-button type="primary" @click="returnToBefore">
+          返回题目列表
+        </el-button>
+      </el-empty>
+    </el-card>
+    <el-card v-else class="container">
+      <!-- 管理端预览已删除题目：醒目标识，避免误以为题目仍在正常使用 -->
+      <el-alert
+        v-if="isDeletedQuestion"
+        class="deleted-alert"
+        type="error"
+        show-icon
+        :closable="false"
+        title="该题目已被删除"
+        description="当前为管理端预览视图。可在管理端「题目管理 → 已删除」中恢复该题，或执行彻底删除。"
+      />
       <div class="grid-content">
         <div class="title-box">
           <div :class="difficultyClass(questionDetail.difficulty)">
@@ -56,8 +74,8 @@
           <!-- eslint-disable vue/no-v-html -->
           <div
             v-if="isDetailType"
-            class="question-detail"
-            v-html="sanitizeHtml(questionDetail.questionDetail)"
+            class="question-detail md-body"
+            v-html="questionDetailHtml"
           />
           <!-- eslint-enable vue/no-v-html -->
           <div v-else-if="isChoiceType" class="single-choice">
@@ -79,19 +97,7 @@
             </el-icon>
           </div>
           <!-- eslint-disable vue/no-v-html -->
-          <div
-            v-show="answerOpen"
-            class="answer"
-            v-html="
-              sanitizeHtml(
-                formatAnswerWithValues(
-                  questionDetail.questionType,
-                  questionDetail.answer,
-                  questionDetail.questionDetail,
-                ),
-              )
-            "
-          />
+          <div v-show="answerOpen" class="answer md-body" v-html="answerHtml" />
           <!-- eslint-enable vue/no-v-html -->
         </div>
         <!-- AI 解题思路 -->
@@ -153,7 +159,11 @@
         <div class="comment-section">
           <h4>讨论</h4>
           <div v-if="isReadonly" class="readonly-tip">
-            该题目未通过审核，仅支持查看，暂不支持评论
+            {{
+              isDeletedQuestion
+                ? '该题目已被删除，仅支持查看，暂不支持评论'
+                : '该题目未通过审核，仅支持查看，暂不支持评论'
+            }}
           </div>
           <template v-else>
             <div class="comment-input">
@@ -492,7 +502,7 @@ import {
   transitionTime,
   firstQueryValue,
   formatAnswerWithValues,
-  sanitizeHtml,
+  renderMarkdown,
 } from '@/utils';
 import type { IComment, IQuestion } from '@/types';
 import router from '@/router';
@@ -522,6 +532,9 @@ const aiData = ref<{
   pitfall?: string;
   template?: string;
 } | null>(null);
+// AI 解题思路仅对普通用户开放：后端 /aiAnalyze 走 auth（JWT）中间件，
+// 管理员用 ADMIN_SESS cookie 登录、不持有 JWT，调用会 401 并被拦截器踢回登录页，
+// 因此这里有意不把管理端算作已登录（与「答案与解析」不同，那边后端是放行管理员的）。
 const isLoggedInForAi = computed(() => Boolean(store.state.userData?.userId));
 const toggleAiAnalysis = () => {
   if (!isLoggedInForAi.value) {
@@ -550,8 +563,11 @@ const loadAiAnalysis = async () => {
 // 答案与解析：默认收起，点击标题展开/收起
 const answerOpen = ref(false);
 const toggleAnswer = () => {
-  // 游客（未登录）展开答案时给出说明
-  const isLoggedIn = Boolean(store.state.userData?.userId);
+  // 登录判定：普通用户看 userId；管理员用 ADMIN_SESS 登录（不持有 userId），
+  // 后端已对管理员放行答案，前端这里必须同样放行，否则管理端会误报"请先登录"。
+  const isLoggedIn = Boolean(
+    store.state.userData?.userId || store.state.adminData?.id,
+  );
   if (!isLoggedIn) {
     ElMessage.warning('登录后可查看答案，请先登录');
     return;
@@ -585,6 +601,8 @@ const likeTopicsId: string[] = (
 ).map(String);
 // 获取题目详情
 const questionDetail = ref({} as IQuestion);
+/** 题目不存在/已删除（详情接口失败）时展示空状态，避免残留上一题内容 */
+const notFound = ref(false);
 // 相似题目
 const similarQuestions = ref<IQuestion[]>([]);
 // 是否点击了喜欢
@@ -608,8 +626,13 @@ const toggleFavorite = () => {
     ElMessage.success(isFavorite.value ? '收藏成功' : '已取消收藏');
   });
 };
-// 未审核 / 审核不通过的题目只读：不允许点赞、选题、评论等操作
-const isReadonly = computed(() => Number(questionDetail.value.chkState) !== 1);
+// 未审核 / 审核不通过 / 已软删除的题目只读：不允许点赞、选题、评论等操作
+const isDeletedQuestion = computed(
+  () => Number(questionDetail.value.is_deleted) === 1,
+);
+const isReadonly = computed(
+  () => Number(questionDetail.value.chkState) !== 1 || isDeletedQuestion.value,
+);
 const tags = computed(() => {
   const rawTags = questionDetail.value.tags;
   if (Array.isArray(rawTags)) {
@@ -634,6 +657,43 @@ const difficultyClass = (difficulty: number | string) => {
 const qt = computed(() => String(questionDetail.value.questionType));
 const isDetailType = computed(() => ['3', '4'].includes(qt.value));
 const isChoiceType = computed(() => ['0', '1', '2'].includes(qt.value));
+
+// ===== Markdown 渲染（支持代码块高亮）=====
+// 题干详情与答案都按 Markdown 渲染；渲染是异步的（代码高亮按需加载），
+// 因此用 ref 缓存结果、watch 源数据变化时重算。
+const questionDetailHtml = ref('');
+const answerHtml = ref('');
+
+// 答案的原始文本：先做「正确选项：A」→「A. 选项内容」补全，再交给 Markdown 渲染
+const answerRawText = computed(() =>
+  formatAnswerWithValues(
+    questionDetail.value.questionType,
+    questionDetail.value.answer,
+    questionDetail.value.questionDetail,
+  ),
+);
+
+watch(
+  () => [questionDetail.value.questionDetail, isDetailType.value],
+  async () => {
+    if (!isDetailType.value) {
+      questionDetailHtml.value = '';
+      return;
+    }
+    questionDetailHtml.value = await renderMarkdown(
+      questionDetail.value.questionDetail,
+    );
+  },
+  { immediate: true },
+);
+
+watch(
+  answerRawText,
+  async (text) => {
+    answerHtml.value = await renderMarkdown(text);
+  },
+  { immediate: true },
+);
 // 客观题选项（安全解析，避免 questionDetail 为空/非法 JSON 时报错）
 const questionOptions = computed(() => {
   if (!isChoiceType.value) return [];
@@ -653,10 +713,12 @@ const updateTimeText = computed(() => {
     ? transitionTime(questionDetail.value.updateTime)
     : '';
 });
-// 记录浏览：仅审核通过的题目且本次会话未浏览过才 +1，并同步更新详情页展示
+// 记录浏览：仅「审核通过且未删除」的题目、且本次会话未浏览过才 +1，并同步更新详情页展示
+// （管理端预览已删除题目时不应计入浏览数）
 const recordBrowse = (qid: number) => {
   const detail = questionDetail.value;
   if (!detail || Number(detail.chkState) !== 1) return;
+  if (Number(detail.is_deleted) === 1) return;
   const browsed = store.state.browseTopicsId;
   if (browsed.includes(qid)) return;
   store.commit('setBrowseTopicsId', [...browsed, qid]);
@@ -667,6 +729,10 @@ const recordBrowse = (qid: number) => {
 // 获取题目详情
 const getDailyQuestion = async (value?: number) => {
   const targetId = value ?? Number(id.value);
+  // 切题时先清空详情，避免接口失败（题目已被删除/不存在）时残留上一题内容造成误解
+  questionDetail.value = {} as IQuestion;
+  questionDetailHtml.value = '';
+  notFound.value = false;
   // 判断喜欢的题目中是否包含当前题目id（统一按字符串比较）
   if (likeTopicsId.includes(String(targetId))) {
     isClickLike.value = true;
@@ -677,9 +743,19 @@ const getDailyQuestion = async (value?: number) => {
     .then((res) => {
       // 竞态防护：切题后旧请求返回时直接丢弃，避免覆盖新题数据
       if (Number(id.value) !== targetId) return;
+      // 题目不存在（已被删除）时标记空状态，避免展示空白页
+      if (!res || !res.id) {
+        notFound.value = true;
+        return;
+      }
       questionDetail.value = res;
       // 浏览记录统一在详情加载完成后处理，避免与详情接口并发导致浏览数少算
       recordBrowse(targetId);
+    })
+    .catch(() => {
+      // 接口失败（题目已删除等）同样标记空状态，不留上一题残留
+      if (Number(id.value) !== targetId) return;
+      notFound.value = true;
     })
     .finally(() => {
       loading.value = false;
@@ -779,6 +855,10 @@ const goSimilarQuestion = (qid: number) => {
 // （竞态防护：各加载函数在赋值前比对目标 id 与当前 id，旧请求响应直接丢弃）
 watch(id, (newId, oldId) => {
   if (!newId || String(newId) === String(oldId)) return;
+  // 重置详情与空状态，避免上一题内容残留
+  questionDetail.value = {} as IQuestion;
+  questionDetailHtml.value = '';
+  notFound.value = false;
   // 重置 AI 解析状态
   aiOpen.value = false;
   aiTried.value = false;
@@ -1385,6 +1465,9 @@ watchEffect(() => {
   color: #909399;
   border-radius: 4px;
   font-size: 14px;
+}
+.deleted-alert {
+  margin-bottom: 18px;
 }
 .comment-input {
   margin-bottom: 20px;

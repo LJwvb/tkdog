@@ -98,6 +98,7 @@ export interface IQuestion {
   likes_num: number; // 点赞数
   browses_num: number; // 浏览数
   favorite_num: number; // 收藏数
+  is_deleted?: number; // 软删除标记 0:正常 1:已删除（管理端预览已删题目时会返回）
 }
 // 获取题目详情接口
 export interface IGetQuestionDetailParams {
