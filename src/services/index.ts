@@ -1,4 +1,5 @@
-﻿import { request } from '@/utils/request';
+import { request } from '@/utils/request';
+import { compressImage, AVATAR_MAX_EDGE } from '@/utils/image';
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
 import store from '@/store';
@@ -273,6 +274,14 @@ export async function uploadImage(
   return request<{ url: string }>('POST', '/uploadImage', { data: form }).then(
     (res) => res.url,
   );
+}
+
+// 头像上传：先在浏览器里压到长边 256 再上传。
+// 头像最大只展示 80px（3 倍屏 240px），原图动辄 2~5MB 纯属浪费带宽
+// （线上曾出现 4.7MB 的头像文件），压缩后通常 10~30KB。
+export async function uploadAvatar(file: File): Promise<string> {
+  const compressed = await compressImage(file, AVATAR_MAX_EDGE);
+  return uploadImage(compressed, 'avatar');
 }
 
 // 用户登录接口（返回登录后的用户信息）

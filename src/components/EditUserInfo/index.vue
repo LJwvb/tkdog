@@ -90,7 +90,7 @@
 import { reactive, ref, toRefs, watch, nextTick } from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import { useStore } from 'vuex';
-import { editUserInfo, uploadImage } from '@/services';
+import { editUserInfo, uploadAvatar } from '@/services';
 import type { FormInstance, FormRules } from 'element-plus';
 const formSize = ref<'' | 'default' | 'small' | 'large'>('default');
 const ruleFormRef = ref<FormInstance>();
@@ -108,7 +108,8 @@ const onPickAvatar = async (e: Event) => {
   const file = input.files?.[0];
   if (!file) return;
   try {
-    const url = await uploadImage(file, 'avatar');
+    // uploadAvatar 内部会先把图片压到长边 256（webp/jpg），再走上传接口
+    const url = await uploadAvatar(file);
     avatarPreview.value = url;
   } catch (err) {
     ElMessage.error((err as Error)?.message || '头像上传失败');
