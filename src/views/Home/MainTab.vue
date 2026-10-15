@@ -7,9 +7,9 @@
       <div class="hero-grid"></div>
       <div class="hero-content">
         <div class="hero-badge">AI 智能刷题平台</div>
-        <h2 class="hero-title">
+        <h1 class="hero-title">
           题库狗<span class="hero-dot">·</span>高效备战每一场面试
-        </h2>
+        </h1>
         <p class="hero-sub">
           海量精选真题 · AI解题提示 · 智能组卷 · AI答题报告 ·
           AI智能判分，一站式面试刷题平台

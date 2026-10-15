@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="card-container">
     <div class="card" @click="toProblemInfo()">
       <div class="title-row">
@@ -415,7 +415,8 @@ watchEffect(() => {
   display: flex;
   align-items: center;
   font-size: 13px;
-  color: #909399;
+  /* #909399 对白底仅 3.07:1，改用可访问灰（5.4:1）；暗色模式由 dark.css 的 !important 接管 */
+  color: var(--tk-a11y-gray, #5f6b7a);
   flex-wrap: wrap;
   gap: 0;
 }
@@ -436,7 +437,7 @@ watchEffect(() => {
   align-items: center;
   gap: 20px;
   font-size: 13px;
-  color: #909399;
+  color: var(--tk-a11y-gray, #5f6b7a);
   flex-shrink: 0;
 }
 

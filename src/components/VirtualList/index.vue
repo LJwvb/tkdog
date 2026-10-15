@@ -2,6 +2,9 @@
   <div
     ref="containerRef"
     class="virtual-list-container"
+    tabindex="0"
+    role="group"
+    :aria-label="listLabel"
     :style="containerStyle"
     @scroll.passive="handleScroll"
   >
@@ -79,6 +82,10 @@ interface Props {
   backTopVisibilityHeight?: number;
   backTopRight?: number;
   backTopBottom?: number;
+  /** 无障碍：滚动区域的名字（配合 tabindex 让键盘用户能聚焦并滚动，WCAG 2.1.1）
+   *  用 role="group" 而不是 region：首页 8 个科目面板会同时渲染多个列表，
+   *  若用 region 会出现多个同名地标（axe landmark-unique 报警），group 可安全重名。 */
+  listLabel?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -91,6 +98,7 @@ const props = withDefaults(defineProps<Props>(), {
   backTopVisibilityHeight: 300,
   backTopRight: 40,
   backTopBottom: 80,
+  listLabel: '题目列表',
 });
 
 const emit = defineEmits(['loadMore', 'scroll']);

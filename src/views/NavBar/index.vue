@@ -1,7 +1,7 @@
 <template>
   <div v-if="!store.state.adminData?.id" class="nav-container">
     <div class="logo">
-      <img src="../../assets/tkdog.webp" width="50" />
+      <img src="../../assets/tkdog.webp" width="50" height="50" alt="题库狗" />
       <div class="title">
         <span>题库狗</span>
       </div>
@@ -42,7 +42,11 @@
       </el-menu-item>
     </el-menu>
     <div class="left">
-      <el-button circle @click="toggleTheme">
+      <el-button
+        circle
+        :aria-label="isDark ? '切换到浅色模式' : '切换到深色模式'"
+        @click="toggleTheme"
+      >
         <el-icon>
           <Moon v-if="!isDark" />
           <Sunny v-else />
@@ -54,7 +58,13 @@
         :max="99"
         class="msg-badge"
       >
-        <el-button circle @click="toMessage">
+        <el-button
+          circle
+          :aria-label="
+            unreadCount > 0 ? `消息通知，${unreadCount} 条未读` : '消息通知'
+          "
+          @click="toMessage"
+        >
           <el-icon><Bell /></el-icon>
         </el-button>
       </el-badge>
@@ -70,6 +80,7 @@
         <el-avatar
           :size="50"
           :src="store.state.userData?.avatar"
+          alt="用户头像"
           style="width: 50px; height: 50px"
         />
         <template #dropdown>
@@ -98,6 +109,7 @@
       <el-avatar
         v-else
         :size="50"
+        alt="登录或注册"
         style="width: 50px; height: 50px; cursor: pointer"
         @click="goLogin"
       />
@@ -133,7 +145,7 @@
   </div>
   <div v-else-if="store.state.adminData?.id" class="nav-container">
     <div class="logo">
-      <img src="../../assets/tkdog.webp" width="50" />
+      <img src="../../assets/tkdog.webp" width="50" height="50" alt="题库狗" />
       <div class="title">
         <span>题库狗后台管理</span>
       </div>
@@ -222,6 +234,7 @@
           <el-avatar
             :size="50"
             src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
+            alt="管理员头像"
           />
         </span>
         <template #dropdown>

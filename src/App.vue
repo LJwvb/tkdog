@@ -1,19 +1,21 @@
-﻿<template>
+<template>
   <div>
-    <router-view v-if="isStandalonePage" />
+    <main v-if="isStandalonePage" class="standalone-main">
+      <router-view />
+    </main>
     <div v-else class="tkdog-container">
-      <!-- 固定导航栏 -->
-      <div class="home-nav">
+      <!-- 固定导航栏（nav 地标：屏幕阅读器可跳转到导航） -->
+      <nav class="home-nav">
         <NavBar></NavBar>
-      </div>
-      <!-- 动态页面主体 -->
-      <div class="home-body">
+      </nav>
+      <!-- 动态页面主体（main 地标：Lighthouse 要求文档必须有 main） -->
+      <main class="home-body">
         <router-view />
-      </div>
+      </main>
       <!-- 尾部-->
-      <div class="home-bottom">
+      <footer class="home-bottom">
         <BottomBar></BottomBar>
-      </div>
+      </footer>
       <TestBasket />
     </div>
   </div>
@@ -94,6 +96,13 @@ onBeforeUnmount(() => {
   --el-color-primary-dark-2: #0085cc;
   --tk-brand-grad: linear-gradient(120deg, #00c6ff, #0072ff);
   --tk-brand-grad-anim: linear-gradient(120deg, #00c6ff, #0072ff, #00c6ff);
+  /* ============ 可访问性（WCAG 2.1 AA）专用色 ============
+     Element Plus 主色 #409eff 对白底只有 2.78:1，不能用于「文字」或「小面积底色 + 白字」，
+     这里单独提供通过 4.5:1 的品牌色变体，供标签文字、激活 tab、次要文字等使用。
+     暗色主题的对应值见 styles/dark.css（html.dark 覆盖）。 */
+  --tk-a11y-blue: #0b63c9; /* 深蓝文字：白底 5.8:1 */
+  --tk-a11y-blue-bg: #1a73c7; /* 深蓝底 + 白字：4.9:1 */
+  --tk-a11y-gray: #5f6b7a; /* 次要灰字：白底 5.4:1 */
 }
 
 /* ============ 全局字体（修复 Mac 显示不友好） ============
@@ -166,11 +175,16 @@ body {
 .el-tabs__active-bar {
   background: linear-gradient(90deg, #00c6ff, #0072ff);
 }
-.el-tabs__item.is-active {
-  color: var(--el-color-primary);
+/* 激活/悬停文字用「可访问蓝」：EP 的 --el-color-primary(#409eff) 对白底仅 2.78:1，不达标。
+   选择器提高一级特异性（.el-tabs .el-tabs__item）以压过 EP 自带样式表（其加载顺序在后）。 */
+.el-tabs .el-tabs__item.is-active,
+.el-tabs .el-tabs__item:hover {
+  color: var(--tk-a11y-blue);
 }
-.el-tabs__item:hover {
-  color: var(--el-color-primary);
+
+/* 默认（primary）标签文字加深到 4.5:1 以上；:not(.el-tag--dark) 避免影响深底白字变体 */
+.el-tag.el-tag--primary:not(.el-tag--dark) {
+  --el-tag-text-color: var(--tk-a11y-blue);
 }
 
 /* el-link 主色 */

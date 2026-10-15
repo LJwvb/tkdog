@@ -1,0 +1,9 @@
+# 题库狗 tkdog.cn
+User-agent: *
+Allow: /
+
+# 接口与用户上传目录无需被搜索引擎收录
+Disallow: /api/
+Disallow: /public/uploads/
+
+Sitemap: https://tkdog.cn/sitemap.xml

@@ -1,10 +1,11 @@
-﻿<template>
+<template>
   <div class="title-small">
-    <div class="test-basket">
+    <!-- aside：让悬浮的「试题篮」成为 complementary 地标（axe region 规则要求页面内容都在地标内） -->
+    <aside class="test-basket" aria-label="试题篮">
       <el-badge :value="badgeValue" :max="10" class="badge">
         <div class="basket-btn" @click="drawerClick">试题篮</div>
       </el-badge>
-    </div>
+    </aside>
 
     <el-drawer
       v-model="drawer"
@@ -118,7 +119,8 @@ const clearAll = () => {
 }
 .basket-btn {
   width: 25px;
-  background-color: #409eff;
+  /* 白字底色需 ≥4.5:1：#409eff 只有 2.78:1，改用深一档的品牌蓝（4.9:1） */
+  background-color: var(--tk-a11y-blue-bg, #1a73c7);
   color: #fff;
   border-radius: 3px;
   text-align: center;

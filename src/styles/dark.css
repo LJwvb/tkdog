@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 暗色模式样式
  * 所有 html.dark 相关的样式都集中在这里，方便统一维护
  * 包含：全局容器、导航栏、文字颜色、卡片、表单、表格、各页面组件等
@@ -7,6 +7,9 @@
 html.dark {
   /* 与 .tkdog-container 暗色背景一致，避免滚动条槽位透出亮色背景 */
   background-color: #141414;
+  /* 可访问性色（浅色值见 App.vue 的 :root）：暗底上换成亮色，同样保证 4.5:1 以上 */
+  --tk-a11y-blue: #79bbff;
+  --tk-a11y-gray: #a3a6ad;
 }
 
 html.dark body {
