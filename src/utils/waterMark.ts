@@ -36,8 +36,9 @@ const createWatermarkDom = (str1: string, str2: string): string => {
   div.style.zIndex = '100000';
   div.style.width = document.documentElement.clientWidth + 'px';
   div.style.height = document.documentElement.clientHeight + 'px';
+  // canvas 默认导出 png，这里显式要 webp（旧浏览器不支持时会自动回退成 png，不影响功能）
   div.style.background =
-    'url(' + can.toDataURL('image/png') + ') left top repeat';
+    'url(' + can.toDataURL('image/webp', 0.92) + ') left top repeat';
   document.body.appendChild(div);
   return WATERMARK_ID;
 };
