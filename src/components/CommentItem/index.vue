@@ -31,13 +31,16 @@
           >
             回复 @{{ comment.reply_username }}：{{ comment.reply_to_content }}
           </div>
-          <div class="comment-text">{{ comment.content }}</div>
+          <div v-if="comment.content" class="comment-text">
+            {{ comment.content }}
+          </div>
           <div v-if="imageList.length" class="comment-images">
             <el-image
               v-for="img in imageList"
               :key="img"
               :src="img"
               :preview-src-list="imageList"
+              preview-teleported
               fit="cover"
               class="comment-image"
             />
@@ -85,7 +88,14 @@
             :key="img"
             class="reply-image-item"
           >
-            <el-image :src="img" fit="cover" class="reply-image" />
+            <el-image
+              :src="img"
+              :preview-src-list="replyImages"
+              :initial-index="idx"
+              preview-teleported
+              fit="cover"
+              class="reply-image"
+            />
             <el-icon class="reply-image-remove" @click="removeImage(idx)">
               <CircleCloseFilled />
             </el-icon>
@@ -569,7 +579,6 @@ const cancelReply = () => {
 .emoji-panel {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
-  gap: 4px;
 }
 .emoji-item {
   background: none;

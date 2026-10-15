@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="comments-list">
     <el-card :body-style="{ padding: '0 20px 20px' }">
       <template #header>
@@ -64,7 +64,23 @@
                           scope.row.reply_to_content
                         }}
                       </div>
-                      <div class="comment-text">{{ scope.row.content }}</div>
+                      <div v-if="scope.row.content" class="comment-text">
+                        {{ scope.row.content }}
+                      </div>
+                      <div
+                        v-if="commentImages(scope.row).length"
+                        class="admin-comment-images"
+                      >
+                        <el-image
+                          v-for="img in commentImages(scope.row)"
+                          :key="img"
+                          :src="img"
+                          :preview-src-list="commentImages(scope.row)"
+                          preview-teleported
+                          fit="cover"
+                          class="admin-comment-image"
+                        />
+                      </div>
                     </template>
                   </el-table-column>
                   <el-table-column label="类型" width="90" align="center">
@@ -197,7 +213,23 @@
             </el-table-column>
             <el-table-column label="评论内容" min-width="280">
               <template #default="scope">
-                <div class="comment-text">{{ scope.row.content }}</div>
+                <div v-if="scope.row.content" class="comment-text">
+                  {{ scope.row.content }}
+                </div>
+                <div
+                  v-if="commentImages(scope.row).length"
+                  class="admin-comment-images"
+                >
+                  <el-image
+                    v-for="img in commentImages(scope.row)"
+                    :key="img"
+                    :src="img"
+                    :preview-src-list="commentImages(scope.row)"
+                    preview-teleported
+                    fit="cover"
+                    class="admin-comment-image"
+                  />
+                </div>
               </template>
             </el-table-column>
             <el-table-column label="类型" width="90" align="center">
@@ -295,6 +327,15 @@ const expandGroup = (qid: number) => {
 // 翻页时清空「展开全部」状态，避免旧页残留
 const resetExpanded = () => {
   expandedFull.value = new Set();
+};
+// 评论图片：images 是 JSON 字符串，解析失败按无图处理（纯图片评论在审核台也要能看见）
+const commentImages = (row: { images?: string | null }): string[] => {
+  try {
+    const parsed = JSON.parse(row.images || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 };
 
 const handlePageChange = (page: number) => {
@@ -547,6 +588,21 @@ onUnmounted(() => {
 
 .comment-text {
   word-break: break-word;
+}
+
+/* 评论图片缩略图（纯图片评论也能在审核台看到内容） */
+.admin-comment-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.admin-comment-image {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  cursor: zoom-in;
 }
 
 :deep(.el-collapse-item__header) {

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div v-loading="loading" class="info-container">
     <div class="page-header">
       <el-button class="back-btn" @click="returnToBefore">
@@ -191,7 +191,14 @@
                     :key="img"
                     class="comment-image-item"
                   >
-                    <el-image :src="img" fit="cover" class="comment-image" />
+                    <el-image
+                      :src="img"
+                      :preview-src-list="commentImages"
+                      :initial-index="idx"
+                      preview-teleported
+                      fit="cover"
+                      class="comment-image"
+                    />
                     <el-icon
                       class="comment-image-remove"
                       @click="removeCommentImage(idx)"
@@ -1516,7 +1523,6 @@ watchEffect(() => {
 .emoji-panel {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
-  gap: 4px;
 }
 .emoji-item {
   background: none;
