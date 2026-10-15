@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <el-card class="paper-page">
     <div class="search-bar">
       <el-input
@@ -60,7 +60,7 @@ import { Loading } from '@element-plus/icons-vue';
 import { getPaper } from '@/services';
 import TestCard from '@/components/TestCard/index.vue';
 import BackToTop from '@/components/BackToTop/index.vue';
-import type { IPaperCard } from '@/types';
+import type { IPaperCard, IPaperGroup } from '@/types';
 
 interface IPaperGroupState {
   key: string;
@@ -104,6 +104,29 @@ const currentGroup = computed(
   () => groups.value[Number(active.value)] as IPaperGroupState | undefined,
 );
 
+// 一次请求就能同时拿到两个分组的数据：后端 getPaperQuestionsList 的响应里
+// purviewPaper / personPaper 是一起返回的，请求参数与分组无关。
+// 首屏（以及搜索后）两个分组并发加载时，会打出两份参数完全相同的请求，
+// 这里按「页码 + 关键词」复用在途 Promise，同样的请求只发一次。
+const inflightPaperRequests = new Map<string, Promise<IPaperGroup>>();
+const fetchPaperPage = (page: number): Promise<IPaperGroup> => {
+  const key = `${page}|${keyword.value.trim()}`;
+  const inflight = inflightPaperRequests.get(key);
+  if (inflight) return inflight;
+  const task = getPaper({
+    type: 'all',
+    currentPage: page,
+    pageSize: PAGE_SIZE,
+    // 关键词交给服务端过滤，否则只能搜到已加载的这几页
+    keyword: keyword.value.trim() || undefined,
+  });
+  // 请求结束后（无论成功失败）移除，避免长期持有旧响应
+  const cleanup = () => inflightPaperRequests.delete(key);
+  task.then(cleanup, cleanup);
+  inflightPaperRequests.set(key, task);
+  return task;
+};
+
 const loadPapers = async (group: IPaperGroupState, append = false) => {
   if (group.loading || group.loadingMore) return;
   if (append && group.noMore) return;
@@ -114,13 +137,7 @@ const loadPapers = async (group: IPaperGroupState, append = false) => {
     group.loading = true;
   }
   try {
-    const res = await getPaper({
-      type: 'all',
-      currentPage: nextPage,
-      pageSize: PAGE_SIZE,
-      // 关键词交给服务端过滤，否则只能搜到已加载的这几页
-      keyword: keyword.value.trim() || undefined,
-    });
+    const res = await fetchPaperPage(nextPage);
     const pageData = res?.[group.key];
     const list = pageData?.list ?? [];
     const total = pageData?.total ?? 0;
