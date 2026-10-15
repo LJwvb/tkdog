@@ -593,6 +593,7 @@ const toTag = () => {
   border: none !important;
   width: 100%;
   margin-left: 60px;
+  background-color: transparent !important;
 }
 
 /* 菜单项：激活态渐变文字 + 悬浮渐变下划线 */
