@@ -1,15 +1,17 @@
 /**
- * 纯前端图片压缩工具（不引入第三方库，走 canvas 重编码）。
- * 使用场景：头像这类展示尺寸很小、但对体积敏感的图片，
- * 原图动辄 2~5MB，直接上传+回显会白等好几秒、也多占服务器带宽。
+ * 纯前端图片处理工具（不引入第三方库，走 canvas 重编码）。
+ * 本站所有上传图片统一存 webp（唯一例外是 GIF 动图，canvas 会把它压成只剩一帧）：
+ * - 头像：先压到长边 256 再上传（展示尺寸最大 80px，原图 2~5MB 纯属浪费）；
+ * - 评论图：只转格式、不缩放，画质 q0.9，兼顾体积与清晰度；
+ * - 浏览器不支持 webp 编码（Safari 14 以下）时原样上传，由后端 sharp 兜底转码。
  */
 
 /** 头像压缩后的最长边（px）：头像最大展示尺寸 80px，3 倍屏也只有 240px */
 export const AVATAR_MAX_EDGE = 256;
-/** 重编码质量：视觉上几乎无损，体积约为原图的 1/10 */
+/** 头像重编码质量：视觉上几乎无损，体积约为原图的 1/10 */
 const DEFAULT_QUALITY = 0.85;
-/** 原图尺寸未超限且体积已小于该值时，不再重编码（避免越压越大） */
-const SKIP_BYTES = 100 * 1024;
+/** 评论图等原尺寸图片的重编码质量（不缩放，质量给高一点） */
+const FULLSIZE_QUALITY = 0.9;
 
 const loadImage = (file: File): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
@@ -51,26 +53,25 @@ const canEncodeWebp = async (): Promise<boolean> => {
 };
 
 /**
- * 把图片压到「最长边不超过 maxEdge」并重新编码。
- * - GIF / WebP 直接原样返回：canvas 会把动图压成只剩一帧
- * - 尺寸没超限且体积已经很小、或压缩后反而更大时，返回原文件
- * - 不支持 webp 编码的浏览器回退成 JPEG，并先铺白底（JPEG 不支持透明）
+ * 把图片重新编码成 webp（可选缩放）。
+ * - GIF / 已是 webp：原样返回（GIF 是唯一例外，动图会被 canvas 压成静帧）
+ * - maxEdge <= 0：不缩放，只换格式（评论图走这条）
+ * - 浏览器不支持 webp 编码、读图失败或编码失败：原样返回，交给后端 sharp 兜底
  */
-export async function compressImage(
+export async function toWebp(
   file: File,
-  maxEdge = AVATAR_MAX_EDGE,
-  quality = DEFAULT_QUALITY,
+  options: { maxEdge?: number; quality?: number } = {},
 ): Promise<File> {
+  const { maxEdge = 0, quality = FULLSIZE_QUALITY } = options;
   if (file.type === 'image/gif' || file.type === 'image/webp') return file;
+  if (!(await canEncodeWebp())) return file;
 
   const img = await loadImage(file);
   const width = img.naturalWidth || img.width;
   const height = img.naturalHeight || img.height;
   if (!width || !height) return file;
 
-  const scale = Math.min(1, maxEdge / Math.max(width, height));
-  if (scale === 1 && file.size <= SKIP_BYTES) return file;
-
+  const scale = maxEdge > 0 ? Math.min(1, maxEdge / Math.max(width, height)) : 1;
   const targetWidth = Math.max(1, Math.round(width * scale));
   const targetHeight = Math.max(1, Math.round(height * scale));
   const canvas = document.createElement('canvas');
@@ -79,20 +80,24 @@ export async function compressImage(
   const ctx = canvas.getContext('2d');
   if (!ctx) return file;
 
-  const useWebp = await canEncodeWebp();
-  if (!useWebp) {
-    // 回退 JPEG 时先铺白底，否则 png 的透明区域会变成黑块
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, targetWidth, targetHeight);
-  }
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
 
-  const mime = useWebp ? 'image/webp' : 'image/jpeg';
-  const ext = useWebp ? 'webp' : 'jpg';
-  const blob = await canvasToBlob(canvas, mime, quality);
-  if (!blob || blob.size >= file.size) return file;
-  // 文件名只用扩展名有意义（后端按后缀判断格式、并自己重命名），这里给个纯 ASCII 名
-  return new File([blob], `image_${Date.now()}.${ext}`, { type: mime });
+  const blob = await canvasToBlob(canvas, 'image/webp', quality);
+  if (!blob) return file;
+  // 文件名只用扩展名有意义（后端按后缀与文件头判断格式、并自己重命名），这里给个纯 ASCII 名
+  return new File([blob], `image_${Date.now()}.webp`, { type: 'image/webp' });
+}
+
+/**
+ * 头像专用：压到「最长边不超过 maxEdge」并转 webp。
+ * 头像最大展示 80px（3 倍屏 240px），256 足够；线上曾出现 4.7MB 的头像文件。
+ */
+export async function compressImage(
+  file: File,
+  maxEdge = AVATAR_MAX_EDGE,
+  quality = DEFAULT_QUALITY,
+): Promise<File> {
+  return toWebp(file, { maxEdge, quality });
 }

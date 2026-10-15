@@ -1,5 +1,5 @@
 import { request } from '@/utils/request';
-import { compressImage, AVATAR_MAX_EDGE } from '@/utils/image';
+import { compressImage, toWebp, AVATAR_MAX_EDGE } from '@/utils/image';
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
 import store from '@/store';
@@ -246,7 +246,8 @@ export function getFollowCounts(): Promise<{
 }
 
 // 上传图片（multipart），返回图片 URL；channel 为上传渠道（comment/avatar/...）
-// 前端先做类型/大小校验，快速反馈，后端仍会二次校验兜底
+// 前端先做类型/大小校验，快速反馈，后端仍会二次校验兜底；
+// 除 GIF 外一律先转成 webp 再上传（不缩放，只换格式），后端 sharp 会再兜一道
 export async function uploadImage(
   file: File,
   channel = 'common',
@@ -266,8 +267,11 @@ export async function uploadImage(
     throw new Error('图片大小不能超过 5MB');
   }
 
+  // 统一格式：转 webp 后再上传（GIF 由 toWebp 内部原样返回）
+  const upload = await toWebp(file);
+
   const form = new FormData();
-  form.append('file', file);
+  form.append('file', upload);
   form.append('channel', channel);
   // 走 request 统一入口：自动加 Authorization、401 无感刷新、业务错误 toast
   // （axios 对 FormData 自动设置 Content-Type 含 boundary）
