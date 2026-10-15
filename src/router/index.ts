@@ -1,4 +1,4 @@
-﻿import {
+import {
   createRouter,
   createWebHashHistory,
   type RouteRecordRaw,
@@ -219,6 +219,15 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHashHistory(),
   routes,
+  // 切路由后统一回到页面顶部。
+  // 缺少这个配置时 vue-router 会保留原滚动位置：跳转到不同页面尚不明显，
+  // 但「为你推荐」里点相似题目是同一路由只换 query（组件复用），
+  // 页面会停在原来的位置，看起来像没跳转。
+  // 浏览器前进/后退时用 vue-router 记录的 savedPosition 还原原位置。
+  scrollBehavior(_to, _from, savedPosition) {
+    if (savedPosition) return savedPosition;
+    return { top: 0 };
+  },
 });
 
 router.beforeEach((to, _from, next) => {
