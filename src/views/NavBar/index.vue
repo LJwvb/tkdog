@@ -1,7 +1,7 @@
 <template>
   <div v-if="!store.state.adminData?.id" class="nav-container">
     <div class="logo">
-      <img src="../../assets/tkdog.png" width="50" />
+      <img src="../../assets/tkdog.webp" width="50" />
       <div class="title">
         <span>题库狗</span>
       </div>
@@ -133,7 +133,7 @@
   </div>
   <div v-else-if="store.state.adminData?.id" class="nav-container">
     <div class="logo">
-      <img src="../../assets/tkdog.png" width="50" />
+      <img src="../../assets/tkdog.webp" width="50" />
       <div class="title">
         <span>题库狗后台管理</span>
       </div>

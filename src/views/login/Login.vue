@@ -13,7 +13,7 @@
       <!-- 左侧品牌区 -->
       <div class="brand-panel">
         <div class="brand-logo">
-          <img src="@/assets/tkdog.png" alt="" class="logo-img" />
+          <img src="@/assets/tkdog.webp" alt="" class="logo-img" />
           <span class="logo-ring"></span>
         </div>
         <h1 class="brand-title">题库狗</h1>

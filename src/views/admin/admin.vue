@@ -2,7 +2,7 @@
   <div class="login-container">
     <div class="loginBox">
       <div class="title-box">
-        <img src="@/assets/tkdog.png" alt="" />
+        <img src="@/assets/tkdog.webp" alt="" />
         <span class="title">题库狗</span>
         <span class="line"></span>
         <span class="sub-title">管理员登录</span>
@@ -49,7 +49,7 @@
       </el-form>
     </div>
     <div class="right">
-      <img src="@/assets/login_bg.png" alt="" />
+      <img src="@/assets/login_bg.webp" alt="" />
     </div>
   </div>
 </template>
@@ -135,7 +135,7 @@ const toPersonLogin = () => {
   align-items: center;
   justify-content: space-around;
   /* background: linear-gradient(225deg, #1493fa, #01c6fa); */
-  background: url(../../assets/bg.jpg) no-repeat;
+  background: url(../../assets/bg.webp) no-repeat;
   background-size: 100% 100%;
 }
 

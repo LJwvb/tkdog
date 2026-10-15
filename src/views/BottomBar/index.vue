@@ -49,8 +49,9 @@
 
 <script setup lang="ts">
 import { School, Promotion, Stamp } from '@element-plus/icons-vue';
-// 公安备案官方警徽图标（取自 beian.gov.cn 官方备案编号图标，勿篡改样式）
-import policeBadge from '@/assets/police-badge.png';
+// 公安备案官方警徽图标（取自 beian.gov.cn 官方备案编号图标，勿篡改样式；
+// 2026-10-15 换 webp 时用无损编码，像素与原 png 完全一致）
+import policeBadge from '@/assets/police-badge.webp';
 
 // 公安联网备案号（公网安备）的数字部分，例如 '33028202001312'
 // 留空则页脚不展示该段；编号由公安备案平台「我的网站 → 详情」中获取
