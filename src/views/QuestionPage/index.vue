@@ -435,18 +435,9 @@ watch(
     }
   },
 );
-// 切换题目类型 / 难度 / 科目时即时刷新当前列表，无需手动点搜索；
-// 关键词、标签等输入型筛选仍只跟随「搜索」按钮，避免打字时频繁请求
-watch(
-  () => [form.questionType, form.difficulty, form.subjectID] as const,
-  ([qt, diff, sid]) => {
-    if (clickSearch.value) return; // 搜索结果模式由搜索逻辑负责
-    getAllQuestionParams.questionType = qt;
-    getAllQuestionParams.difficulty = diff;
-    getAllQuestionParams.subjectID = Number(sid) || 0;
-    getAllQuestion();
-  },
-);
+// 注意：难度 / 题型 / 科目 / 标签 这些搜索条件只在点「搜索」时随 searchQuestion 一起提交，
+// 点一下控件就重新拉一遍列表接口是多余的（还会计入一次列表请求）。
+// 列表本身的科目切换由上方科目页签（SubTab → tabClick）负责。
 </script>
 <style scoped>
 .top-container {
